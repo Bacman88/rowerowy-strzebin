@@ -94,7 +94,8 @@ PDFS = [("Projekt – komplet (opis, kosztorys, mapy, katalog)", [("PDF", "Solec
         ("Mapa Strzebinia – powiększenie", M("drogowskazy_mapa_strzebin.pdf", "mapa_strzebin")),
         ("Stan dróg na trasach", M("drogowskazy_stan_drog.pdf", "mapa_stan_drog")),
         ("Wszystkie mapy w jednym pliku", [("A3", "A3_mapy_komplet.pdf"), ("A4", "A4_mapy_komplet.pdf")]),
-        ("Katalog słupków i tabliczek", [("PDF", "drogowskazy_katalog.pdf")])]
+        ("Katalog słupków i tabliczek", [("PDF", "drogowskazy_katalog.pdf")]),
+        ("Kółka tras – naklejki do doklejania (A4)", [("PDF", "kropki_tras_A4.pdf")])]
 for _, fs in PDFS:
     for _, fn in fs: shutil.copy(f"{O}/{fn}", f"{S}/pdf/{fn}")
 sz = lambda fn: f"{os.path.getsize(f'{S}/pdf/{fn}') / 1e6:.1f} MB".replace(".", ",")

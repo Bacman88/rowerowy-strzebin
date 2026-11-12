@@ -8,6 +8,8 @@ SV=$D/umap_mapa_rowerowa.geojson; M1=$D/streetview_zasieg_1.png; M2=$D/streetvie
 mkdir -p $O/_tmp
 python3 -I signs_data.py $D/osm2_clean.geojson "$SV" signs.json 2>&1 | grep POI || true
 python3 -I directions.py $D/osm2_clean.geojson signs.json signs_prop.json kierunki_raport.json "$SV" >/dev/null
+# trasy przed tabliczkami: V22 – numery tras w kółkach na tabliczkach wg przebiegu tras
+python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy | tail -1
 for v in "tabliczki" "tabliczki_pojedyncze --single" "tabliczki_prostokatne --plate=rect" "tabliczki_prostokatne_zaokraglone --plate=roundrect"; do
   set -- $v; python3 -I plates.py signs_prop.json $GEN $O/$1 $2 | head -1
 done
@@ -17,8 +19,8 @@ rm -rf $O/_tmp/S; mkdir -p $O/_tmp/S
 python3 -I signs_render.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/_tmp/S/drogowskazy $M1 $M2 --single --manifest=$O/tabliczki_pojedyncze/manifest.json | tail -1
 mv $O/_tmp/S/drogowskazy_katalog.pdf $O/drogowskazy_katalog_pojedyncze.pdf
 python3 -I gaps.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy | tail -1
-python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy | tail -1
 python3 paski.py
+python3 kropki.py
 python3 -I skaluj_mapy.py
 ( cd $O && python3 -c "
 from pypdf import PdfWriter;w=PdfWriter();[w.append(f) for f in ['drogowskazy_mapa.pdf','drogowskazy_mapa_strzebin.pdf']];w.write('drogowskazy_mapy_komplet.pdf')"

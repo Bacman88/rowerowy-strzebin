@@ -55,6 +55,8 @@ W = doc.width
 import json
 DP = json.load(open("signs_prop.json")); MF = json.load(open(f"{O}/tabliczki/manifest.json"))
 import csv as _csv
+NKROP = sum(1 for r in list(_csv.reader(open(f"{O}/kropki_tras_wykaz.csv", encoding="utf-8-sig"), delimiter=";"))[1:] for _ in r[6].split(","))
+NKT = len({(r[0], r[1]) for r in list(_csv.reader(open(f"{O}/kropki_tras_wykaz.csv", encoding="utf-8-sig"), delimiter=";"))[1:]})
 NPASK = sum(int(r[2]) for r in list(_csv.reader(open(f"{O}/wykaz_paskow.csv", encoding="utf-8-sig"), delimiter=";"))[1:])
 TR_all = json.load(open(f"{O}/drogowskazy_trasy.json"))
 TR = [r for r in TR_all if not r.get("alt")]; TR1A = next((r for r in TR_all if r.get("alt")), None)
@@ -163,6 +165,15 @@ st.append(Table([[Image(f"{O}/paski_demo.png", width=40 * mm, height=40 * 110 / 
               "na każdym słupku widzi swój czerwony pasek z „1”. Przy zmianie przebiegu trasy wystarczy wymienić pasek.", SMALL)]],
     colWidths=[44 * mm, W - 44 * mm], style=[("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
 
+st.append(Spacer(1, 4))
+st.append(Table([[Image(f"{O}/kropki_demo.png", width=62 * mm, height=62 * 200 / 800 * mm),
+    Paragraph(f"<b>Numery tras na tabliczkach (generator V22).</b> Przy nazwie celu stoją kółka z numerami tras w ich kolorach – np. „Łazy ①④⑥” "
+              f"mówi od razu, że w tę stronę jedzie trasa 1, 4 i 6. Kółko dostaje cel, do którego trasa prowadzi co najmniej przez 1 km "
+              f"(lub większość drogi); cele bliżej niż 1 km są bez kółek. Razem {NKROP} kółek na {NKT} tabliczkach, bez wydłużania żadnej tabliczki. "
+              "Kółka są w plikach do druku, a przy zmianie przebiegu trasy wystarczy dokleić lub zakleić kółko-naklejkę Ø31 mm – tabliczka zostaje. "
+              "Paski na słupkach zostają jako potwierdzenie trasy przy samym węźle.", SMALL)]],
+    colWidths=[66 * mm, W - 66 * mm], style=[("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
+
 st.append(Paragraph("Co obejmuje projekt", H2))
 st.append(table([
     ["Element", "Zakres"],
@@ -199,7 +210,7 @@ st.append(table([
 ], [52 * mm, 22 * mm, 10 * mm, (W - 84 * mm) / 3, (W - 84 * mm) / 3, (W - 84 * mm) / 3], bold_rows=(4, 8, 9)))
 st.append(Spacer(1, 3))
 st.append(Paragraph("Założenia: tabliczka z drukiem dwustronnym 70–200 zł zależnie od wariantu; mocowanie (obejmy i śruby nierdzewne) ok. 30 zł na tabliczkę; "
-                    f"nowy słupek fi 60 mm z kotwą i montażem ok. 280 zł. Naklejki węzłów ({NPOST} szt.) i paski tras (ok. {NPASK} szt.) – razem ok. 0,5–1 tys. zł dodatkowo. "
+                    f"nowy słupek fi 60 mm z kotwą i montażem ok. 280 zł. Naklejki węzłów ({NPOST} szt.), paski tras (ok. {NPASK} szt.) i zapasowe kółka tras do doklejania – razem ok. 0,5–1 tys. zł dodatkowo. "
                     "Poza kosztorysem: ewentualne podsypanie i utwardzenie najgorszych odcinków (orientacyjnie 80–120 tys. zł za 1 km przy szerokości 3 m; "
                     "same odcinki trudne – ok. 0,7 km).", SMALL))
 

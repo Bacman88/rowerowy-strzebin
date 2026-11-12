@@ -1,4 +1,6 @@
-"""Production SVGs for every plate, built 1:1 with Bartosz's generator V21 RODZAJ_PŁYTY (HUB Strzebiń).
+"""Production SVGs for every plate, built 1:1 with Bartosz's generator V22 TRASY (HUB Strzebiń).
+
+V22: numery tras w kółkach przy celu (maks. 4) – wg przebiegu tras pokazowych (drogowskazy_trasy.geojson).
 
 Length policy agreed with Bartosz:
   * only the generator's lengths (800 / 950 / 1100 mm),
@@ -25,6 +27,7 @@ FAM = re.search(r"const fontFamily='([^']+)'", html).group(1)
 BIKE_INNER = re.search(r"g\.innerHTML=`(<circle.*?)`;", html, re.S).group(1)
 BB = dict(minX=39, minY=69, w=324, h=212)
 # generator v16 defaults (sliders)
+RT_D, RT_GAP, RT_AFTER = 31, 7, 10   # V22: średnica kółka trasy, odstęp, odstęp od nazwy/piktogramu [mm]
 FONT, FONT_MIN, ICON, BIKE, TEXTGAP, BIKEBOXW, NAMESHIFT, DINSET, DSHIFT, MINGAP = 44, 32, 36, 100, 24, 128, 0, 28, 0, 18
 
 font = TTFont("../fonts/FiraSansCondensed-SemiBold.ttf")
@@ -62,7 +65,7 @@ def layout(d, W, entries, size, two_line):
     fx, fw, bike_box, name_x, km_r = geometry(d, W)
     items, ok = [], True
     multi = two_line and len(entries) == 1
-    for i, (name, km, ico) in enumerate(entries):
+    for i, (name, km, ico, rts) in enumerate(entries):
         if multi:
             w_ = name.split(" ")
             l1, l2 = min(((" ".join(w_[:k]), " ".join(w_[k:])) for k in range(1, len(w_))), key=lambda t: max(width(t[0], size), width(t[1], size)))
@@ -76,17 +79,30 @@ def layout(d, W, entries, size, two_line):
             t = tb[-1]; px = t[0] + t[2] + 10; py = t[1] + (t[3] - ICON) / 2; icon = (px, py)
         name_right = max(t[0] + t[2] for t in tb)
         if icon: name_right = max(name_right, icon[0] + ICON)
+        dots = None
+        if rts:   # V22: kółka tras za nazwą (za piktogramem, jeśli jest); w nazwie dwuwierszowej za linią 2 albo 1
+            D_ = RT[0]; t = tb[0] if (RT[1] == "first" and len(tb) > 1) else tb[-1]
+            px = (icon[0] + ICON if (icon and t is tb[-1]) else t[0] + t[2]) + RT_AFTER
+            dots = (px, t[1] + (t[3] - D_) / 2, D_); name_right = max(name_right, px + len(rts) * D_ + (len(rts) - 1) * RT_GAP)
         dist_left = km_r - width(km, size)
         # V20: strefa montażowa (wariant overlay, nasada po stronie przeciwnej do grotu)
         if (d == "left" and km_r > W - MOUNT_ZONE) or (d == "right" and name_x < MOUNT_ZONE): ok = False
         if name_right + GAP[0] > dist_left + 0.5: ok = False
         for t in tb:
             if t[1] < 19 + 7 - 3 or t[1] + t[3] > 19 + 162 - 7 + 3: ok = False
-        items.append(dict(lines=list(zip(lines, bases)), km=km, ky=ky, ico=ico, icon=icon))
+        items.append(dict(lines=list(zip(lines, bases)), km=km, ky=ky, ico=ico, icon=icon, rts=rts, dots=dots))
     return ok, items
 
 GAP = [18]
+RT = [RT_D, "last"]
 def best_layout(d, W, entries):
+    """V22: przy kółkach tras najpierw pełna średnica 31 mm, potem kółka za 1. linią nazwy, potem mniejsze (26, 22 mm) – zanim tabliczka się wydłuży."""
+    opts = [(RT_D, "last"), (RT_D, "first"), (26, "last"), (26, "first"), (22, "last"), (22, "first")] if any(e[3] for e in entries) else [(RT_D, "last")]
+    for o in opts:
+        RT[:] = o; r = _best_layout(d, W, entries)
+        if r: r["rt"] = o; RT[:] = [RT_D, "last"]; return r
+    RT[:] = [RT_D, "last"]; return None
+def _best_layout(d, W, entries):
     """Prefer one line, then two lines (single target), at standard font."""
     for gap in (MINGAP, 14, 12):   # generator pozwala zejść z odstępem do 12 mm (suwak „minimalny odstęp”)
         GAP[0] = gap
@@ -112,6 +128,14 @@ def svg_plate(d, W, color, lay):
             px, py = it["icon"]
             parts.append(f'<g id="piktogram_{i}" data-icon="{it["ico"]}" fill="none" stroke="{color}" stroke-width="1.8" stroke-linecap="round" '
                          f'stroke-linejoin="round" transform="translate({px:.3f} {py:.3f}) scale({ICON / 24:.5f})">{ICONS[it["ico"]]}</g>')
+        if it["rts"]:   # V22 addRouteBadges: kółko z białą obwódką 1,4 mm i numerem
+            px, py, D_ = it["dots"]; g_ = []
+            for j, r_ in enumerate(it["rts"]):
+                cx, cy = px + D_ / 2 + j * (D_ + RT_GAP), py + D_ / 2; col, txt = KOL.get(r_, ("#555", "white"))[:2]
+                fs = D_ * (.66 if len(r_) == 1 else .49)
+                g_.append(f'<circle cx="{cx:.3f}" cy="{cy:.3f}" r="{D_/2:g}" fill="{col}" stroke="white" stroke-width="1.4"/>'
+                          f'<text x="{cx:.3f}" y="{cy + fs * .36:.3f}" text-anchor="middle" fill="{txt}" font-family="Arial, sans-serif" font-size="{fs:.2f}" font-weight="700">{r_}</text>')
+            parts.append(f'<g id="trasy_{i}" data-type="route-badges">{"".join(g_)}</g>')
     s = BIKE / BB["w"]; dw, dh = BB["w"] * s, BB["h"] * s
     tx = bb[0] + (bb[2] - dw) / 2 - BB["minX"] * s; ty = bb[1] + (bb[3] - dh) / 2 - BB["minY"] * s
     return (f'<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="{W}mm" height="200mm" viewBox="0 0 {W} 200">'
@@ -163,6 +187,31 @@ CATNAME = {"blue": "niebieska – miejscowości", "green": "zielona – przyroda
 ORDER = sorted(LENGTHS, key=LENGTHS.get)            # S, M, L
 
 D = json.load(open(SIGNS))
+# V22: które trasy pokazowe prowadzą w kierunku tabliczki – trasa idzie razem ze ścieżką do celu od słupka
+# przez co najmniej min(1 km, 60% drogi do celu); cele bliżej niż 1 km bez kółek. Wariant 1a liczy się jako trasa 1.
+exec(open("trasy_kolory.py").read()); KOL = KOLORY
+_TR = os.path.join(os.path.dirname(OUTDIR.rstrip("/")), "drogowskazy_trasy.geojson")
+from pyproj import Geod
+_geod = Geod(ellps="WGS84")
+_RE = {}
+if os.path.exists(_TR):
+    for f in json.load(open(_TR))["features"]:
+        rid = f["properties"]["id"].rstrip("a"); c = [tuple(round(v, 7) for v in q) for q in f["geometry"]["coordinates"]]
+        for a_, b_ in zip(c, c[1:]): _RE.setdefault(frozenset((a_, b_)), set()).add(rid)
+else: print("UWAGA: brak", _TR, "– tabliczki bez numerów tras (uruchom najpierw trasy.py)")
+def plate_routes(pl):
+    path = [tuple(round(v, 7) for v in q) for q in (pl.get("path") or [])]
+    if len(path) < 2 or not _RE or (pl.get("km") or 0) < 1.0: return []   # bliskie cele (< 1 km) bez kółek – to nie „kierunek trasy”
+    seg = [(_RE.get(frozenset((a_, b_)), set()), _geod.inv(a_[0], a_[1], b_[0], b_[1])[2]) for a_, b_ in zip(path, path[1:])]
+    total = sum(m for _, m in seg); need = min(1000, 0.6 * total); out = []
+    for r_ in sorted(set().union(*[s_ for s_, _ in seg]), key=lambda x: int(x)):
+        run = 0
+        for s_, m in seg:
+            if r_ not in s_: break
+            run += m
+        if run >= need - 1: out.append(r_)
+    return out[:4]
+
 svgdir = os.path.join(OUTDIR, "svg"); pngdir = os.path.join(OUTDIR, "png"); techdir = os.path.join(OUTDIR, "svg_montaz")
 shutil.rmtree(OUTDIR, ignore_errors=True); os.makedirs(svgdir); os.makedirs(pngdir); os.makedirs(techdir)
 rows, manifest, stats = [], {}, {k: 0 for k in ORDER}
@@ -173,13 +222,13 @@ for p in D["posts"]:
         # a 2-target plate that would force a longer plate is split into two standard ones
         if len(grp) == 2:
             d0 = side(grp[0])
-            ent = lambda g_: [(q["name"], (f"{q['km']:.1f}".replace(".", ",") + " km") if q.get("km") is not None else "0,0 km", category(q)[1]) for q in g_]
+            ent = lambda g_: [(q["name"], (f"{q['km']:.1f}".replace(".", ",") + " km") if q.get("km") is not None else "0,0 km", category(q)[1], plate_routes(q)) for q in g_]
             if not best_layout(d0, LENGTHS[ORDER[0]], ent(grp)) and all(best_layout(d0, LENGTHS[ORDER[0]], ent([q])) for q in grp):
                 gl += [[grp[0]], [grp[1]]]; continue
         gl.append(grp)
     for grp in gl:
         d = side(grp[0]); cat = category(grp[0])[0]
-        entries = [(pl["name"], (f"{pl['km']:.1f}".replace(".", ",") + " km") if pl.get("km") is not None else "0,0 km", category(pl)[1]) for pl in grp]
+        entries = [(pl["name"], (f"{pl['km']:.1f}".replace(".", ",") + " km") if pl.get("km") is not None else "0,0 km", category(pl)[1], plate_routes(pl)) for pl in grp]
         need = next((k for k in ORDER if best_layout(d, LENGTHS[k], entries)), None)
         plates.append(dict(grp=grp, d=d, cat=cat, entries=entries, need=need))
     # one post = one length
@@ -196,6 +245,7 @@ for p in D["posts"]:
             note = f"czcionka zmniejszona do {lay['size']} mm" if lay else "nie mieści się – do ręcznej korekty"
             if not lay: _, it = layout(pl["d"], W, pl["entries"], FONT_MIN, False); lay = dict(items=it, size=FONT_MIN, two=False)
         if lay.get("two"): note = (note + "; " if note else "") + "nazwa w dwóch liniach"
+        if lay.get("rt") and lay["rt"] != (RT_D, "last"): note = (note + "; " if note else "") + f"kółka tras {lay['rt'][0]} mm" + (" za 1. linią" if lay["rt"][1] == "first" else "")
         color = PALETTE[pl["cat"]]
         fn = f"S{p['nr']:02d}_T{k}_{'lewo' if pl['d'] == 'left' else 'prawo'}_{W}"
         open(os.path.join(svgdir, fn + ".svg"), "w", encoding="utf-8").write(svg_plate(pl["d"], W, color, lay))
@@ -203,18 +253,21 @@ for p in D["posts"]:
         if not os.path.exists(os.path.join(techdir, tn)): open(os.path.join(techdir, tn), "w", encoding="utf-8").write(svg_tech(pl["d"], W))
         subprocess.run(["rsvg-convert", "-w", str(int(1200 * W / 800)), "-o", os.path.join(pngdir, fn + ".png"), os.path.join(svgdir, fn + ".svg")], check=True)
         deg = pl["grp"][0].get("deg"); stats[pole] += 1
-        manifest[p["nr"]].append(dict(png=os.path.join(pngdir, fn + ".png"), deg=deg, dir=pl["d"], note=note, size=lay["size"], cat=pl["cat"], W=W))
+        manifest[p["nr"]].append(dict(png=os.path.join(pngdir, fn + ".png"), deg=deg, dir=pl["d"], note=note, size=lay["size"], cat=pl["cat"], W=W,
+                                      routes=[e[3] for e in pl["entries"]]))
         flat = [x for e in pl["entries"] for x in e[:2]]
+        trs = " / ".join(",".join(e[3]) for e in pl["entries"])
         why = "; ".join(sorted({g.get("why", "") for g in pl["grp"] if g.get("why") and g.get("why") != "jest w uMap"}))
         rows.append([p["nr"], k, fn + ".svg", f"{W} × 200", "←" if pl["d"] == "left" else "→", DIR8[int((deg + 22.5) // 45) % 8] if deg is not None else "",
                      CATNAME.get(pl["cat"], pl["cat"]), *flat, *([""] * (4 - len(flat))), lay["size"], ", ".join(p["agree"]), p["loc"],
-                     f"{p['lat']:.6f}", f"{p['lon']:.6f}", p.get("pole", "do sprawdzenia")])
+                     f"{p['lat']:.6f}", f"{p['lon']:.6f}", p.get("pole", "do sprawdzenia"), trs if trs.strip(" /") else ""])
 with open(os.path.join(OUTDIR, "wykaz_tabliczek.csv"), "w", newline="", encoding="utf-8-sig") as f:
     w = csv.writer(f, delimiter=";")
     w.writerow(["Słupek", "Tabliczka", "Plik SVG", "Wymiar [mm]", "Zwrot", "Kierunek kompasowy", "Typ tabliczki", "Cel 1", "Odległość 1", "Cel 2",
-                "Odległość 2", "Czcionka [mm]", "Uzgodnienie", "Lokalizacja", "Szer.", "Dł.", "Słupek (istniejący/nowy)"])
+                "Odległość 2", "Czcionka [mm]", "Uzgodnienie", "Lokalizacja", "Szer.", "Dł.", "Słupek (istniejący/nowy)", "Kółka tras (cel 1 / cel 2)"])
     w.writerows(rows)
 json.dump(manifest, open(os.path.join(OUTDIR, "manifest.json"), "w"), ensure_ascii=False)
-print("plates", len(rows), "by length", {LENGTHS[k]: v for k, v in stats.items()})
+print("plates", len(rows), "by length", {LENGTHS[k]: v for k, v in stats.items()}, "z kółkami tras", sum(1 for r in rows if r[-1]),
+      "kółek", sum(len(x) for r in rows for x in r[-1].replace(" / ", ",").split(",") if x))
 for r in rows:
     pass

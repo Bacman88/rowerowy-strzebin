@@ -1,8 +1,5 @@
-Generator HUB Strzebiń v20 — MONTAŻ I DIBOND
+Generator drogowskazów HUB Strzebiń — v22
 
-Wariant 1: uchwyt na nasadzie przesłania do 60 mm obramowania. Wariant 2: języczek +60 mm przy nasadzie, bez zmiany widocznych wymiarów znaku.
-Dla znaku 800 × 200 mm płyta przy języczku ma 860 × 200 mm. Analogicznie 950→1010 mm i 1100→1160 mm.
-Nasada: strzałka w lewo = prawa strona, strzałka w prawo = lewa strona.
-Otwory: przykład 2 × Ø6 mm, 30 mm od krawędzi nasady, na wysokości 50 i 150 mm. Parametry poglądowe, do potwierdzenia przez wykonawcę.
-Podgląd techniczny aktywuje się przy boxach lub w osobnym polu. Eksport grafiki SVG NIE zawiera stref i otworów. Oddzielny eksport rysunku technicznego zawiera strefę, osie i otwory.
-Nie traktować przykładowych wymiarów jako wytycznych konstrukcyjnych — zweryfikować rzeczywisty uchwyt, rozstaw otworów, obciążenia i sposób montażu.
+Nowe: dla każdego celu ustaw „Oznaczenie przy celu” na „Numery tras w kółkach”, wybierz od 1 do 4 oznaczeń oraz numer i kolor każdego kółka. Suwakami zmienisz średnicę i odstęp. Pozycję grupy ustawiasz jak zwykły piktogram (w nazwach dwuwierszowych: za linią 1, za linią 2 lub przed odległością).
+
+Dotychczasowe funkcje v21 — trzy długości, typy płyt, kolory, montaż Dibond, SVG graficzny/techniczny, rower i piktogramy — pozostają dostępne. Numery tras nie są automatycznie przypisywane. Przed produkcją należy sprawdzić czytelność, kolizje i uzgodnienia zarządcy.
