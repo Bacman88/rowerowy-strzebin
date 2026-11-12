@@ -153,6 +153,23 @@ def wrench(a_, x, y, d_mm, z=21):
     sc = d * 0.62 / 24
     a_.add_patch(_PP(_Aff().translate(-12, -12).scale(sc, -sc).translate(x, y).transform_path(_WPATH), facecolor="none",
                      edgecolor="#505C66", lw=lw(d_mm * 0.62 / 24 * 2.3), capstyle="round", joinstyle="round", zorder=z + 0.5))
+# piktogram celu lokalnego (jak na stronie): kwadrat w kolorze kategorii, biały piktogram Tabler – zamiast gwiazdki
+import re as _re2
+from matplotlib.patches import FancyBboxPatch as _FBP
+_ICP = {}
+IKONA_MAPY = {"community": "heritage"}   # Piekarniok na mapie jako zabytek
+def _ikp(n):
+    if n not in _ICP:
+        _ICP[n] = [_pp(d_) for d_ in _re2.findall(r'<path d="([^"]+)"', open(f"../generator/piktogramy_tabler/{n}.svg").read())]
+    return _ICP[n]
+def pikt(a_, x, y, d_mm, icon, color, z=22):
+    bb = a_.get_position(); upm = (a_.get_xlim()[1] - a_.get_xlim()[0]) / (bb.width * PW); d = d_mm * upm
+    a_.add_patch(_FBP((x - d / 2, y - d / 2), d, d, boxstyle=f"round,pad=0,rounding_size={d * 0.26}", facecolor=color, edgecolor="white",
+                      lw=lw(d_mm * 0.09), zorder=z))
+    sc = d * 0.66 / 24
+    for pth in _ikp(IKONA_MAPY.get(icon, icon) or "star"):
+        a_.add_patch(_PP(_Aff().translate(-12, -12).scale(sc, -sc).translate(x, y).transform_path(pth), facecolor="none", edgecolor="white",
+                         lw=lw(d_mm * 0.66 / 24 * 2.1), capstyle="round", joinstyle="round", zorder=z + 0.5))
 post_xy = [(g_.x, g_.y) for g_ in pts.geometry]
 R_POST = (5.0 if ZOOM else 4.2) * SCALE / 1000            # post circle radius on paper ≈ 4.2 mm
 STATIONS = []
@@ -178,8 +195,7 @@ for poi in sorted(D.get("pois", []), key=lambda q: q.get("icon") != "service"): 
         for a_ in sorted(range(0, 360, 30), key=lambda t: abs((t - a0 + 180) % 360 - 180)):
             px, py = near[0] + 1.75 * R_POST * math.cos(math.radians(a_)), near[1] + 1.75 * R_POST * math.sin(math.radians(a_))
             if all(math.dist((px, py), q) > 1.5 * R_POST for q in obst): x, y = px, py; break
-    ax.text(x, y, "★", fontsize=16, color=PCAT.get(poi["cat"], "#b5179e"), ha="center", va="center", zorder=22, family="DejaVu Sans",
-            path_effects=[pe.withStroke(linewidth=3, foreground="white")])
+    pikt(ax, x, y, 6.2 if ZOOM else 5.4, poi.get("icon"), PCAT.get(poi["cat"], "#902B38"))
     POI_T.append((ax.text(x, y, nm_, fontsize=10 if ZOOM else 8.5, weight="bold", color=PCAT.get(poi["cat"], "#b5179e"), zorder=25,
                           path_effects=[pe.withStroke(linewidth=3, foreground="white")]), x, y))
 
@@ -236,8 +252,10 @@ for nm, c in leg_routes:
     pan.plot([M, M + 9], [y, y], color=c, lw=lw(0.7), linestyle=(0, (3, 1.5)))
     T(M + 13, y, nm, fontsize=9.5, va="center"); y -= 8
 y -= 5; T(M, y, "INNE", fontsize=9, weight="bold", color="#4b5d53"); y -= 9
-pan.text(M + 4, y, "★", ha="center", va="center", fontsize=11, color="#e05ad0", family="DejaVu Sans")
-T(M + 13, y, "cele lokalne: brąz – historia i kultura,\nczerwień – gastronomia (przykładowa)" + ("" if ZOOM else ";\nnazwy w ciasnym centrum Strzebinia – na mapie\npowiększonej"), fontsize=9, va="center"); y -= (14 if ZOOM else 22)
+for _k, (_ic, _cc) in enumerate([("church", "#81552F"), ("heritage", "#81552F"), ("restaurant", "#902B38"), ("bar", "#902B38"), ("football", "#B96516")]):
+    pikt(pan, M + 4 + _k * 7.5, y, 5.2, _ic, _cc)
+y -= 8
+T(M + 13, y, "cele lokalne: kościoły i zabytki (brąz), restauracje\ni bary (czerwień, przykładowe), sport (pomarańcz)" + ("" if ZOOM else ";\nnazwy w ciasnym centrum Strzebinia – na mapie\npowiększonej"), fontsize=9, va="center"); y -= (14 if ZOOM else 22)
 wrench(pan, M + 4, y, 6)
 T(M + 13, y, "stacja napraw rowerów (fundusz sołecki 2027; przy boisku także WC)", fontsize=9, va="center"); y -= 14
 T(M, y, "Odległości na tabliczkach (katalog) liczone po drogach\nz OpenStreetMap do centrum miejscowości.\n"
@@ -314,8 +332,7 @@ if ZOOM:   # powiększenia gęstych miejsc (Łazy, most w Strzebiniu)
             if poi.get("icon") == "wc": continue
             if poi.get("icon") == "service":
                 wrench(ia, x_, y_, 7); continue
-            ia.text(x_, y_, "★", fontsize=15, color=PCAT.get(poi["cat"], "#b5179e"), ha="center", va="center", zorder=12, family="DejaVu Sans",
-                    path_effects=[pe.withStroke(linewidth=3, foreground="white")])
+            pikt(ia, x_, y_, 5.6, poi.get("icon"), PCAT.get(poi["cat"], "#902B38"), z=12)
             _lft = x_ > cxi
             ia.text(x_ + (-1 if _lft else 1) * half_w * 0.05, y_ + half_h * 0.08, poi["name"], fontsize=8, weight="bold", color=PCAT.get(poi["cat"], "#b5179e"),
                     va="center", ha="right" if _lft else "left", zorder=12,

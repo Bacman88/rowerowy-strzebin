@@ -45,10 +45,17 @@ GMINA = json.load(open("../dane/gmina_koszecin.geojson"))["features"][0]["geomet
 hull = hull.union(_shape(GMINA).buffer(0.04))
 _gb = _shape(GMINA).exterior if GMINA["type"] == "Polygon" else max(_shape(GMINA).geoms, key=lambda x: x.area).exterior
 gmina_ll = [[round(y, 5), round(x, 5)] for x, y in _gb.coords]
-# stacja przy pomniku J. Ligonia: na mapie www ok. 30 m na wschód, żeby nie zasłaniała gwiazdki pomnika
+# stacja przy pomniku J. Ligonia: na mapie www ok. 30 m na wschód, żeby nie zasłaniała piktogramu pomnika
 przes = lambda q: 0.0004 if any(o.get("icon") == "heritage" and abs(o["lat"] - q["lat"]) + abs(o["lon"] - q["lon"]) < 1e-4 for o in D.get("pois", [])) else 0
 places = [dict(typ="stacja", nazwa="Stacja napraw rowerów", opis="planowana – fundusz sołecki 2027", lat=q["lat"], lon=q["lon"] + przes(q), plan=1)
           for q in D.get("pois", []) if q.get("icon") == "service"]
+# cele lokalne (wcześniej gwiazdki) jako miejsca z piktogramami – 12.11.2026 wg Bartosza: bar, restauracja, kościół, zabytek, sport
+TYP_POI = {"church": ("kosciol", None), "heritage": ("zabytek", None), "community": ("zabytek", None), "bar": ("bar", None),
+           "restaurant": ("jedzenie", None), "football": ("sport", "football"), "swim": ("sport", "swim")}
+for q in D.get("pois", []):
+    if q.get("icon") in TYP_POI:
+        t_, ik_ = TYP_POI[q["icon"]]
+        places.append(dict(typ=t_, nazwa=q["name"], opis="", lat=q["lat"], lon=q["lon"], **({"ik": ik_} if ik_ else {})))
 for f in json.load(open("../dane/miejsca.geojson"))["features"]:
     x, y = f["geometry"]["coordinates"]; places.append(dict(f["properties"], lat=y, lon=x))
 for f in json.load(open("../dane/osm_gmina.geojson"))["features"]:

@@ -27,19 +27,21 @@ window.MIEJSCA = (() => {
     zabytek:  {n:'Zabytek / pomnik', i:'heritage', c:C.braz, g:'ciekawe'},
     kosciol:  {n:'Kościół / kapliczka', i:'church', c:C.braz, g:'ciekawe'},
     przyroda: {n:'Przyroda', i:'tree', c:C.zielony, g:'ciekawe'},
+    sport:    {n:'Sport i rekreacja', i:'sport', c:C.pomar, g:'ciekawe'},
   };
   // kolejność i grupy w formularzu
   const GRUPY = [
     ['Odpoczynek', ['lawka', 'wiata', 'piknik', 'widok', 'zabawa', 'woda']],
     ['Rower i udogodnienia', ['serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'apteczka', 'info']],
     ['Jedzenie i nocleg', ['jedzenie', 'kawa', 'bar', 'nocleg']],
-    ['Ciekawe miejsca', ['ciekawe', 'zabytek', 'kosciol', 'przyroda']],
+    ['Ciekawe miejsca', ['ciekawe', 'zabytek', 'kosciol', 'przyroda', 'sport']],
   ];
   const WARSTWY = {odpoczynek:'odpoczynek', serwis:'rower i udogodnienia', ciekawe:'ciekawe miejsca, jedzenie, nocleg'};
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const svg = (t, col = '#fff', size = 15) =>
-    `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${col}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IK[(TYP[t] || TYP.ciekawe).i] || IK.star || ''}</svg>`;
+  // ik – opcjonalnie własny piktogram miejsca (np. basen przy typie „sport”)
+  const svg = (t, col = '#fff', size = 15, ik = null) =>
+    `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${col}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IK[ik] || IK[(TYP[t] || TYP.ciekawe).i] || IK.star || ''}</svg>`;
 
   const css = document.createElement('style');
   css.textContent = `.mj{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
@@ -49,7 +51,7 @@ window.MIEJSCA = (() => {
     .mjp h3{margin:0 0 2px;font-size:15px}.mjp p{margin:4px 0 0;font-size:13.5px;white-space:pre-wrap}.mjp .k{color:#56665c;font-size:12px;margin-top:4px}`;
   document.head.appendChild(css);
 
-  const icon = m => L.divIcon({className:'', html:`<div class="mj${m.plan ? ' plan' : ''}" style="background:${(TYP[m.typ] || TYP.ciekawe).c}">${svg(m.typ)}</div>`,
+  const icon = m => L.divIcon({className:'', html:`<div class="mj${m.plan ? ' plan' : ''}" style="background:${(TYP[m.typ] || TYP.ciekawe).c}">${svg(m.typ, '#fff', 15, m.ik)}</div>`,
                                iconSize:[24, 24], iconAnchor:[12, 12], popupAnchor:[0, -10]});
   function popup(m) {
     const t = TYP[m.typ] || TYP.ciekawe;

@@ -115,7 +115,7 @@ if ($lista && $tryb === 'drogi') {
 $TYPY = ['lawka' => 'ławka', 'wiata' => 'wiata', 'piknik' => 'piknik / ognisko', 'widok' => 'punkt widokowy', 'zabawa' => 'plac zabaw', 'woda' => 'woda pitna',
     'serwis' => 'serwis rowerowy', 'stojak' => 'stojak na rowery', 'wypozycz' => 'wypożyczalnia', 'wc' => 'WC', 'parking' => 'parking', 'apteczka' => 'pierwsza pomoc / AED',
     'info' => 'tablica informacyjna', 'jedzenie' => 'restauracja', 'kawa' => 'kawiarnia', 'bar' => 'bar', 'nocleg' => 'nocleg', 'ciekawe' => 'ciekawe miejsce',
-    'zabytek' => 'zabytek / pomnik', 'kosciol' => 'kościół / kapliczka', 'przyroda' => 'przyroda'];
+    'zabytek' => 'zabytek / pomnik', 'kosciol' => 'kościół / kapliczka', 'przyroda' => 'przyroda', 'sport' => 'sport i rekreacja'];
 $NAZWY = ['dobra' => 'dobra', 'srednia' => 'średnia', 'trudna' => 'trudna', 'nieprzejezdna' => 'nieprzejezdna'];
 $AKCJE = ['oczekuje' => [['zatwierdz', 'Zatwierdź', 'ok'], ['odrzuc', 'Odrzuć', 'no']],
           'zatwierdzone' => [['wycofaj', 'Wycofaj z mapy', 'no']],
