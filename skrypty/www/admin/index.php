@@ -39,7 +39,16 @@ if (!($_SESSION['ok'] ?? false)) {
     exit;
 }
 
-$db = hub_db();
+try { $db = hub_db(); } catch (Throwable $e) {
+    // zalogowany administrator widzi przyczynę (zwykle: brak sterownika SQLite albo prawa zapisu do katalogu danych)
+    http_response_code(500);
+    echo '<!doctype html><meta charset="utf-8"><body style="font:16px/1.5 system-ui;padding:24px;max-width:760px">'
+       . '<h2>Baza danych niedostępna</h2><p>' . $h($e->getMessage()) . '</p>'
+       . '<p>Katalog danych: <code>' . $h($cfg['dane']) . '</code><br>Sterowniki PDO: <code>' . $h(implode(', ', PDO::getAvailableDrivers())) . '</code>'
+       . '<br>PHP: <code>' . PHP_VERSION . '</code> · open_basedir: <code>' . $h((string)ini_get('open_basedir')) . '</code></p>'
+       . '<p><a href="?wyloguj=1">wyloguj</a></p>';
+    exit;
+}
 
 if (isset($_GET['kopia'])) {
     header('Content-Type: application/json; charset=utf-8');
