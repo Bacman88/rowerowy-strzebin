@@ -372,6 +372,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <script src="lib/leaflet.js"></script>
 <script src="lib/leaflet.polylineoffset.js"></script>
 <script src="lib/leaflet-gesture-handling.js"></script>
+<script src="lib/nawigacja.js"></script>
 <script src="stan/odcinki.js"></script>
 <script src="data.js"></script>
 <script src="lib/ikony.js"></script>
@@ -381,7 +382,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <script src="lib/trasowanie.js"></script>
 <script>
 // dwie mapy na jednej stronie: jeden palec / kółko przewija stronę, mapę przesuwa się dwoma palcami / z Ctrl
-const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text:{touch:"Przesuń mapę dwoma palcami", scroll:"Przytrzymaj Ctrl i przewiń, aby powiększyć mapę", scrollMac:"Przytrzymaj ⌘ i przewiń, aby powiększyć mapę"}}};
+const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text:{touch:"Przesuń mapę dwoma palcami albo strzałkami w rogu", scroll:"Przytrzymaj Ctrl i przewiń, aby powiększyć mapę", scrollMac:"Przytrzymaj ⌘ i przewiń, aby powiększyć mapę"}}};
 </script>
 <script>
 (function(){
@@ -477,6 +478,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   const upd = () => map.getContainer().classList.toggle('far', map.getZoom() < 13);
   map.on('zoomend', upd);
   map.fitBounds(all.getBounds(), {padding:[20,20]}); upd();
+  NAWIGACJA(map, document.querySelector('#trasy .app'), () => map.fitBounds(all.getBounds(), {padding:[20,20]}));
 })();
 </script>
 <script>
@@ -767,7 +769,8 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   // start
   const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar && S[id].pomiar !== 'osm') S[id].ll.forEach(p => b.extend(p));
   for (const p of (window.HUB?.posts || [])) b.extend([p.lat, p.lon]);
-  map.fitBounds(b.isValid() ? b : [[50.55, 18.8], [50.7, 19.0]], {padding:[20, 20]});
+  const calosc = () => map.fitBounds(b.isValid() ? b : [[50.55, 18.8], [50.7, 19.0]], {padding:[20, 20]});
+  calosc(); NAWIGACJA(map, $('wsp'), calosc);
   rysuj(); rysujSel();
   fetch('api/stan.php', {cache:'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
     if (j.blad) throw 0; API = j; apiOk = true; rysuj(); walid();
