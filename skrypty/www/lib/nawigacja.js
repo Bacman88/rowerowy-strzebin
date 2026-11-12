@@ -53,4 +53,5 @@ window.NAWIGACJA = (map, box, calosc) => {
   new Btn({position: 'topright'}).addTo(map);
   new Strz({position: 'bottomright'}).addTo(map);
   document.addEventListener('keydown', e => { if (pelny && e.key === 'Escape') box.querySelector('.nav-btns button').click(); });
+  return {wyczyscJa: () => { if (ja) { ja.remove(); ja = null; } }, ja: () => !!ja};
 };

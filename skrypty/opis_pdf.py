@@ -121,6 +121,28 @@ grid.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING"
 st.append(grid)
 st.append(Paragraph("Nie są to znaki szlaków rowerowych ani znaki drogowe, tylko tabliczki informacyjne. Przy drogach publicznych i w lasach wymagają zgody zarządcy.", SMALL))
 
+# 12.11.2026: warunek – współpraca Gminy Koszęcin i Nadleśnictwa Koszęcin (udział lasów w sieci tras i w słupkach)
+import json as _js
+from shapely.geometry import shape as _sh
+from shapely.ops import unary_union as _uu, transform as _tr
+from pyproj import Transformer as _T
+_tf = _T.from_crs(4326, 2180, always_xy=True).transform
+_las = _tr(_tf, _uu([_sh(f["geometry"]).buffer(0) for f in _js.load(open(f"{S}/dane/osm2_clean.geojson"))["features"]
+                     if f["geometry"]["type"] in ("Polygon", "MultiPolygon") and (f["properties"].get("landuse") == "forest" or f["properties"].get("natural") == "wood")])).buffer(15)
+_siec = _uu([_tr(_tf, _sh(f["geometry"])) for f in _js.load(open(f"{O}/drogowskazy_trasy.geojson"))["features"] if str(f["properties"].get("alt")) != "True"])
+KM_SIEC, KM_LAS = _siec.length / 1000, _siec.intersection(_las).length / 1000
+N_LAS = sum(1 for p in DP["posts"] if p["who"] == "nadl_K")
+wsp_box = Table([[[Paragraph("WARUNEK: WSPÓŁPRACA GMINY I NADLEŚNICTWA", BOXH), Paragraph(
+    f"Około {KM_LAS / KM_SIEC * 100:.0f}% sieci tras pokazowych ({km(KM_LAS)} z {km(KM_SIEC)} km) biegnie przez lasy, a {N_LAS} z {NPOST} słupków stoi w lasach "
+    "Nadleśnictwa Koszęcin. Ulice, chodniki i drogi gminne są w gestii Gminy Koszęcin, drogi leśne – Nadleśnictwa Koszęcin. "
+    "Projekt da się zrealizować w całości tylko wspólnie: gmina jako organizator i właściciel tabliczek, nadleśnictwo jako zarządca dróg leśnych "
+    "(zgody na słupki, wskazanie dróg do jazdy rowerem, ewentualnie współfinansowanie etapu 2). Obie instytucje mają siedziby w Koszęcinie, "
+    "co ułatwia wspólne ustalenia.", ParagraphStyle("boxp", parent=BOX, leftIndent=0))]]], colWidths=[W])
+wsp_box.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#2f6b3a")), ("LEFTPADDING", (0, 0), (-1, -1), 12),
+    ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
+st.append(Spacer(1, 6)); st.append(wsp_box)
+print(f"opis: lasy {KM_LAS:.1f} z {KM_SIEC:.1f} km tras, słupki w lasach {N_LAS}/{NPOST}")
+
 st.append(Paragraph("Po co to robimy", H2))
 st += bullets([
     "<b>Bezpieczny objazd DW 906</b> – brak drogi rowerowej wzdłuż wojewódzkiej wraca na każdym zebraniu od lat. W samym Strzebiniu jest już "
@@ -245,7 +267,7 @@ st.append(Spacer(1, 5))
 st += bullets([
     "omówienie lokalizacji i kierunków – Rada Sołecka, zebranie wiejskie;",
     "objazd dróg omijających DW 906 i uzupełnienie pomiarów;",
-    "rozmowa z Urzędem Gminy (zgody zarządcy dróg, forma współpracy z partnerami) i z Nadleśnictwem Koszęcin (trasy leśne);",
+    "wspólne spotkanie Urzędu Gminy i Nadleśnictwa Koszęcin: zgody zarządców dróg (gminnych i leśnych), podział zadań i kosztów, forma współpracy z partnerami;",
     "zapytanie ofertowe na tabliczki i mocowania; wybór wariantu materiału."])
 st.append(Spacer(1, 8))
 st.append(Paragraph("Przygotował: Bartosz · Strzebiń, listopad 2026 · dane map © autorzy OpenStreetMap (ODbL), piktogramy Tabler Icons (MIT)", SMALL))

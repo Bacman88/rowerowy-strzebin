@@ -55,7 +55,7 @@ bash skrypty/publikuj_strone.sh
 
 ## Mapa wspólna (strona główna, sekcja 1) – stan dróg i miejsca od mieszkańców
 
-Dwa tryby: **Oceń drogi** i **Dodaj miejsce** (ławka, wiata, piknik/ognisko, punkt widokowy, ciekawe miejsce, serwis rowerowy – kliknięciem na mapie albo z lokalizacji telefonu). Miejsca: stałe w `dane/miejsca.geojson` + planowane stacje napraw + wiaty/widoki z OSM + zatwierdzone zgłoszenia; warstwy „serwis rowerowy” i „miejsca odpoczynku” na mapie głównej (`skrypty/www/lib/miejsca.js`).
+Tryby: **Oceń drogi** i **Dodaj miejsce** (ławka, wiata, piknik/ognisko, punkt widokowy, ciekawe miejsce, serwis rowerowy – kliknięciem na mapie albo z lokalizacji telefonu). Miejsca: stałe w `dane/miejsca.geojson` + planowane stacje napraw + wiaty/widoki z OSM + zatwierdzone zgłoszenia; warstwy „serwis rowerowy” i „miejsca odpoczynku” na mapie głównej (`skrypty/www/lib/miejsca.js`).
 
 
 Każdy może zaznaczyć odcinki dróg i ocenić ich stan (dobra / średnia / trudna / nieprzejezdna). Zgłoszenia trafiają do moderacji, na mapie pojawiają się po zatwierdzeniu w panelu `/admin/`.
@@ -76,6 +76,12 @@ Na serwerze, **obok** katalogu `public_html` (nie w nim), utwórz plik `hub_conf
 ```
 
 Trzeci tryb – **Tabliczki** (edytor węzłów): klik w węzeł → jego kierunki, usuń/dodaj kierunek (odległość, strzałka i kółka tras liczone w przeglądarce: `skrypty/www/lib/trasowanie.js`), podgląd tabliczek tym samym układem co `plates.py` (`skrypty/www/lib/tabliczka.js`); klik w puste miejsce → propozycja nowego węzła. Zatwierdzone zmiany: panel `/admin/` → „eksport węzłów” (JSON) – do wdrożenia w projekcie.
+
+Czwarty tryb – **Twoja trasa** (kreator): kliknięte punkty łączone drogami z mapy wspólnej (to samo trasowanie co w edytorze, omija drogi trudne i nieprzejezdne), długość, udział nawierzchni/stanu, węzły po drodze; pobranie GPX, link `…/#trasa=lat,lon;lat,lon` i propozycja trasy (`api/trasy.php`, zakładka „Trasy” w panelu). Zatwierdzone trasy widać na mapie jako „trasy mieszkańców”.
+
+Na mapie wspólnej: przełącznik **Zaznaczanie / Tylko oglądanie** i przycisk **Wyczyść** (zaznaczenia, pinezka, punkty trasy, punkt lokalizacji). Znaczniki każdego trybu są widoczne tylko w tym trybie.
+
+**Zdjęcia**: przy ocenie drogi i nowym miejscu można dołączyć jedno zdjęcie. Przeglądarka zmniejsza je (najdłuższy bok 1280 px, JPEG ok. 100–400 kB), serwer zapisuje je w `hub_dane/zdjecia/` (poza `public_html`), widzi je tylko administrator w panelu i są **usuwane po zatwierdzeniu albo odrzuceniu** zgłoszenia.
 
 Baza SQLite i kopie dobowe (JSON, ostatnie 60) zapisują się w `hub_dane/` obok `public_html` – wdrożenie ich nie nadpisuje. Kontakty są kasowane po roku, skróty IP po 30 dniach.
 

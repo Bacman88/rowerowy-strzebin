@@ -138,8 +138,28 @@ section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 #wsp .modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#efe9da;padding:4px;border-radius:10px;margin-bottom:6px}
 #wsp .modes button{font:inherit;font-weight:700;font-size:14px;border:0;border-radius:7px;padding:8px;background:transparent;color:var(--muted);cursor:pointer}
 #wsp .modes button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
-#wsp:not([data-tryb=drogi]) .m-drogi,#wsp:not([data-tryb=miejsce]) .m-miejsce,#wsp:not([data-tryb=wezly]) .m-wezly{display:none!important}
-#wsp .modes{grid-template-columns:1fr 1fr 1fr}
+#wsp:not([data-tryb=drogi]) .m-drogi,#wsp:not([data-tryb=miejsce]) .m-miejsce,#wsp:not([data-tryb=wezly]) .m-wezly,#wsp:not([data-tryb=trasa]) .m-trasa{display:none!important}
+#wsp[data-tryb=wezly] .m-foto,#wsp[data-tryb=trasa] .m-foto{display:none!important}
+#wsp .modes{grid-template-columns:1fr 1fr}
+/* przełącznik klikania i „Wyczyść” na mapie */
+.klik-ctl{display:flex;flex-direction:column;gap:6px}
+.klik-ctl button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;background:#fff;border-radius:8px;padding:0 10px 0 8px;height:38px;font:700 13.5px/1 Inter,system-ui,sans-serif;color:#1d2a23;box-shadow:0 1px 5px rgba(0,0,0,.25)}
+.klik-ctl button:hover{background:#efe9da}.klik-ctl button:focus-visible{outline:3px solid #1d4ed8}
+.klik-ctl button.off{background:#1d3b30;color:#fff}
+.klik-ctl svg{flex-shrink:0}
+#wsp #mapw.nieklik,#wsp #mapw.nieklik .leaflet-interactive{cursor:grab!important}
+/* kreator trasy */
+#wsp .tr-sum{font-size:15px}#wsp .tr-sum b{font-size:18px}
+#wsp .tr-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:6px 0 4px;background:var(--line)}
+#wsp .tr-bar i{display:block;height:100%}
+#wsp .tr-leg{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:12.5px;color:var(--muted)}
+#wsp .tr-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+#wsp .tr-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.trm{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#0f766e;color:#fff;font:700 11px Inter,sans-serif;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);cursor:move}
+.trm.s{background:#2b9348}.trm.m{background:#b00020}
+#wsp .foto-prev{display:flex;gap:8px;align-items:center;margin-top:6px}
+#wsp .foto-prev img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.pp .wz-btn{font:inherit;font-size:13px;font-weight:600;border:1px solid #d9d1bf;background:#fff;border-radius:7px;padding:4px 8px;cursor:pointer;margin:6px 6px 0 0}
 #wsp .wz-row{display:grid;grid-template-columns:22px 1fr auto auto;gap:6px;align-items:center;padding:6px 0;border-top:1px dashed var(--line);font-size:14px}
 #wsp .wz-row.del{opacity:.45;text-decoration:line-through}#wsp .wz-row.new b{color:#1b5e20}
 #wsp .wz-row .ar{font-size:18px;font-weight:800;color:var(--green);text-align:center}
@@ -209,7 +229,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <h1>HUB rowerowy Strzebiń</h1>
   <p class="lead">Strzebiń leży między Leśno Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
   <nav class="jump" aria-label="Na stronie">
-    <a class="main" href="#wspolna"><span class="num">1</span>Mapa wspólna – oceń drogę, dodaj miejsce</a>
+    <a class="main" href="#wspolna"><span class="num">1</span>Mapa wspólna – oceń drogę, dodaj miejsce, wyznacz trasę</a>
     <a href="#trasy"><span class="num">2</span>Proponowane trasy i drogowskazy</a>
     <a href="#dlaczego">Dlaczego to robimy</a>
     <a href="#pobierz">Do pobrania</a>
@@ -218,17 +238,18 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 
 <section id="wspolna" class="msec">
   <h2><span class="num">1</span>Mapa wspólna</h2>
-  <p class="lead2">Tu wszyscy razem uzupełniamy mapę: <b>jak się jedzie</b> drogami wokół Strzebinia i <b>co jest po drodze</b> – ławki, wiaty, WC, serwis rowerowy. Wybierz u góry „Oceń drogi” albo „Dodaj miejsce”. Każde zgłoszenie przed pokazaniem na mapie sprawdza administrator strony.</p>
+  <p class="lead2">Tu wszyscy razem uzupełniamy mapę: <b>jak się jedzie</b> drogami wokół Strzebinia i <b>co jest po drodze</b> – ławki, wiaty, WC, serwis rowerowy. Wybierz u góry, co chcesz zrobić: ocenić drogi, dodać miejsce, zaproponować zmianę tabliczki albo wyznaczyć <b>własną trasę</b> (z plikiem GPX do nawigacji). Każde zgłoszenie przed pokazaniem na mapie sprawdza administrator strony.</p>
 <div class="app wsp" id="wsp" data-tryb="drogi">
   <aside class="side">
     <div class="modes" role="tablist">
       <button type="button" data-t="drogi" class="on">Oceń drogi</button>
       <button type="button" data-t="miejsce">Dodaj miejsce</button>
       <button type="button" data-t="wezly">Tabliczki</button>
+      <button type="button" data-t="trasa">Twoja trasa</button>
     </div>
     <div class="m-drogi">
     <h2>Jak to działa</h2>
-    <p class="how">Klikaj odcinki dróg na mapie – możesz zaznaczyć kilka naraz. Wybierz, jak się nimi jedzie rowerem, i wyślij. Zgłoszenie pojawi się na mapie po sprawdzeniu przez administratora strony.</p>
+    <p class="how">Klikaj odcinki dróg na mapie – możesz zaznaczyć kilka naraz. Przycisk „Zaznaczanie” w rogu mapy wyłącza klikanie, gdy chcesz tylko oglądać, a „Wyczyść” usuwa zaznaczenia i pinezki. Wybierz, jak się nimi jedzie rowerem, i wyślij. Zgłoszenie pojawi się na mapie po sprawdzeniu przez administratora strony.</p>
 
     <h2>Legenda</h2>
     <div class="key">
@@ -268,7 +289,18 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       <div id="wz-podglad" class="wz-prev"></div>
     </div>
     </div>
-    <div class="layers"><b>Pokaż:</b><label><input type="checkbox" id="w-odp" checked> odpoczynek</label><label><input type="checkbox" id="w-serwis" checked> rower i udogodnienia</label><label><input type="checkbox" id="w-ciek" checked> ciekawe, jedzenie, nocleg</label></div>
+    <div class="m-trasa">
+    <h2>Jak to działa</h2>
+    <p class="how">Klikaj na mapie kolejne punkty – trasa sama poprowadzi się drogami, omijając te ocenione jako trudne lub nieprzejezdne. Punkt możesz przeciągnąć albo kliknąć, żeby go usunąć. Gotową trasę pobierzesz jako GPX do nawigacji, wyślesz komuś linkiem albo zaproponujesz na mapę.</p>
+    <div class="box" id="tr-info"><b>Brak trasy</b><div class="muted">Kliknij na mapie punkt startu.</div></div>
+    <div class="tr-btns">
+      <button type="button" class="wz-btn" id="tr-cofnij" disabled>↶ Cofnij punkt</button>
+      <button type="button" class="wz-btn" id="tr-odwroc" disabled>⇄ Odwróć</button>
+      <button type="button" class="wz-btn" id="tr-gpx" disabled>⤓ Pobierz GPX</button>
+      <button type="button" class="wz-btn" id="tr-link" disabled>🔗 Kopiuj link</button>
+    </div>
+    </div>
+    <div class="layers"><b>Pokaż:</b><label><input type="checkbox" id="w-odp" checked> odpoczynek</label><label><input type="checkbox" id="w-serwis" checked> rower i udogodnienia</label><label><input type="checkbox" id="w-ciek" checked> ciekawe, jedzenie, nocleg</label><label><input type="checkbox" id="w-tm" checked> trasy mieszkańców</label></div>
 
     <h2>Twoje zgłoszenie</h2>
     <div class="box m-drogi">
@@ -287,6 +319,11 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       </div>
       <label class="f m-drogi"><span>Komentarz</span><textarea name="komentarz" maxlength="1000" placeholder="np. piach po deszczu, dziury przy przejeździe, powalone drzewo"></textarea></label>
       <label class="f m-drogi"><span>Data przejazdu</span><input type="date" name="data"></label>
+      <label class="f m-trasa"><span>Nazwa trasy *</span><input type="text" name="tnazwa" maxlength="80" placeholder="np. Leśna pętla przez Sośnicę"></label>
+      <label class="f m-trasa"><span>Opis</span><textarea name="topis" maxlength="1000" placeholder="np. dla kogo, nawierzchnia, gdzie odpocząć, na co uważać"></textarea></label>
+      <div class="f m-foto"><span>Zdjęcie (nieobowiązkowo)</span><input type="file" id="foto" accept="image/*">
+        <div class="foto-prev" id="foto-prev" hidden></div>
+        <small>Zdjęcie widzi tylko administrator – pomaga sprawdzić zgłoszenie. Zmniejszamy je przed wysłaniem i usuwamy z serwera po decyzji.</small></div>
       <label class="f m-wezly"><span>Uwagi</span><textarea name="uwagi" maxlength="1000" placeholder="np. tabliczka zasłonięta przez drzewo, lepiej postawić słupek po drugiej stronie"></textarea></label>
       <label class="f"><span>Imię lub nick *</span><input type="text" name="nick" maxlength="60" required placeholder="widoczny przy zgłoszeniu"></label>
       <label class="f"><span>E-mail lub telefon (nieobowiązkowo)</span><input type="text" name="kontakt" maxlength="120" placeholder="widzi go tylko administrator strony">
@@ -343,7 +380,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <section>
   <h2>Jak to działa</h2>
   <div class="grid3">
-    <div class="card"><h3>Mapa wspólna</h3><p>Każdy może ocenić drogę, dodać ławkę, wiatę czy serwis albo zaproponować zmianę tabliczki. Zgłoszenie pojawia się na mapie po sprawdzeniu przez administratora; e-mail ani telefon nie są publikowane.</p></div>
+    <div class="card"><h3>Mapa wspólna</h3><p>Każdy może ocenić drogę, dodać ławkę, wiatę czy serwis (ze zdjęciem), zaproponować zmianę tabliczki albo wyznaczyć własną trasę – pobrać ją jako GPX lub zaproponować na mapę. Zgłoszenie pojawia się na mapie po sprawdzeniu przez administratora; e-mail ani telefon nie są publikowane.</p></div>
     <div class="card"><h3>Tabliczki kierunkowe</h3><p>Proste tablice informacyjne: nazwa miejscowości lub miejsca, odległość liczona po drodze i strzałka. Kolor tła mówi, czy to miejscowość, szlak, zabytek czy gastronomia.</p></div>
     <div class="card"><h3>Węzły, paski i kółka tras</h3><p>Każdy słupek ma numer – ten sam na mapie i w terenie. Pod numerem kolorowe paski tras, które przez niego przebiegają, a na tabliczkach przy nazwie celu kółka z numerami tras: „Łazy ①④⑥” znaczy, że w tę stronę jadą trasy 1, 4 i 6.</p></div>
   </div>
@@ -494,6 +531,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   const map = L.map('mapw', {preferCanvas:true, zoomControl:true, ...GESTY});
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19,
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+  // jeden wspólny renderer canvas dla wszystkich linii (renderer: rnd) – drugi canvas na wierzchu przechwytywałby kliknięcia dróg
   const rnd = L.canvas({tolerance: 7}); window.mapaW = map;
 
   // odcinki: [id, typ, nazwa, nawierzchnia, stan_pomiar, data_pomiaru, dlugosc_m, [lat,lon,...]]
@@ -519,15 +557,15 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     const order = ['brak', 'osm', 'dobra', 'srednia', 'trudna', 'nieprzejezdna'];
     const groups = {}; for (const id in S) (groups[stanOf(S[id])] ||= []).push(S[id]);
     for (const st of order) for (const s of (groups[st] || [])) {
-      s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); tryb === 'miejsce' ? pinezka(e.latlng) : tryb === 'wezly' ? WZ.nowy(e.latlng) : klik(s); }).addTo(roads));
+      s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); klikMapy(e.latlng, s); }).addTo(roads));
     }
     const km = {}; for (const id in S) { const st = stanOf(S[id]); km[st] = (km[st] || 0) + S[id].len / 1000; }
     $('sum').textContent = `Ocenione: ${Math.round((km.dobra||0)+(km.srednia||0)+(km.trudna||0)+(km.nieprzejezdna||0))} km z ${Math.round(Object.values(km).reduce((a,b)=>a+b,0))} km dróg`
       + (API.oczekuje ? ` · czeka na sprawdzenie: ${API.oczekuje}` : '');
   }
 
-  // zaznaczanie
-  const sel = new Set();
+  // zaznaczanie (klikOn: przełącznik „Zaznaczanie / Tylko oglądanie” na mapie)
+  const sel = new Set(); let klikOn = true;
   function rysujSel() {
     selL.clearLayers();
     for (const id of sel) L.polyline(S[id].ll, {color:'#1d4ed8', weight:11, opacity:.45, renderer:rnd, interactive:false}).addTo(selL);
@@ -563,7 +601,8 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   F.kontakt.addEventListener('input', () => { $('zgoda').hidden = !F.kontakt.value.trim(); });
   F.data.max = new Date().toISOString().slice(0, 10);
   try { F.nick.value = localStorage.getItem('hub_nick') || ''; } catch (e) {}
-  function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : tryb === 'wezly' ? WZ.gotowe() : pin && F.typ.value)); }
+  function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : tryb === 'wezly' ? WZ.gotowe()
+    : tryb === 'trasa' ? TRASA.gotowe() && F.tnazwa.value.trim().length >= 3 : pin && F.typ.value)); }
   F.addEventListener('input', walid); F.addEventListener('change', walid);
   function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; }
   F.addEventListener('submit', async e => {
@@ -571,20 +610,24 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     if (F.kontakt.value.trim() && !F.zgoda.checked) return msg('Zaznacz zgodę na kontakt albo zostaw pole kontaktu puste.');
     $('send').disabled = true;
     const wsp = {nick:F.nick.value, kontakt:F.kontakt.value, zgoda:F.zgoda.checked, www:F.www.value};
-    const body = tryb === 'drogi' ? {...wsp, odcinki:[...sel], stan:F.stan.value, komentarz:F.komentarz.value, data:F.data.value}
+    const body = tryb === 'drogi' ? {...wsp, odcinki:[...sel], stan:F.stan.value, komentarz:F.komentarz.value, data:F.data.value, foto:FOTO.dane()}
       : tryb === 'wezly' ? {...wsp, ...WZ.dane(), komentarz:F.uwagi.value}
-      : {...wsp, typ:F.typ.value, nazwa:F.nazwa.value, opis:F.opis.value, lat:pin.getLatLng().lat, lon:pin.getLatLng().lng};
+      : tryb === 'trasa' ? {...wsp, ...TRASA.dane(), nazwa:F.tnazwa.value, opis:F.topis.value}
+      : {...wsp, typ:F.typ.value, nazwa:F.nazwa.value, opis:F.opis.value, lat:pin.getLatLng().lat, lon:pin.getLatLng().lng, foto:FOTO.dane()};
     try {
-      const r = await fetch(tryb === 'drogi' ? 'api/zglos.php' : tryb === 'wezly' ? 'api/wezly.php' : 'api/miejsca.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const r = await fetch({drogi:'api/zglos.php', wezly:'api/wezly.php', trasa:'api/trasy.php'}[tryb] || 'api/miejsca.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.ok) throw new Error(j.blad || 'Nie udało się wysłać zgłoszenia.');
       try { localStorage.setItem('hub_nick', F.nick.value.trim()); } catch (e) {}
       MOJE.dodaj(tryb, body, j.id);
-      msg(tryb === 'wezly' ? 'Dziękujemy! Propozycja trafiła do sprawdzenia. Widzisz ją na mapie jako „Twoja propozycja”.' : tryb === 'drogi' ? 'Dziękujemy! Zgłoszenie trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.'
+      msg(tryb === 'wezly' ? 'Dziękujemy! Propozycja trafiła do sprawdzenia. Widzisz ją na mapie jako „Twoja propozycja”.'
+        : tryb === 'trasa' ? 'Dziękujemy! Trasa trafiła do sprawdzenia – po zatwierdzeniu pojawi się na mapie jako trasa mieszkańców.' : tryb === 'drogi' ? 'Dziękujemy! Zgłoszenie trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.'
                            : 'Dziękujemy! Miejsce trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.', true);
       if (tryb === 'drogi') { sel.clear(); rysujSel(); F.komentarz.value = ''; F.stan.forEach(x => x.checked = false); API.oczekuje++; rysuj(); }
       else if (tryb === 'wezly') { F.uwagi.value = ''; WZ.wyczysc(); }
+      else if (tryb === 'trasa') { F.tnazwa.value = ''; F.topis.value = ''; TRASA.wyczysc(); }
       else { pin.remove(); pin = null; F.nazwa.value = ''; F.opis.value = ''; F.typ.forEach(x => x.checked = false); pkt(); }
+      if (tryb === 'drogi' || tryb === 'miejsce') FOTO.wyczysc();
     } catch (err) { msg(err.message); }
     walid();
   });
@@ -601,12 +644,13 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
         const b = m.body, opis = `<b>Twoja propozycja</b> · czeka na sprawdzenie<br><span class="muted">${esc(m.data)}</span>`;
         if (m.typ === 'drogi') for (const id of b.odcinki || []) { if (S[id]) L.polyline(S[id].ll, {color: KOL[b.stan] || '#111', weight: 5, dashArray: '2 7', opacity: .9, renderer: rnd, interactive: false}).addTo(warstwa); }
         if (m.typ === 'miejsce') L.marker([b.lat, b.lon], {icon: MJ.icon({typ: b.typ}), opacity: .6}).bindPopup(opis + MJ.popup({typ: b.typ, nazwa: b.nazwa, opis: b.opis})).addTo(warstwa);
+        if (m.typ === 'trasa' && b.geom) L.polyline(b.geom, {color: '#0f766e', weight: 4, dashArray: '2 7', opacity: .85, renderer: rnd}).bindPopup(opis + '<br><b>' + esc(b.nazwa) + '</b>').addTo(warstwa);
         if (m.typ === 'wezly' && b.wezel == null) L.marker([b.lat, b.lon], {icon: L.divIcon({className: '', html: '<div class="wzm moj">?</div>', iconSize: [26, 26], iconAnchor: [13, 13]})})
           .bindPopup(opis + '<br>Nowy węzeł: ' + esc((b.zmiany.dodaj || []).map(c => c.n).join(', '))).addTo(warstwa);
       }
     }
     function dodaj(typ, body, id) {
-      lista.push({typ, id, data: new Date().toISOString().slice(0, 10), body: JSON.parse(JSON.stringify({...body, kontakt: undefined, www: undefined}))});
+      lista.push({typ, id, data: new Date().toISOString().slice(0, 10), body: JSON.parse(JSON.stringify({...body, kontakt: undefined, www: undefined, foto: undefined}))});
       lista = lista.slice(-50); try { localStorage.setItem(K, JSON.stringify(lista)); } catch (e) {}
       rysuj_();
     }
@@ -622,7 +666,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     $('wz-cele').innerHTML = CELE.map(c => `<option value="${esc(c.n)}">`).join('');
     const KOLT = window.TABD.KOL;
     let on = false, wyb = null, nowyPin = null, lista = [], prop = null, sciezka = null, odP = null, zatw = [];
-    const wL = L.layerGroup(), pathL = L.layerGroup().addTo(map);
+    const wL = L.layerGroup(), pathL = L.layerGroup().addTo(map), npL = L.layerGroup();
     fetch('api/wezly.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => { zatw = j?.wezly || []; markery(); }).catch(() => {});
     function markery() {
       wL.clearLayers();
@@ -636,8 +680,8 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
           .bindPopup(`<b>Nowy węzeł (zatwierdzony, czeka na wdrożenie)</b><br>${esc((z.zmiany.dodaj || []).map(c => c.n + ' ' + c.km).join(', '))}<br><span class="muted">${esc(z.nick)}, ${esc(z.data)}</span>`).addTo(wL);
     }
     function tryb(t) {
-      on = t; if (on) { wL.addTo(map); if (!TR._g) { TR.graf((id, pom) => { const s = S[id]; return s ? stanOf(s) : (pom || 'brak'); }); TR._g = 1; } markery(); }
-      else { wL.remove(); pathL.clearLayers(); }
+      on = t; if (on) { wL.addTo(map); npL.addTo(map); grafDrog(); markery(); if (prop) pokaz(); }
+      else { wL.remove(); npL.remove(); pathL.clearLayers(); }
     }
     const kmTxt = m => (m / 1000).toFixed(1).replace('.', ',') + ' km';
     function wybierz(p) {
@@ -650,7 +694,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
       if (wyb && !wyb.nowy && !confirmZmiana()) return;
       wyczysc(true);
       wyb = {nr: null, nowy: true, lat: ll.lat, lon: ll.lng, loc: ''}; lista = []; odP = null;
-      nowyPin = L.marker(ll, {draggable: true, zIndexOffset: 1000, icon: L.divIcon({className: '', html: '<div class="wzm moj">+</div>', iconSize: [26, 26], iconAnchor: [13, 13]})}).addTo(map);
+      nowyPin = L.marker(ll, {draggable: true, zIndexOffset: 1000, icon: L.divIcon({className: '', html: '<div class="wzm moj">+</div>', iconSize: [26, 26], iconAnchor: [13, 13]})}).addTo(npL);
       nowyPin.on('dragend', () => { const q = nowyPin.getLatLng(); wyb.lat = q.lat; wyb.lon = q.lng; odP = null; lista.filter(c => c.stan === 'nowy').forEach(przelicz); pokaz(); });
       $('wz-slupek').hidden = false; pokaz();
     }
@@ -697,7 +741,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
         $('wz-nowy').querySelectorAll('[data-r]').forEach(s => s.onclick = () => { const r = s.dataset.r; c.rts = c.rts.includes(r) ? c.rts.filter(x => x !== r) : [...c.rts, r].sort().slice(0, 4); pokaz(); });
         $('wz-ok').onclick = () => { lista.push(c); prop = null; $('wz-cel').value = ''; pokaz(); walid(); };
         $('wz-x').onclick = () => { prop = null; $('wz-cel').value = ''; pokaz(); };
-        pathL.clearLayers(); if (c.ll) L.polyline(c.ll, {color: '#1d4ed8', weight: 5, dashArray: '8 6', opacity: .8}).addTo(pathL);
+        pathL.clearLayers(); if (c.ll) L.polyline(c.ll, {color: '#1d4ed8', weight: 5, dashArray: '8 6', opacity: .8, renderer: rnd}).addTo(pathL);
       } else { $('wz-nowy').innerHTML = ''; pathL.clearLayers(); }
       // podgląd tabliczek
       const po = lista.filter(c => c.stan !== 'usun');
@@ -721,15 +765,194 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     return {tryb, nowy, wyczysc: () => { wyczysc(false); }, gotowe, dane, wybrany: () => !!wyb};
   })();
 
+  // ===== Kreator własnej trasy: punkty na mapie, przebieg po drogach (graf z odcinków mapy wspólnej) =====
+  const TRASA = (() => {
+    const TR = window.TRASOWANIE, H = window.HUB || {posts: []};
+    const warstwa = L.layerGroup();
+    let pkt = [], odc = [];
+    const KOLS = {dobra: KOL.dobra, osm: KOL.osm, srednia: KOL.srednia, trudna: KOL.trudna, nieprzejezdna: '#111', brak: KOL.brak};
+    const NAZWY = {dobra: 'dobra', osm: 'utwardzona (OSM)', srednia: 'średnia', trudna: 'trudna', nieprzejezdna: 'nieprzejezdna', brak: 'bez oceny'};
+    const kmTxt = m => (m / 1000).toFixed(m < 10000 ? 2 : 1).replace('.', ',') + ' km';
+    function noga(i) { odc[i] = TR.odcinek(pkt[i], pkt[i + 1]); }
+    function wszystko() { odc = []; for (let i = 0; i < pkt.length - 1; i++) noga(i); }
+    function dodaj(ll) {
+      grafDrog();
+      const sn = TR.snap([ll.lat, ll.lng]);
+      if (sn.d > 250) return msg('Kliknij bliżej drogi – punkt jest ' + Math.round(sn.d) + ' m od najbliższej drogi na mapie.');
+      $('msg').className = 'msg';
+      pkt.push(sn.ll); if (pkt.length > 60) { pkt.pop(); return msg('Najwyżej 60 punktów na trasie.'); }
+      if (pkt.length > 1) noga(pkt.length - 2);
+      rysuj();
+    }
+    const calaLinia = () => { const out = []; odc.forEach(o => { if (o) out.push(...(out.length ? o.ll.slice(1) : o.ll)); }); return out; };
+    function rysuj() {
+      warstwa.clearLayers();
+      const ll = calaLinia();
+      if (ll.length > 1) {
+        L.polyline(ll, {color: '#fff', weight: 9, opacity: .9, interactive: false, renderer: rnd}).addTo(warstwa);
+        L.polyline(ll, {color: '#0f766e', weight: 5, opacity: .95, interactive: false, renderer: rnd}).addTo(warstwa);
+      }
+      odc.forEach((o, i) => { if (!o) L.polyline([pkt[i], pkt[i + 1]], {color: '#b00020', weight: 3, dashArray: '4 6', interactive: false, renderer: rnd}).addTo(warstwa); });
+      pkt.forEach((p, i) => {
+        const kl = i === 0 ? 's' : (i === pkt.length - 1 && i > 0 ? 'm' : '');
+        const m = L.marker(p, {draggable: true, zIndexOffset: 1200, title: i === 0 ? 'Start – przeciągnij albo kliknij, żeby usunąć' : 'Punkt ' + (i + 1) + ' – przeciągnij albo kliknij, żeby usunąć',
+          icon: L.divIcon({className: '', html: `<div class="trm ${kl}">${i === 0 ? 'S' : i + 1}</div>`, iconSize: [24, 24], iconAnchor: [12, 12]})}).addTo(warstwa);
+        m.on('click', e => { L.DomEvent.stop(e); if (!klikOn) return; pkt.splice(i, 1); wszystko(); rysuj(); });
+        m.on('dragend', () => { const q = m.getLatLng(), sn = TR.snap([q.lat, q.lng]); pkt[i] = sn.ll; if (i > 0) noga(i - 1); if (i < pkt.length - 1) noga(i); rysuj(); });
+      });
+      podsumuj(); walid();
+    }
+    function podsumuj() {
+      ['tr-cofnij', 'tr-odwroc'].forEach(id => $(id).disabled = !pkt.length);
+      ['tr-gpx', 'tr-link'].forEach(id => $(id).disabled = !gotowe());
+      if (!pkt.length) { $('tr-info').innerHTML = '<b>Brak trasy</b><div class="muted">Kliknij na mapie punkt startu.</div>'; return; }
+      if (pkt.length === 1) { $('tr-info').innerHTML = '<b>Start wyznaczony</b><div class="muted">Kliknij kolejny punkt – trasa poprowadzi się drogami.</div>'; return; }
+      const m = odc.reduce((a, o) => a + (o ? o.m : 0), 0), km = {};
+      for (const o of odc) if (o) for (const id of o.ids) { const s = S[id]; if (s) { const st = stanOf(s); km[st] = (km[st] || 0) + s.len; } }
+      const suma = Object.values(km).reduce((a, b) => a + b, 0) || 1;
+      const kol = ['dobra', 'osm', 'srednia', 'trudna', 'nieprzejezdna', 'brak'].filter(k => km[k]);
+      // węzły (słupki) na trasie, w kolejności przejazdu
+      const ll = calaLinia(), wez = [];
+      for (const p of H.posts) {
+        let best = -1, bd = 30;
+        for (let i = 0; i < ll.length; i++) { const d = TR.dist([p.lat, p.lon], ll[i]); if (d < bd) { bd = d; best = i; } }
+        if (best >= 0) wez.push([best, p.nr]);
+      }
+      wez.sort((a, b) => a[0] - b[0]);
+      const brak = odc.some(o => !o);
+      $('tr-info').innerHTML = `<div class="tr-sum"><b>${kmTxt(m)}</b> · ${pkt.length} punkt${pkt.length < 5 ? 'y' : 'ów'}</div>
+        <div class="tr-bar">${kol.map(k => `<i style="width:${km[k] / suma * 100}%;background:${KOLS[k]}"></i>`).join('')}</div>
+        <div class="tr-leg">${kol.map(k => `<span><i style="background:${KOLS[k]}"></i>${NAZWY[k]} ${Math.round(km[k] / suma * 100)}%</span>`).join('')}</div>
+        ${wez.length ? `<div class="muted" style="margin-top:6px">Przez węzły: ${wez.map(w => w[1]).join(' → ')}</div>` : ''}
+        ${brak ? '<div class="msg err" style="display:block">Część punktów nie łączy się drogami z mapy – przesuń je (czerwona przerywana linia).</div>' : ''}`;
+    }
+    const gotowe = () => pkt.length >= 2 && odc.length === pkt.length - 1 && odc.every(Boolean);
+    // uproszczenie przebiegu do zapisu: punkty co najmniej 8 m od poprzedniego, najwyżej 5000
+    function uprosc(ll) {
+      for (let prog = 8; ; prog *= 1.6) {
+        const out = [ll[0]];
+        for (let i = 1; i < ll.length - 1; i++) if (TR.dist(out[out.length - 1], ll[i]) >= prog) out.push(ll[i]);
+        out.push(ll[ll.length - 1]);
+        if (out.length <= 5000) return out.map(p => [+p[0].toFixed(5), +p[1].toFixed(5)]);
+      }
+    }
+    const dane = () => ({punkty: pkt.map(p => [+p[0].toFixed(5), +p[1].toFixed(5)]), geom: uprosc(calaLinia())});
+    function gpx(nazwa, ll) {
+      const x = s => String(s).replace(/[<>&"]/g, c => ({'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;'}[c]));
+      const t = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="HUB rowerowy Strzebiń" xmlns="http://www.topografix.com/GPX/1/1">\n<metadata><name>${x(nazwa)}</name></metadata>\n<trk><name>${x(nazwa)}</name><trkseg>\n`
+        + ll.map(p => `<trkpt lat="${p[0].toFixed(6)}" lon="${p[1].toFixed(6)}"/>`).join('\n') + '\n</trkseg></trk>\n</gpx>\n';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([t], {type: 'application/gpx+xml'}));
+      a.download = (nazwa || 'trasa').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').replace(/Ł/g, 'L').replace(/[^\w-]+/g, '_').slice(0, 60) + '.gpx';
+      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    }
+    const linkDo = punkty => location.origin + location.pathname + '#trasa=' + punkty.map(p => p[0].toFixed(5) + ',' + p[1].toFixed(5)).join(';');
+    function wczytaj(punkty) { grafDrog(); pkt = punkty.map(p => TR.snap(p).ll); wszystko(); rysuj(); if (pkt.length > 1) map.fitBounds(L.polyline(calaLinia()).getBounds(), {padding: [30, 30]}); }
+    function wyczysc() { pkt = []; odc = []; rysuj(); }
+    $('tr-cofnij').onclick = () => { pkt.pop(); odc.length = Math.max(0, pkt.length - 1); rysuj(); };
+    $('tr-odwroc').onclick = () => { pkt.reverse(); wszystko(); rysuj(); };
+    $('tr-gpx').onclick = () => gpx(F.tnazwa.value.trim() || 'Trasa rowerowa – Strzebiń', calaLinia());
+    $('tr-link').onclick = async () => {
+      const u = linkDo(pkt);
+      try { await navigator.clipboard.writeText(u); msg('Link do trasy skopiowany – wklej go w wiadomości.', true); }
+      catch (e) { window.prompt('Skopiuj link do trasy:', u); }
+    };
+    return {dodaj, wyczysc, wczytaj, gotowe, dane, warstwa, gpx, ile: () => pkt.length};
+  })();
+
+  // ===== Trasy mieszkańców (zatwierdzone) =====
+  const TM = L.layerGroup().addTo(map);
+  fetch('api/trasy.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => {
+    for (const t of (j?.trasy || [])) {
+      const opis = `<div class="pp"><h3>${esc(t.nazwa)}</h3><div class="loc">Trasa mieszkańców · ${String(t.km).replace('.', ',')} km · ${esc(t.nick)}, ${esc(t.data)}</div>${t.opis ? `<p>${esc(t.opis)}</p>` : ''}
+        <button type="button" class="wz-btn" data-gpx="${t.id}">⤓ GPX</button><button type="button" class="wz-btn" data-kreator="${t.id}">Otwórz w kreatorze</button></div>`;
+      L.polyline(t.geom, {color: '#fff', weight: 8, opacity: .8, interactive: false, renderer: rnd}).addTo(TM);
+      L.polyline(t.geom, {color: '#0f766e', weight: 4, dashArray: '10 6', opacity: .95, renderer: rnd}).bindPopup(opis).on('popupopen', e => {
+        const el = e.popup.getElement();
+        el.querySelector('[data-gpx]').onclick = () => TRASA.gpx(t.nazwa, t.geom);
+        el.querySelector('[data-kreator]').onclick = () => { map.closePopup(); document.querySelector('#wsp .modes [data-t=trasa]').click(); TRASA.wczytaj(t.punkty); };
+      }).addTo(TM);
+    }
+  }).catch(() => {});
+  $('w-tm').onchange = e => e.target.checked ? TM.addTo(map) : TM.remove();
+
+  // ===== Zdjęcie do zgłoszenia: zmniejszane w przeglądarce (najdłuższy bok 1280 px, JPEG) =====
+  const FOTO = (() => {
+    let d = null;
+    async function kompresuj(file) {
+      let src;
+      try { src = await createImageBitmap(file, {imageOrientation: 'from-image'}); }
+      catch (e) { src = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(file); }); }
+      const k = Math.min(1, 1280 / Math.max(src.width, src.height)), c = document.createElement('canvas');
+      c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+      c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+      for (const q of [.8, .7, .6, .5]) { const u = c.toDataURL('image/jpeg', q); if (u.length < 560000 || q === .5) return u; }
+    }
+    function pokaz() {
+      const p = $('foto-prev'); p.hidden = !d;
+      p.innerHTML = d ? `<img src="${d}" alt="podgląd zdjęcia"><span class="muted">${Math.round(d.length * .75 / 1024)} kB</span><button type="button" class="wz-btn" id="foto-x">usuń</button>` : '';
+      if (d) $('foto-x').onclick = wyczysc;
+    }
+    function wyczysc() { d = null; $('foto').value = ''; pokaz(); }
+    $('foto').onchange = async e => {
+      const f = e.target.files[0]; if (!f) return wyczysc();
+      try { d = await kompresuj(f); } catch (err) { d = null; msg('Nie udało się wczytać zdjęcia – spróbuj innego pliku (JPG lub PNG).'); }
+      pokaz();
+    };
+    return {dane: () => d || '', wyczysc};
+  })();
+
+  // ===== Na mapie: przełącznik zaznaczania i „Wyczyść” =====
+  const KLIK = (() => {
+    const IKK = {
+      on: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V12m0-1a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.6 14a1.6 1.6 0 0 1 2.6-1.8L9 15"/></svg>',
+      off: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+      x: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H9L4 15a2 2 0 0 1 0-2.8L13.2 3a2 2 0 0 1 2.8 0l4.6 4.6a2 2 0 0 1 0 2.8L12 19"/><path d="M8 11l6 6"/></svg>'};
+    let nav = null;
+    const Ctl = L.Control.extend({onAdd() {
+      const d = L.DomUtil.create('div', 'klik-ctl'); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+      const t = L.DomUtil.create('button', '', d), w = L.DomUtil.create('button', '', d);
+      t.type = w.type = 'button';
+      const opis = () => { t.innerHTML = klikOn ? IKK.on + 'Zaznaczanie: wł.' : IKK.off + 'Tylko oglądanie'; t.classList.toggle('off', !klikOn);
+        t.setAttribute('aria-pressed', String(klikOn)); t.title = klikOn ? 'Kliknięcia zaznaczają drogi i stawiają punkty. Kliknij, żeby tylko oglądać mapę.' : 'Kliknięcia nic nie zaznaczają. Kliknij, żeby znów zaznaczać.'; };
+      t.onclick = () => { klikOn = !klikOn; opis(); $('mapw').classList.toggle('nieklik', !klikOn); warstwyTrybu(); };
+      w.innerHTML = IKK.x + 'Wyczyść'; w.title = 'Usuń zaznaczenia, pinezkę, punkty trasy i punkt Twojej lokalizacji';
+      w.onclick = () => {
+        if (tryb === 'drogi') { sel.clear(); rysujSel(); $('info').hidden = true; }
+        else if (tryb === 'miejsce') { if (pin) { pin.remove(); pin = null; pkt(); } }
+        else if (tryb === 'wezly') WZ.wyczysc();
+        else if (tryb === 'trasa') TRASA.wyczysc();
+        if (nav) nav.wyczyscJa();
+        $('msg').className = 'msg'; walid();
+      };
+      opis(); return d;
+    }});
+    new Ctl({position: 'topleft'}).addTo(map);
+    return {dodaj: n => { nav = n; }};
+  })();
+
   // tryb: ocena dróg / dodawanie miejsca
-  let tryb = 'drogi', pin = null;
+  let tryb = 'drogi', pin = null; const pinL = L.layerGroup();
   $('wsp').dataset.tryb = tryb;
   document.querySelectorAll('#wsp .modes button').forEach(b => b.onclick = () => {
     tryb = b.dataset.t; $('wsp').dataset.tryb = tryb;
     document.querySelectorAll('#wsp .modes button').forEach(x => x.classList.toggle('on', x === b));
-    $('mapw').classList.toggle('pick', tryb !== 'drogi'); $('msg').className = 'msg'; WZ.tryb(tryb === 'wezly'); walid();
-    if (tryb === 'miejsce') selL.remove(); else selL.addTo(map);
+    $('msg').className = 'msg'; warstwyTrybu(); walid();
   });
+  // każdy tryb ma swoje znaczniki – po zmianie trybu nie zostają na mapie i nie zasłaniają dróg
+  function warstwyTrybu() {
+    $('mapw').classList.toggle('pick', klikOn && tryb !== 'drogi');
+    tryb === 'drogi' ? selL.addTo(map) : selL.remove();
+    tryb === 'miejsce' ? pinL.addTo(map) : pinL.remove();
+    tryb === 'trasa' ? TRASA.warstwa.addTo(map) : TRASA.warstwa.remove();
+    WZ.tryb(tryb === 'wezly');
+  }
+  function grafDrog() { const TR = window.TRASOWANIE; if (!TR._g) { TR.graf((id, pom) => { const s = S[id]; return s ? stanOf(s) : (pom || 'brak'); }); TR._g = 1; } }
+  // kliknięcie mapy lub drogi – zależnie od trybu; przy wyłączonym zaznaczaniu tylko podgląd drogi
+  function klikMapy(ll, s) {
+    if (!klikOn) { if (s && tryb === 'drogi') info(s); return; }
+    if (tryb === 'miejsce') pinezka(ll); else if (tryb === 'wezly') WZ.nowy(ll); else if (tryb === 'trasa') TRASA.dodaj(ll); else if (s) klik(s);
+  }
   $('typy').innerHTML = MJ.GRUPY.map(([g, ts]) => `<div class="tg">${g}</div>` + ts.map(t =>
     `<label><input type="radio" name="typ" value="${t}"><i style="background:${MJ.TYP[t].c}">${MJ.svg(t)}</i>${MJ.TYP[t].n}</label>`).join('')).join('');
   function pkt() {
@@ -737,11 +960,11 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     $('pkthint').textContent = pin ? 'Przeciągnij pinezkę, żeby poprawić położenie.' : 'Kliknij na mapie albo użyj lokalizacji.'; walid();
   }
   function pinezka(ll) {
-    if (!pin) { pin = L.marker(ll, {draggable:true, zIndexOffset:1000}).addTo(map); }
+    if (!pin) { pin = L.marker(ll, {draggable:true, zIndexOffset:1000}).addTo(pinL); }
     else pin.setLatLng(ll);
     pkt();
   }
-  map.on('click', e => { if (tryb === 'miejsce') pinezka(e.latlng); else if (tryb === 'wezly') WZ.nowy(e.latlng); });
+  map.on('click', e => klikMapy(e.latlng, null));
   $('gps').onclick = () => {
     if (!navigator.geolocation) return msg('Ta przeglądarka nie udostępnia lokalizacji.');
     $('gps').textContent = '📍 Szukam…';
@@ -762,20 +985,26 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   if (window.matchMedia('(max-width:900px)').matches) $('wsp').insertBefore(document.querySelector('#wsp .modes'), $('mapw'));
   // telefon: po zaznaczeniu przycisk „Dalej” przewija do formularza pod mapą
   const Dalej = L.Control.extend({onAdd() { const d = L.DomUtil.create('button', 'dalej'); d.type = 'button'; d.hidden = true;
-    L.DomEvent.disableClickPropagation(d); d.onclick = () => ((tryb === 'wezly' && !WZ.gotowe()) ? $('wz-edit') : $('form')).scrollIntoView({behavior:'smooth', block:'start'}); return d; }});
+    L.DomEvent.disableClickPropagation(d); d.onclick = () => ((tryb === 'wezly' && !WZ.gotowe()) ? $('wz-edit') : tryb === 'trasa' ? $('tr-info') : $('form')).scrollIntoView({behavior:'smooth', block:'start'}); return d; }});
   const dalej = new Dalej({position:'bottomleft'}).addTo(map).getContainer();
-  setInterval(() => { const n = tryb === 'drogi' ? sel.size : tryb === 'wezly' ? (WZ.gotowe() ? 1 : 0) : (pin ? 1 : 0);
+  setInterval(() => { const n = tryb === 'drogi' ? sel.size : tryb === 'wezly' ? (WZ.gotowe() ? 1 : 0) : tryb === 'trasa' ? (TRASA.gotowe() ? 1 : 0) : (pin ? 1 : 0);
     dalej.hidden = !(n && window.innerWidth <= 900);
-    dalej.textContent = tryb === 'drogi' ? `Dalej: oceń zaznaczone (${n}) ↓` : tryb === 'wezly' ? 'Dalej: wyślij propozycję ↓' : 'Dalej: opisz miejsce ↓';
+    dalej.textContent = tryb === 'drogi' ? `Dalej: oceń zaznaczone (${n}) ↓` : tryb === 'wezly' ? 'Dalej: wyślij propozycję ↓' : tryb === 'trasa' ? 'Dalej: GPX, link, propozycja ↓' : 'Dalej: opisz miejsce ↓';
     if (tryb === 'wezly' && !n && WZ.wybrany()) { dalej.hidden = !(window.innerWidth <= 900); dalej.textContent = 'Dalej: tabliczki węzła ↓'; } }, 400);
 
   // start
   const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar && S[id].pomiar !== 'osm') S[id].ll.forEach(p => b.extend(p));
   for (const p of (window.HUB?.posts || [])) b.extend([p.lat, p.lon]);
   const calosc = () => map.fitBounds(b.isValid() ? b : [[50.55, 18.8], [50.7, 19.0]], {padding:[20, 20]});
-  if (window.HUB?.gmina) L.polyline(HUB.gmina, {color:'#8a5300', weight:2, dashArray:'7 6', opacity:.65, interactive:false}).addTo(map);
-  calosc(); NAWIGACJA(map, $('wsp'), calosc);
+  calosc(); const NAV = NAWIGACJA(map, $('wsp'), calosc);
+  if (window.HUB?.gmina) L.polyline(HUB.gmina, {color:'#8a5300', weight:2, dashArray:'7 6', opacity:.65, interactive:false, renderer: rnd}).addTo(map);
+  KLIK.dodaj(NAV);
   rysuj(); rysujSel();
+  // link do trasy z kreatora: …/#trasa=lat,lon;lat,lon
+  if (location.hash.startsWith('#trasa=')) {
+    const pts = decodeURIComponent(location.hash.slice(7)).split(';').map(x => x.split(',').map(Number)).filter(p => p.length === 2 && p.every(isFinite)).slice(0, 60);
+    if (pts.length) { document.querySelector('#wsp .modes [data-t=trasa]').click(); TRASA.wczytaj(pts); setTimeout(() => document.getElementById('wspolna').scrollIntoView(), 50); }
+  }
   fetch('api/stan.php', {cache:'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
     if (j.blad) throw 0; API = j; apiOk = true;
     // zgłoszenia na odcinkach z poprzedniej wersji danych OSM -> odpowiadające im nowe odcinki

@@ -48,6 +48,17 @@ function hub_db(): PDO {
         id $ai, utworzono VARCHAR(19) NOT NULL, wezel INT, lat DOUBLE PRECISION NOT NULL, lon DOUBLE PRECISION NOT NULL,
         slupek VARCHAR(12) NOT NULL DEFAULT '', zmiany TEXT NOT NULL, komentarz TEXT, nick VARCHAR(60) NOT NULL, kontakt VARCHAR(120) NOT NULL DEFAULT '',
         moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
+    // trasy zaproponowane w kreatorze: punkty (kliknięte) + przebieg po drogach (uproszczony), długość liczona na serwerze
+    $db->exec("CREATE TABLE IF NOT EXISTS trasy (
+        id $ai, utworzono VARCHAR(19) NOT NULL, nazwa VARCHAR(80) NOT NULL, opis TEXT, punkty TEXT NOT NULL, geom TEXT NOT NULL,
+        km DOUBLE PRECISION NOT NULL DEFAULT 0, nick VARCHAR(60) NOT NULL, kontakt VARCHAR(120) NOT NULL DEFAULT '',
+        moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
+    // zdjęcie do zgłoszenia (12.11.2026): nazwa pliku w <dane>/zdjecia, kasowane po decyzji administratora
+    foreach (['zgloszenia', 'miejsca'] as $t) {
+        $kol = $my ? array_column($db->query("SHOW COLUMNS FROM $t")->fetchAll(), 'Field')
+                   : array_column($db->query("PRAGMA table_info($t)")->fetchAll(), 'name');
+        if (!in_array('foto', $kol, true)) $db->exec("ALTER TABLE $t ADD COLUMN foto VARCHAR(60) NOT NULL DEFAULT ''");
+    }
     if (!$my) $db->exec('PRAGMA busy_timeout=3000');
     return $db;
 }
@@ -72,6 +83,7 @@ function hub_zrzut(): array {
         'zgloszenia_odcinki' => $db->query('SELECT * FROM zgloszenia_odcinki ORDER BY zgloszenie, odcinek')->fetchAll(),
         'miejsca' => $db->query('SELECT * FROM miejsca ORDER BY id')->fetchAll(),
         'wezly' => $db->query('SELECT * FROM wezly ORDER BY id')->fetchAll(),
+        'trasy' => $db->query('SELECT * FROM trasy ORDER BY id')->fetchAll(),
     ];
 }
 
@@ -85,7 +97,7 @@ function hub_dobowo(): void {
     @touch($znacznik);
     try {
         $db = hub_db();
-        foreach (['zgloszenia', 'miejsca', 'wezly'] as $t) {
+        foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy'] as $t) {
             $db->prepare("UPDATE $t SET kontakt = '' WHERE kontakt <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-1 year'))]);
             $db->prepare("UPDATE $t SET ip = '' WHERE ip <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-30 days'))]);
         }
@@ -94,6 +106,13 @@ function hub_dobowo(): void {
         $pliki = glob($dir . '/stan_drog_*.json') ?: [];
         sort($pliki);
         foreach (array_slice($pliki, 0, max(0, count($pliki) - 60)) as $p) @unlink($p);
+        // zdjęcia zgłoszeń już rozpatrzonych (np. gdy decyzję zapisano inaczej niż przez panel) – sprzątanie
+        foreach (glob(hub_cfg()['dane'] . '/zdjecia/*.jpg') ?: [] as $p) {
+            if (!preg_match('/^(zgloszenia|miejsca)_(\d+)\.jpg$/', basename($p), $m)) continue;
+            $q = $db->prepare("SELECT moderacja FROM {$m[1]} WHERE id = ?"); $q->execute([(int)$m[2]]);
+            $st = $q->fetchColumn();
+            if ($st !== 'oczekuje') { @unlink($p); $db->prepare("UPDATE {$m[1]} SET foto = '' WHERE id = ?")->execute([(int)$m[2]]); }
+        }
     } catch (Throwable $e) { error_log('hub_dobowo: ' . $e->getMessage()); }
 }
 
@@ -111,7 +130,7 @@ function hub_txt(array $in, string $k, int $max): string {
 function hub_ip_limit(PDO $db): string {
     $ip = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . hub_cfg()['sol']);
     $od = date('Y-m-d H:i:s', time() - 3600); $n = 0;
-    foreach (['zgloszenia', 'miejsca', 'wezly'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE ip = ? AND utworzono > ?"); $q->execute([$ip, $od]); $n += (int)$q->fetchColumn(); }
+    foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE ip = ? AND utworzono > ?"); $q->execute([$ip, $od]); $n += (int)$q->fetchColumn(); }
     if ($n >= 20) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);
     return $ip;
 }
@@ -119,4 +138,26 @@ function hub_powiadom(string $temat, string $tresc): void {
     $mail = hub_cfg()['powiadom'];
     if ($mail) @mail($mail, '=?UTF-8?B?' . base64_encode($temat) . '?=',
         $tresc . "\n\nPanel: https://" . ($_SERVER['HTTP_HOST'] ?? '') . "/admin/", "Content-Type: text/plain; charset=utf-8");
+}
+
+// Zdjęcie (JPEG, już zmniejszone w przeglądarce) przesłane jako data URL w polu 'foto'. Zapis poza public_html.
+// Zwraca nazwę pliku albo '' (brak zdjęcia). Błędne zdjęcie nie blokuje zgłoszenia – po prostu go nie zapisujemy.
+function hub_foto_zapisz(PDO $db, array $in, string $tab, int $id): string {
+    $d = (string)($in['foto'] ?? '');
+    if ($d === '' || !preg_match('#^data:image/jpeg;base64,([A-Za-z0-9+/=]+)$#', $d, $m)) return '';
+    $bin = base64_decode($m[1], true);
+    if ($bin === false || strlen($bin) < 2000 || strlen($bin) > 900000 || substr($bin, 0, 3) !== "\xFF\xD8\xFF") return '';
+    if (function_exists('getimagesizefromstring')) { $g = @getimagesizefromstring($bin); if (!$g || $g[2] !== IMAGETYPE_JPEG || $g[0] > 2600 || $g[1] > 2600) return ''; }
+    $dir = hub_cfg()['dane'] . '/zdjecia';
+    if (!is_dir($dir)) @mkdir($dir, 0700, true);
+    $plik = $tab . '_' . $id . '.jpg';
+    if (@file_put_contents($dir . '/' . $plik, $bin, LOCK_EX) === false) return '';
+    @chmod($dir . '/' . $plik, 0600);
+    $db->prepare("UPDATE $tab SET foto = ? WHERE id = ?")->execute([$plik, $id]);
+    return $plik;
+}
+function hub_foto_usun(PDO $db, string $tab, int $id): void {
+    if (!in_array($tab, ['zgloszenia', 'miejsca'], true)) return;
+    @unlink(hub_cfg()['dane'] . '/zdjecia/' . $tab . '_' . $id . '.jpg');
+    $db->prepare("UPDATE $tab SET foto = '' WHERE id = ?")->execute([$id]);
 }

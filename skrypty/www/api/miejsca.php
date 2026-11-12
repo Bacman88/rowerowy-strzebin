@@ -18,7 +18,8 @@ try {
     $db->prepare('INSERT INTO miejsca (utworzono, typ, nazwa, opis, lat, lon, nick, kontakt, ip) VALUES (?,?,?,?,?,?,?,?,?)')
        ->execute([hub_teraz(), $typ, $nazwa, $opis, round($lat, 6), round($lon, 6), $nick, $kontakt, $ip]);
     $id = (int)$db->lastInsertId();
-    hub_powiadom("Nowe miejsce do zatwierdzenia #$id", "Od: $nick\nRodzaj: $typ\n$nazwa\n$opis");
+    $foto = hub_foto_zapisz($db, $in, 'miejsca', $id);
+    hub_powiadom("Nowe miejsce do zatwierdzenia #$id", "Od: $nick\nRodzaj: $typ\n$nazwa\n$opis" . ($foto ? "\n(ze zdjęciem)" : ''));
     hub_json(['ok' => true, 'id' => $id]);
 } catch (Throwable $e) {
     error_log('miejsca.php: ' . $e->getMessage());

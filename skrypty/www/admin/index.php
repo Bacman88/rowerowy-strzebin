@@ -71,6 +71,12 @@ if (isset($_GET['eksport'])) {   // zatwierdzone zmiany węzłów – do wdroże
     foreach ($r as &$w) { $w['zmiany'] = json_decode($w['zmiany'], true); $w['wezel'] = $w['wezel'] === null ? null : (int)$w['wezel']; }
     echo json_encode($r, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); exit;
 }
+if (isset($_GET['foto'])) {   // zdjęcie zgłoszenia – tylko dla zalogowanego administratora
+    $p = basename((string)$_GET['foto']);
+    $f = $cfg['dane'] . '/zdjecia/' . $p;
+    if (!preg_match('/^(zgloszenia|miejsca)_\d+\.jpg$/', $p) || !is_file($f)) { http_response_code(404); exit('Brak zdjęcia'); }
+    header('Content-Type: image/jpeg'); header('Content-Length: ' . filesize($f)); readfile($f); exit;
+}
 if (isset($_GET['kopia'])) {
     header('Content-Type: application/json; charset=utf-8');
     header('Content-Disposition: attachment; filename="stan_drog_' . date('Y-m-d') . '.json"');
@@ -82,19 +88,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nowy = ['zatwierdz' => 'zatwierdzone', 'odrzuc' => 'odrzucone', 'wycofaj' => 'wycofane', 'przywroc' => 'oczekuje'][$_POST['akcja'] ?? ''] ?? null;
     $ids = array_filter(array_map('intval', (array)($_POST['id'] ?? [])));
     if ($nowy && $ids) {
-        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly'][$_POST['t'] ?? ''] ?? 'zgloszenia';
+        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy'][$_POST['t'] ?? ''] ?? 'zgloszenia';
         $u = $db->prepare("UPDATE $tab SET moderacja = ?, moderowano = ? WHERE id = ?");
-        foreach ($ids as $i) $u->execute([$nowy, hub_teraz(), $i]);
+        foreach ($ids as $i) {
+            $u->execute([$nowy, hub_teraz(), $i]);
+            // zdjęcie służy tylko do sprawdzenia zgłoszenia – po decyzji (zatwierdź/odrzuć) usuwamy je z serwera
+            if (in_array($nowy, ['zatwierdzone', 'odrzucone'], true)) hub_foto_usun($db, $tab, $i);
+        }
     }
     header('Location: ./?t=' . urlencode($_POST['t'] ?? 'drogi') . '&k=' . urlencode($_POST['k'] ?? 'oczekuje')); exit;
 }
 
 $k = in_array($_GET['k'] ?? '', ['oczekuje', 'zatwierdzone', 'odrzucone', 'wycofane'], true) ? $_GET['k'] : 'oczekuje';
-$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly'], true) ? $_GET['t'] : 'drogi';
-$tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly'][$tryb] ?? 'zgloszenia';
+$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy'], true) ? $_GET['t'] : 'drogi';
+$tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy'][$tryb] ?? 'zgloszenia';
 $licz = []; $czeka = [];
 foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja") as $r) $licz[$r['moderacja']] = (int)$r['n'];
-foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
+foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
 $q = $db->prepare("SELECT * FROM $tab WHERE moderacja = ? ORDER BY utworzono " . ($k === 'oczekuje' ? 'ASC' : 'DESC') . ' LIMIT 200');
 $q->execute([$k]); $lista = $q->fetchAll();
 $odc = [];
@@ -138,6 +148,7 @@ button{font:inherit;font-size:13px;padding:5px 11px;border-radius:7px;border:1px
 button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{background:#fff;color:#b00020;border-color:#e2b4ba}
 .empty{color:var(--muted);padding:20px 4px}
 @media (max-width:800px){main{grid-template-columns:1fr;height:auto}#map{height:50vh;order:-1}.list{border-right:0}}
+.foto img{display:block;max-width:100%;max-height:260px;border-radius:8px;margin:6px 0 2px;border:1px solid var(--line)}
 .wzp svg{width:100%;height:auto;display:block;margin:4px 0}.wzp .m{margin-top:6px}
 @font-face{font-family:'Fira Sans Condensed';font-weight:600;src:url(../lib/fonts/FiraSansCondensed-SemiBold.ttf) format('truetype')}
 .wzm{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;background:#00838F;font:700 10px system-ui;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
@@ -145,7 +156,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <header>
   <h1>Panel</h1>
   <nav class="tabs tryb">
-    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki'] as $tt => $t): ?>
+    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy'] as $tt => $t): ?>
       <a href="?t=<?= $tt ?>" class="<?= $tryb === $tt ? 'on' : '' ?>"><?= $t ?><?= $czeka[$tt] ? '<i>' . $czeka[$tt] . '</i>' : '' ?></a>
     <?php endforeach ?>
   </nav>
@@ -168,6 +179,12 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
            <?php foreach ($zm['dodaj'] ?? [] as $c): ?><span style="color:#1b5e20">+ <?= $h($c['n']) ?> <?= $h($c['km']) ?> <?= $c['d'] === 'left' ? '←' : '→' ?><?= $c['rts'] ? ' (trasy ' . $h(implode(', ', $c['rts'])) . ')' : '' ?></span><br><?php endforeach ?></p>
         <?php if ((string)$r['komentarz'] !== ''): ?><p><?= $h($r['komentarz']) ?></p><?php endif ?>
         <div class="wzp"></div>
+      <?php elseif ($tryb === 'trasy'): ?>
+      <div class="z" data-id="<?= (int)$r['id'] ?>" data-trasa="1">
+        <div><span class="chip" style="background:#0f766e">trasa · <?= number_format((float)$r['km'], 1, ',', '') ?> km</span> <b><?= $h($r['nick']) ?></b></div>
+        <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <p><b><?= $h($r['nazwa']) ?></b></p>
+        <?php if ((string)$r['opis'] !== ''): ?><p><?= $h($r['opis']) ?></p><?php endif ?>
       <?php elseif ($tryb === 'miejsca'): ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-typ="<?= $h($r['typ']) ?>" data-lat="<?= (float)$r['lat'] ?>" data-lon="<?= (float)$r['lon'] ?>">
         <div><span class="chip" style="background:#237647"><?= $h($TYPY[$r['typ']] ?? $r['typ']) ?></span> <b><?= $h($r['nick']) ?></b></div>
@@ -181,6 +198,8 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
         <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['data_przejazdu'] ? ' · przejazd ' . $h($r['data_przejazdu']) : '' ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
         <?php if ($r['komentarz'] !== '' && $r['komentarz'] !== null): ?><p><?= $h($r['komentarz']) ?></p><?php endif ?>
       <?php endif ?>
+        <?php if (($r['foto'] ?? '') !== ''): ?><a href="?foto=<?= $h($r['foto']) ?>" target="_blank" class="foto"><img src="?foto=<?= $h($r['foto']) ?>" alt="zdjęcie do zgłoszenia" loading="lazy"></a>
+          <div class="m">Zdjęcie zostanie usunięte z serwera po zatwierdzeniu albo odrzuceniu.</div><?php endif ?>
         <?php if ($r['kontakt'] !== ''): ?><div class="priv">kontakt (tylko dla Ciebie): <?= $h($r['kontakt']) ?></div><?php endif ?>
         <form class="a" method="post"><input type="hidden" name="csrf" value="<?= $csrf ?>"><input type="hidden" name="k" value="<?= $k ?>"><input type="hidden" name="t" value="<?= $tryb ?>">
           <input type="hidden" name="id[]" value="<?= (int)$r['id'] ?>">
@@ -201,6 +220,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <script src="../lib/tabliczka.js"></script>
 <script>
 const ODC_Z = <?= json_encode($odc, JSON_UNESCAPED_UNICODE) ?>;
+const TRASY_G = <?= json_encode($tryb === 'trasy' ? array_column(array_map(fn($r) => ['id' => (int)$r['id'], 'g' => json_decode($r['geom'], true), 'p' => json_decode($r['punkty'], true)], $lista), null, 'id') : new stdClass()) ?>;
 const KOL = {dobra:'#2b9348', srednia:'#e0a800', trudna:'#d62828', nieprzejezdna:'#111'};
 const map = L.map('map', {preferCanvas:true});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
@@ -225,7 +245,13 @@ function pokaz(id, stan, fit) {
 document.querySelectorAll('.z').forEach(el => el.addEventListener('click', e => {
   if (e.target.closest('form')) return;
   document.querySelectorAll('.z.on').forEach(x => x.classList.remove('on')); el.classList.add('on');
-  if (el.dataset.zm) {
+  if (el.dataset.trasa) {
+    sel.clearLayers(); const t = TRASY_G[el.dataset.id]; if (!t) return;
+    L.polyline(t.g, {color:'#fff', weight:9, opacity:.9}).addTo(sel);
+    const ln = L.polyline(t.g, {color:'#0f766e', weight:5}).addTo(sel);
+    t.p.forEach((p, i) => L.circleMarker(p, {radius:6, color:'#fff', weight:2, fillColor: i ? (i === t.p.length - 1 ? '#b00020' : '#0f766e') : '#2b9348', fillOpacity:1}).addTo(sel));
+    map.fitBounds(ln.getBounds(), {padding:[40, 40]});
+  } else if (el.dataset.zm) {
     sel.clearLayers(); const ll = [+el.dataset.lat, +el.dataset.lon];
     L.circle(ll, {radius: 30, color: '#1d4ed8', weight: 3, fill: false}).addTo(sel); map.setView(ll, 16);
   } else if (el.dataset.typ) {

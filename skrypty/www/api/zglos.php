@@ -38,6 +38,7 @@ try {
     $ins = $db->prepare('INSERT INTO zgloszenia_odcinki (zgloszenie, odcinek) VALUES (?,?)');
     foreach ($odc as $o) $ins->execute([$id, $o]);
     $db->commit();
+    $foto = hub_foto_zapisz($db, $in, 'zgloszenia', $id);
 } catch (Throwable $e) {
     if (isset($db) && $db->inTransaction()) $db->rollBack();
     error_log('zglos.php: ' . $e->getMessage());
@@ -46,6 +47,6 @@ try {
 
 $mail = hub_cfg()['powiadom'];
 if ($mail) @mail($mail, "=?UTF-8?B?" . base64_encode("Nowe zgłoszenie stanu drogi #$id") . "?=",
-    "Od: $nick\nStan: $stan\nOdcinków: " . count($odc) . "\n\n$kom\n\nPanel: https://" . ($_SERVER['HTTP_HOST'] ?? '') . "/admin/",
+    "Od: $nick\nStan: $stan\nOdcinków: " . count($odc) . ($foto ? "\nZe zdjęciem" : '') . "\n\n$kom\n\nPanel: https://" . ($_SERVER['HTTP_HOST'] ?? '') . "/admin/",
     "Content-Type: text/plain; charset=utf-8");
 hub_json(['ok' => true, 'id' => $id]);

@@ -13,26 +13,26 @@ window.TRASOWANIE = (() => {
     for (const s of window.ODC) {
       const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
       const a = id(ll[0]), b = id(ll[ll.length - 1]), f = F[stanOf ? stanOf(s[0], s[4]) : (s[4] || 'brak')] ?? 1.25;
-      adj[a].push([b, s[6], s[6] * f, ll]); adj[b].push([a, s[6], s[6] * f, ll.slice().reverse()]);
+      adj[a].push([b, s[6], s[6] * f, ll, s[0]]); adj[b].push([a, s[6], s[6] * f, ll.slice().reverse(), s[0]]);
     }
     G = {P, adj}; return G;
   }
   function najblizszy(p) { let b = 0, bd = Infinity; G.P.forEach((q, i) => { const d = dist(p, q); if (d < bd) { bd = d; b = i; } }); return [b, bd]; }
   // Dijkstra od punktu: zwraca funkcję trasa(cel) -> {m, ll}
   function od(p) {
-    const [s, d0] = najblizszy(p), n = G.P.length, cost = new Float64Array(n).fill(Infinity), len = new Float64Array(n), prev = new Int32Array(n).fill(-1), via = new Array(n);
+    const [s, d0] = najblizszy(p), n = G.P.length, cost = new Float64Array(n).fill(Infinity), len = new Float64Array(n), prev = new Int32Array(n).fill(-1), via = new Array(n), viaId = new Array(n);
     cost[s] = 0; len[s] = d0; const h = [[0, s]];
     const push = x => { h.push(x); let i = h.length - 1; while (i > 0) { const j = (i - 1) >> 1; if (h[j][0] <= h[i][0]) break; [h[i], h[j]] = [h[j], h[i]]; i = j; } };
     const pop = () => { const t = h[0], e = h.pop(); if (h.length) { h[0] = e; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[i], h[m]] = [h[m], h[i]]; i = m; } } return t; };
     while (h.length) {
       const [c, u] = pop(); if (c > cost[u]) continue;
-      for (const [v, m, w, ll] of G.adj[u]) if (c + w < cost[v]) { cost[v] = c + w; len[v] = len[u] + m; prev[v] = u; via[v] = ll; push([cost[v], v]); }
+      for (const [v, m, w, ll, sid] of G.adj[u]) if (c + w < cost[v]) { cost[v] = c + w; len[v] = len[u] + m; prev[v] = u; via[v] = ll; viaId[v] = sid; push([cost[v], v]); }
     }
     return cel => {
       const [t, d1] = najblizszy(cel); if (!isFinite(cost[t])) return null;
-      const seg = []; for (let v = t; v !== s; v = prev[v]) seg.unshift(via[v]);
+      const seg = [], ids = []; for (let v = t; v !== s; v = prev[v]) { seg.unshift(via[v]); ids.unshift(viaId[v]); }
       const out = [p]; seg.forEach(sg => out.push(...sg.slice(1)));
-      return {m: len[t] + d1, ll: out};
+      return {m: len[t] + d1, ll: out, ids};
     };
   }
   function azymut(ll) {
@@ -63,5 +63,9 @@ window.TRASOWANIE = (() => {
     const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy; let t = L2 ? -(ax * dx + ay * dy) / L2 : 0; t = Math.max(0, Math.min(1, t));
     return Math.hypot(ax + t * dx, ay + t * dy);
   }
-  return {graf, od, azymut, strzalka, trasy, dist};
+  // najbliższy punkt sieci dróg (do przyciągania punktów kreatora trasy)
+  function snap(p) { const [i, d] = najblizszy(p); return {ll: G.P[i], d}; }
+  // odcinek trasy od punktu a do b po drogach (oba punkty przyciągnięte do sieci)
+  function odcinek(a, b) { const r = od(a)(b); if (!r) return null; r.ll[0] = a; r.m -= dist(a, G.P[najblizszy(a)[0]]); return r; }
+  return {graf, od, azymut, strzalka, trasy, dist, snap, odcinek, gotowy: () => !!G};
 })();
