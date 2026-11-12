@@ -35,6 +35,9 @@ BASE = {"bardzo dobra": "dobra", "dobra": "dobra", "średnia": "srednia", "trudn
 
 osm = json.load(open(OSM))["features"]; D = json.load(open(SIGNS))
 area = to2180(MultiPoint([(p["lon"], p["lat"]) for p in D["posts"]])).convex_hull.buffer(2500)
+# 12.11.2026: cała gmina Koszęcin z okolicą (3 km za granicą) – mapa wspólna gotowa na całą gminę
+if os.path.exists("../dane/gmina_koszecin.geojson"):
+    area = area.union(to2180(shape(json.load(open("../dane/gmina_koszecin.geojson"))["features"][0]["geometry"])).buffer(3000))
 
 ways = []
 for f in osm:
@@ -86,9 +89,24 @@ for p, cs in ways:
             segs.append([sid, HW.get(hw, hw), p.get("name", "") or p.get("ref", ""), SURF.get(surf, surf or ""), base, bdate,
                          round(part.length), [v for c in co for v in c]])
 
+# Odcinki z poprzednich wersji (np. po aktualizacji danych OSM): zgłoszenia zapisane na starym id przechodzą na nowe
+# odcinki leżące w tym samym miejscu (≥ 50% długości w pasie 10 m). Historia wszystkich opublikowanych odcinków: ../dane/odcinki_historia.json
+HIST = "../dane/odcinki_historia.json"
+hist = json.load(open(HIST)) if os.path.exists(HIST) else {}
+nowe = {s_[0]: s_ for s_ in segs}; aliasy = {}
+from shapely.strtree import STRtree
+_geo = [to2180(LineString([(c[i + 1], c[i]) for i in range(0, len(c), 2)])) for c in (s_[7] for s_ in segs)]
+_tree = STRtree(_geo)
+for sid, co in hist.items():
+    if sid in nowe: continue
+    g = to2180(LineString([(co[i + 1], co[i]) for i in range(0, len(co), 2)])); buf = g.buffer(10)
+    hit = [segs[i][0] for i in _tree.query(buf) if _geo[i].intersection(buf).length >= 0.5 * min(_geo[i].length, g.length)]
+    if hit: aliasy[sid] = hit
+for s_ in segs: hist[s_[0]] = s_[7]
+json.dump(hist, open(HIST, "w"), separators=(",", ":"))
 os.makedirs(f"{OUT}/stan", exist_ok=True); os.makedirs(f"{OUT}/api", exist_ok=True)
-open(f"{OUT}/stan/odcinki.js", "w").write("window.ODC=" + json.dumps(segs, ensure_ascii=False, separators=(",", ":")) + ";")
+open(f"{OUT}/stan/odcinki.js", "w").write("window.ODC=" + json.dumps(segs, ensure_ascii=False, separators=(",", ":")) + ";\nwindow.ODC_ALIASY=" + json.dumps(aliasy, separators=(",", ":")) + ";")
 json.dump(sorted(ids), open(f"{OUT}/api/_odcinki.json", "w"), separators=(",", ":"))
 km = sum(s[6] for s in segs) / 1000
-print(f"odcinki: {len(segs)} odcinków, {km:.0f} km, z pomiarów {sum(1 for s in segs if s[4] and s[4] != 'osm')}, utwardzone wg OSM {sum(s[6] for s in segs if s[4] == 'osm') / 1000:.0f} km, "
+print(f"odcinki (aliasy starych id: {len(aliasy)}): {len(segs)} odcinków, {km:.0f} km, z pomiarów {sum(1 for s in segs if s[4] and s[4] != 'osm')}, utwardzone wg OSM {sum(s[6] for s in segs if s[4] == 'osm') / 1000:.0f} km, "
       f"plik {os.path.getsize(f'{OUT}/stan/odcinki.js') / 1e6:.1f} MB")

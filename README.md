@@ -11,7 +11,7 @@ Projekt jest oddolny i ma charakter **propozycji do dyskusji** z sołectwem, gmi
 | Folder | Zawartość |
 |---|---|
 | `skrypty/` | cały proces: dane → kierunki → tabliczki → mapy → trasy → paski → PDF → strona |
-| `dane/` | wycinek OpenStreetMap, warstwa uMap z pomiarami dróg, zasięg Street View |
+| `dane/` | wycinki OpenStreetMap (`osm2_clean` – okolice Strzebinia, do map PDF i tabliczek; `osm_gmina` – cała gmina Koszęcin z okolicą, do strony; `przygotuj_gmine.py`), granica gminy, warstwa uMap z pomiarami dróg, zasięg Street View, historia odcinków mapy wspólnej |
 | `generator/` | generator tabliczek „HUB Strzebiń” (V21) – wzór graficzny tabliczek |
 | `fonts/` | kroje: Inter, Fira Sans Condensed (licencja SIL OFL) |
 | `vendor/leaflet/` | biblioteka mapy dla strony (BSD-2) |

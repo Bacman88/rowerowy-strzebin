@@ -239,6 +239,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       <span><i class="sw" style="background:#8fcf9c;height:4px"></i>utwardzona (wg OSM)</span>
       <span><i class="sw" style="background:var(--s-brak);height:3px"></i>brak oceny</span>
       <span><i class="sw" style="background:var(--sel);opacity:.6;height:8px"></i>zaznaczone</span>
+      <span><i class="sw" style="background:repeating-linear-gradient(90deg,#8a5300 0 6px,transparent 6px 11px);height:2px"></i>granica gminy</span>
     </div>
     <div class="muted" id="sum" style="margin-top:6px"></div>
 
@@ -479,6 +480,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   const upd = () => map.getContainer().classList.toggle('far', map.getZoom() < 13);
   map.on('zoomend', upd);
   map.fitBounds(all.getBounds(), {padding:[20,20]}); upd();
+  if (H.gmina) L.polyline(H.gmina, {color:'#8a5300', weight:2, dashArray:'7 6', opacity:.65, interactive:false}).addTo(map).bindTooltip?.('granica gminy Koszęcin');
   NAWIGACJA(map, document.querySelector('#trasy .app'), () => map.fitBounds(all.getBounds(), {padding:[20,20]}));
 })();
 </script>
@@ -771,10 +773,16 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar && S[id].pomiar !== 'osm') S[id].ll.forEach(p => b.extend(p));
   for (const p of (window.HUB?.posts || [])) b.extend([p.lat, p.lon]);
   const calosc = () => map.fitBounds(b.isValid() ? b : [[50.55, 18.8], [50.7, 19.0]], {padding:[20, 20]});
+  if (window.HUB?.gmina) L.polyline(HUB.gmina, {color:'#8a5300', weight:2, dashArray:'7 6', opacity:.65, interactive:false}).addTo(map);
   calosc(); NAWIGACJA(map, $('wsp'), calosc);
   rysuj(); rysujSel();
   fetch('api/stan.php', {cache:'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
-    if (j.blad) throw 0; API = j; apiOk = true; rysuj(); walid();
+    if (j.blad) throw 0; API = j; apiOk = true;
+    // zgłoszenia na odcinkach z poprzedniej wersji danych OSM -> odpowiadające im nowe odcinki
+    for (const [o, ns] of Object.entries(window.ODC_ALIASY || {})) {
+      if (API.stany[o] !== undefined) for (const n of ns) if (!(API.stany[n] > API.stany[o])) API.stany[n] = API.stany[o];
+      if (API.wpisy[o]) for (const n of ns) API.wpisy[n] = [...new Set([...(API.wpisy[n] || []), ...API.wpisy[o]])].sort((a, b) => b - a).slice(0, 5);
+    } rysuj(); walid();
   }).catch(() => {
     msg('Zapisywanie zgłoszeń jest teraz niedostępne – mapa pokazuje tylko dotychczasowe pomiary.');
   });

@@ -206,6 +206,7 @@ const map = L.map('map', {preferCanvas:true});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
 const geo = {}; const all = [];
 for (const s of window.ODC) { const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i+1]]); geo[s[0]] = ll; }
+for (const [o, ns] of Object.entries(window.ODC_ALIASY || {})) geo[o] = ns.flatMap(n => geo[n] || []);
 const tlo = L.layerGroup().addTo(map);
 for (const id in geo) L.polyline(geo[id], {color:'#8a9399', weight:2, opacity:.45, interactive:false}).addTo(tlo);
 const sel = L.layerGroup().addTo(map);

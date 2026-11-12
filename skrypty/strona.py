@@ -39,13 +39,19 @@ pois = [dict(name=q["name"], lat=q["lat"], lon=q["lon"], cat=q["cat"], icon=q.ge
 # miejsca odpoczynku i serwisu: planowane stacje napraw + lista ręczna (dane/miejsca.geojson) + OSM (wiaty, piknik, widoki, ławki)
 from shapely.geometry import MultiPoint, Point
 hull = MultiPoint([(p["lon"], p["lat"]) for p in D["posts"]]).convex_hull.buffer(0.04)
+# cała gmina Koszęcin z okolicą: granica gminy na mapach strony i miejsca z OSM w całej gminie
+from shapely.geometry import shape as _shape
+GMINA = json.load(open("../dane/gmina_koszecin.geojson"))["features"][0]["geometry"]
+hull = hull.union(_shape(GMINA).buffer(0.04))
+_gb = _shape(GMINA).exterior if GMINA["type"] == "Polygon" else max(_shape(GMINA).geoms, key=lambda x: x.area).exterior
+gmina_ll = [[round(y, 5), round(x, 5)] for x, y in _gb.coords]
 # stacja przy pomniku J. Ligonia: na mapie www ok. 30 m na wschód, żeby nie zasłaniała gwiazdki pomnika
 przes = lambda q: 0.0004 if any(o.get("icon") == "heritage" and abs(o["lat"] - q["lat"]) + abs(o["lon"] - q["lon"]) < 1e-4 for o in D.get("pois", [])) else 0
 places = [dict(typ="stacja", nazwa="Stacja napraw rowerów", opis="planowana – fundusz sołecki 2027", lat=q["lat"], lon=q["lon"] + przes(q), plan=1)
           for q in D.get("pois", []) if q.get("icon") == "service"]
 for f in json.load(open("../dane/miejsca.geojson"))["features"]:
     x, y = f["geometry"]["coordinates"]; places.append(dict(f["properties"], lat=y, lon=x))
-for f in json.load(open("../dane/osm2_clean.geojson"))["features"]:
+for f in json.load(open("../dane/osm_gmina.geojson"))["features"]:
     q = f["properties"]; g = f["geometry"]
     if g["type"] != "Point": continue
     typ = ("wiata" if q.get("amenity") == "shelter" and q.get("shelter_type") in (None, "picnic_shelter", "weather_shelter", "lean_to", "basic_hut") else
@@ -103,7 +109,7 @@ TABD = dict(PALETTE=dict(_re.findall(r"(\w+):'(#[0-9A-Fa-f]{6})'", _re.search(r"
             KOL={k: v[:2] for k, v in KOLORY.items()})
 open(f"{S}/lib/tabliczka-dane.js", "w").write("window.TABD = " + json.dumps(TABD, ensure_ascii=False, separators=(",", ":")) + ";")
 os.makedirs(f"{S}/lib/fonts", exist_ok=True); shutil.copy("../fonts/FiraSansCondensed-SemiBold.ttf", f"{S}/lib/fonts/")
-open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places, cele=cele), ensure_ascii=False, separators=(",", ":")) + ";")
+open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places, cele=cele, gmina=gmina_ll), ensure_ascii=False, separators=(",", ":")) + ";")
 print("miejsca:", len(places))
 M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
 PDFS = [("Projekt – komplet (opis, kosztorys, mapy, katalog)", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy.pdf")]),
