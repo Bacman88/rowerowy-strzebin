@@ -64,6 +64,36 @@ try { $db = hub_db(); } catch (Throwable $e) {
     exit;
 }
 
+// korekta miejsca z mapy panelu (fetch): zapisz / ukryj / pokaż / cofnij – odpowiedź JSON
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['akcja'] ?? '') === 'korekta') {
+    if (!hash_equals($_SESSION['csrf'] ?? '', (string)($_POST['csrf'] ?? ''))) hub_json(['blad' => 'Błędny token – odśwież stronę'], 400);
+    $kl = mb_substr((string)($_POST['klucz'] ?? ''), 0, 80);
+    if (!preg_match('/^(db|poi|stacja|stale|osm):.+$/u', $kl)) hub_json(['blad' => 'Nieznane miejsce'], 400);
+    $op = (string)($_POST['op'] ?? '');
+    $jest = $db->prepare('SELECT * FROM korekty_miejsc WHERE klucz = ?'); $jest->execute([$kl]); $jest = $jest->fetch();
+    $zapisz = function (array $w) use ($db, $kl, $jest) {
+        $w['zmieniono'] = hub_teraz();
+        if ($jest) { $db->prepare('UPDATE korekty_miejsc SET ' . implode(', ', array_map(fn($c) => "$c = ?", array_keys($w))) . ' WHERE klucz = ?')->execute([...array_values($w), $kl]); }
+        else { $w['klucz'] = $kl; $db->prepare('INSERT INTO korekty_miejsc (' . implode(', ', array_keys($w)) . ') VALUES (' . implode(',', array_fill(0, count($w), '?')) . ')')->execute(array_values($w)); }
+    };
+    if ($op === 'cofnij') $db->prepare('DELETE FROM korekty_miejsc WHERE klucz = ?')->execute([$kl]);
+    elseif ($op === 'ukryj') $zapisz(['ukryj' => 1]);
+    elseif ($op === 'pokaz') {
+        if ($jest && $jest['typ'] === null && $jest['lat'] === null && $jest['nazwa'] === null && $jest['opis'] === null) $db->prepare('DELETE FROM korekty_miejsc WHERE klucz = ?')->execute([$kl]);
+        elseif ($jest) $zapisz(['ukryj' => 0]);
+    } elseif ($op === 'zapisz') {
+        $typ = (string)($_POST['typ'] ?? ''); $lat = (float)($_POST['lat'] ?? 0); $lon = (float)($_POST['lon'] ?? 0);
+        if (!in_array($typ, TYPY_MIEJSC, true) && $typ !== 'stacja') hub_json(['blad' => 'Nieznany rodzaj miejsca'], 400);
+        if ($lat < 50.40 || $lat > 50.85 || $lon < 18.55 || $lon > 19.25) hub_json(['blad' => 'Położenie poza mapą'], 400);
+        $zapisz(['ukryj' => 0, 'typ' => $typ, 'nazwa' => hub_txt($_POST, 'nazwa', 80), 'opis' => hub_txt($_POST, 'opis', 1000), 'lat' => round($lat, 6), 'lon' => round($lon, 6)]);
+    } else hub_json(['blad' => 'Nieznana operacja'], 400);
+    hub_json(['ok' => true, 'korekty' => hub_korekty($db)]);
+}
+if (($_GET['eksport'] ?? '') === 'miejsca') {   // korekty miejsc – do przeniesienia do projektu (cele lokalne na tabliczkach i mapach PDF)
+    header('Content-Type: application/json; charset=utf-8');
+    header('Content-Disposition: attachment; filename="korekty_miejsc_' . date('Y-m-d') . '.json"');
+    echo json_encode($db->query('SELECT * FROM korekty_miejsc ORDER BY klucz')->fetchAll(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); exit;
+}
 if (isset($_GET['eksport'])) {   // zatwierdzone zmiany węzłów – do wdrożenia w projekcie (dane/wezly_zatwierdzone.json w repozytorium)
     header('Content-Type: application/json; charset=utf-8');
     header('Content-Disposition: attachment; filename="wezly_zatwierdzone_' . date('Y-m-d') . '.json"');
@@ -100,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $k = in_array($_GET['k'] ?? '', ['oczekuje', 'zatwierdzone', 'odrzucone', 'wycofane'], true) ? $_GET['k'] : 'oczekuje';
-$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy'], true) ? $_GET['t'] : 'drogi';
+$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy', 'mapa'], true) ? $_GET['t'] : 'drogi';
 $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy'][$tryb] ?? 'zgloszenia';
 $licz = []; $czeka = [];
 foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja") as $r) $licz[$r['moderacja']] = (int)$r['n'];
@@ -149,6 +179,11 @@ button{font:inherit;font-size:13px;padding:5px 11px;border-radius:7px;border:1px
 button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{background:#fff;color:#b00020;border-color:#e2b4ba}
 .empty{color:var(--muted);padding:20px 4px}
 @media (max-width:800px){main{grid-template-columns:1fr;height:auto}#map{height:50vh;order:-1}.list{border-right:0}}
+[hidden]{display:none!important}
+.edbox{background:var(--card);border:1px solid var(--green);box-shadow:0 0 0 2px rgba(29,59,48,.25);border-radius:10px;padding:10px 12px;margin:10px 0}
+.fl{display:block;font-size:13px;color:var(--muted);margin-top:8px}.fl input,.fl select,.fl textarea{display:block;width:100%;font:inherit;font-size:14.5px;color:var(--ink);padding:6px 9px;border:1px solid var(--line);border-radius:7px;margin-top:3px;background:#fff}
+#wyniki a{display:block;padding:5px 2px;border-bottom:1px dashed var(--line);cursor:pointer;color:var(--ink);text-decoration:none}#wyniki a:hover{background:#efe9da}
+#lista-k a{cursor:pointer;color:var(--green)}
 .foto img{display:block;max-width:100%;max-height:260px;border-radius:8px;margin:6px 0 2px;border:1px solid var(--line)}
 .wzp svg{width:100%;height:auto;display:block;margin:4px 0}.wzp .m{margin-top:6px}
 @font-face{font-family:'Fira Sans Condensed';font-weight:600;src:url(../lib/fonts/FiraSansCondensed-SemiBold.ttf) format('truetype')}
@@ -157,18 +192,40 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <header>
   <h1>Panel</h1>
   <nav class="tabs tryb">
-    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy'] as $tt => $t): ?>
-      <a href="?t=<?= $tt ?>" class="<?= $tryb === $tt ? 'on' : '' ?>"><?= $t ?><?= $czeka[$tt] ? '<i>' . $czeka[$tt] . '</i>' : '' ?></a>
+    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy', 'mapa' => 'Miejsca na mapie – edycja'] as $tt => $t): ?>
+      <a href="?t=<?= $tt ?>" class="<?= $tryb === $tt ? 'on' : '' ?>"><?= $t ?><?= ($czeka[$tt] ?? 0) ? '<i>' . $czeka[$tt] . '</i>' : '' ?></a>
     <?php endforeach ?>
   </nav>
-  <nav class="tabs">
+  <nav class="tabs"<?= $tryb === 'mapa' ? ' hidden' : '' ?>>
     <?php foreach (['oczekuje' => 'Oczekujące', 'zatwierdzone' => 'Zatwierdzone', 'odrzucone' => 'Odrzucone', 'wycofane' => 'Wycofane'] as $kk => $t): ?>
       <a href="?t=<?= $tryb ?>&k=<?= $kk ?>" class="<?= $k === $kk ? 'on' : '' ?>"><?= $t ?> (<?= $licz[$kk] ?? 0 ?>)</a>
     <?php endforeach ?>
   </nav>
-  <span style="margin-left:auto"><a href="../#wspolna" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?eksport=wezly" title="zatwierdzone zmiany węzłów do wdrożenia w projekcie">eksport węzłów</a> · <a href="?wyloguj=1">wyloguj</a></span>
+  <span style="margin-left:auto"><a href="../#wspolna" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?eksport=wezly" title="zatwierdzone zmiany węzłów do wdrożenia w projekcie">eksport węzłów</a> · <a href="?eksport=miejsca" title="poprawki miejsc z mapy">eksport poprawek miejsc</a> · <a href="?wyloguj=1">wyloguj</a></span>
 </header>
 <main>
+  <?php if ($tryb === 'mapa'): ?>
+  <div class="list" id="ed">
+    <p class="m" style="margin-top:0">Kliknij miejsce na mapie albo wyszukaj je po nazwie. <b>Przeciągnij znacznik</b>, żeby go przesunąć, popraw rodzaj, nazwę lub opis i zapisz. Zmiany widać od razu na stronie. Ukryte miejsca widzisz tu półprzezroczyste.</p>
+    <input type="search" id="szukaj" placeholder="Szukaj: nazwa albo rodzaj (np. ławka, Zagroda)" style="width:100%;font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px">
+    <div id="wyniki"></div>
+    <div class="edbox" id="ed-form" hidden>
+      <div class="m" id="ed-zrodlo"></div>
+      <label class="fl">Rodzaj<select id="ed-typ"></select></label>
+      <label class="fl">Nazwa<input id="ed-nazwa" maxlength="80"></label>
+      <label class="fl">Opis<textarea id="ed-opis" maxlength="1000" rows="3"></textarea></label>
+      <div class="m">Położenie: <span id="ed-poz"></span> <span id="ed-przes" style="color:#b45309"></span></div>
+      <div class="m" id="ed-oryg"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+        <button class="ok" id="ed-zapisz">Zapisz zmiany</button><button class="no" id="ed-ukryj">Usuń z mapy</button><button id="ed-cofnij">Przywróć oryginał</button>
+      </div>
+      <div class="m" id="ed-msg"></div>
+    </div>
+    <h3 style="font-size:15px;margin:16px 0 6px">Poprawione miejsca (<span id="ile-k">0</span>)</h3>
+    <div id="lista-k" class="m"></div>
+    <p class="m">Piktogramy celów lokalnych (kościoły, gastronomia, zabytki) są też na tabliczkach i mapach PDF – ich zmiany przenieś do projektu: „eksport poprawek miejsc”.</p>
+  </div>
+  <?php else: ?>
   <div class="list">
     <?php if (!$lista): ?><div class="empty">Brak zgłoszeń w tej zakładce.</div><?php endif ?>
     <?php foreach ($lista as $r): ?>
@@ -209,6 +266,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       </div>
     <?php endforeach ?>
   </div>
+  <?php endif ?>
   <div id="map"></div>
 </main>
 <script src="../lib/leaflet.js"></script>
@@ -274,5 +332,70 @@ document.querySelectorAll('.z[data-zm]').forEach(el => {
 const pierwszy = document.querySelector('.z');
 map.setView([50.62, 18.88], 12);
 if (pierwszy) pierwszy.click();
+<?php if ($tryb === 'mapa'): ?>
+// ===== Edycja miejsc na mapie: korekty (przesunięcie, rodzaj, nazwa, opis, ukrycie) zapisywane w tabeli korekty_miejsc =====
+(() => {
+  Object.values(ML).forEach(l => map.removeLayer(l));
+  const CSRF = <?= json_encode($_SESSION['csrf']) ?>, $ = id => document.getElementById(id), E = MIEJSCA.esc;
+  let K = <?= json_encode(hub_korekty($db), JSON_UNESCAPED_UNICODE) ?: '{}' ?>;
+  let P = (HUB.places || []).filter(m => m.k).map(m => ({...m}));
+  const ZR = k => ({poi: 'cel lokalny projektu (też na tabliczkach)', stacja: 'planowana stacja napraw (projekt)', stale: 'miejsce dodane w projekcie', osm: 'z OpenStreetMap', db: 'zgłoszenie mieszkańca'})[k.split(':')[0]] || '';
+  $('ed-typ').innerHTML = Object.entries(MIEJSCA.TYP).map(([t, v]) => `<option value="${t}">${v.n}</option>`).join('');
+  const warstwa = L.layerGroup().addTo(map); let wyb = null, mk = {};
+  const ukryte = k => !!(K[k] && K[k].u);
+  // miejsce po korekcie, ale ukryte też pokazujemy (półprzezroczyste)
+  const biez = m => { const k = K[m.k]; if (k && k.u) { const z = MIEJSCA.popraw(m, {}); return z; } return MIEJSCA.popraw(m, K); };
+  function rysuj() {
+    warstwa.clearLayers(); mk = {};
+    for (const m of P) {
+      const z = biez(m); if (!MIEJSCA.TYP[z.typ]) continue;
+      const mm = L.marker([z.lat, z.lon], {icon: MIEJSCA.icon(z), draggable: true, opacity: ukryte(m.k) ? .35 : 1, title: z.nazwa || MIEJSCA.TYP[z.typ].n, zIndexOffset: wyb === m ? 1000 : 0})
+        .on('click', () => wybierz(m)).on('dragend', e => { wybierz(m, false); const q = e.target.getLatLng(); poz = [q.lat, q.lng]; pokazPoz(); }).addTo(warstwa);
+      mk[m.k] = mm;
+    }
+    if (wyb && mk[wyb.k]) L.circle(mk[wyb.k].getLatLng(), {radius: 18, color: '#1d4ed8', weight: 3, fill: false, interactive: false}).addTo(warstwa);
+    const kk = Object.keys(K).filter(k => P.some(m => m.k === k));
+    $('ile-k').textContent = kk.length;
+    $('lista-k').innerHTML = kk.map(k => { const m = P.find(x => x.k === k), z = biez(m);
+      return `<div><a data-k="${E(k)}">${E(z.nazwa || MIEJSCA.TYP[z.typ]?.n || k)}</a> – ${K[k].u ? 'usunięte z mapy' : 'poprawione'}</div>`; }).join('') || 'brak';
+    $('lista-k').querySelectorAll('a').forEach(a => a.onclick = () => { const m = P.find(x => x.k === a.dataset.k); wybierz(m); map.setView([biez(m).lat, biez(m).lon], 17); });
+  }
+  let poz = null;
+  const pokazPoz = () => { const z = biez(wyb); $('ed-poz').textContent = poz[0].toFixed(5) + ', ' + poz[1].toFixed(5);
+    const d = map.distance(poz, [z.lat, z.lon]); $('ed-przes').textContent = d > 1 ? `(przesunięte o ${Math.round(d)} m – zapisz)` : ''; };
+  function wybierz(m, centruj) {
+    wyb = m; const z = biez(m); poz = [z.lat, z.lon];
+    $('ed-form').hidden = false; $('ed-msg').textContent = '';
+    $('ed-zrodlo').innerHTML = `<b>${E(ZR(m.k))}</b>${ukryte(m.k) ? ' · <span style="color:#b00020">usunięte z mapy</span>' : ''}`;
+    $('ed-typ').value = z.typ; $('ed-nazwa').value = z.nazwa || ''; $('ed-opis').value = z.opis || '';
+    $('ed-oryg').innerHTML = K[m.k] && !K[m.k].u ? `Oryginał: ${E(MIEJSCA.TYP[m.typ]?.n || m.typ)}${m.nazwa ? ' · ' + E(m.nazwa) : ''} · ${m.lat.toFixed(5)}, ${m.lon.toFixed(5)}` : '';
+    $('ed-ukryj').textContent = ukryte(m.k) ? 'Pokaż z powrotem' : 'Usuń z mapy';
+    $('ed-cofnij').hidden = !K[m.k];
+    pokazPoz(); rysuj();
+    if (centruj) map.setView(poz, Math.max(map.getZoom(), 16));
+  }
+  async function wyslij(op, pola = {}) {
+    const fd = new FormData(); fd.append('akcja', 'korekta'); fd.append('csrf', CSRF); fd.append('klucz', wyb.k); fd.append('op', op);
+    for (const [k, v] of Object.entries(pola)) fd.append(k, v);
+    try {
+      const r = await fetch('./', {method: 'POST', body: fd, headers: {'Accept': 'application/json'}}); const j = await r.json();
+      if (!j.ok) throw new Error(j.blad || 'Nie udało się zapisać');
+      K = j.korekty || {}; wybierz(wyb); $('ed-msg').textContent = 'Zapisano – zmiana jest już na stronie.';
+    } catch (e) { $('ed-msg').textContent = '⚠ ' + e.message; }
+  }
+  $('ed-zapisz').onclick = () => wyslij('zapisz', {typ: $('ed-typ').value, nazwa: $('ed-nazwa').value, opis: $('ed-opis').value, lat: poz[0], lon: poz[1]});
+  $('ed-ukryj').onclick = () => { if (ukryte(wyb.k)) wyslij('pokaz'); else if (confirm('Usunąć to miejsce z mapy na stronie? Można je potem przywrócić.')) wyslij('ukryj'); };
+  $('ed-cofnij').onclick = () => { if (confirm('Przywrócić oryginalne położenie i opis?')) wyslij('cofnij'); };
+  $('szukaj').oninput = e => {
+    const q = e.target.value.trim().toLowerCase(); if (q.length < 2) { $('wyniki').innerHTML = ''; return; }
+    const w = P.filter(m => { const z = biez(m); return (z.nazwa || '').toLowerCase().includes(q) || (MIEJSCA.TYP[z.typ]?.n || '').toLowerCase().includes(q); }).slice(0, 25);
+    $('wyniki').innerHTML = w.map((m, i) => { const z = biez(m), t = MIEJSCA.TYP[z.typ]?.n || '';
+      return `<a data-i="${i}">${E(z.nazwa || t)} <span class="m">· ${z.nazwa ? E(t) + ' · ' : ''}${E(ZR(m.k))} · ${z.lat.toFixed(4)}, ${z.lon.toFixed(4)}</span></a>`; }).join('') || '<div class="m">Nic nie znaleziono.</div>';
+    $('wyniki').querySelectorAll('a').forEach(a => a.onclick = () => { $('wyniki').innerHTML = ''; wybierz(w[+a.dataset.i], true); });
+  };
+  fetch('../api/miejsca.php', {cache: 'no-store'}).then(r => r.json()).then(j => { P = P.concat((j.miejsca || []).map(m => ({...m}))); rysuj(); }).catch(() => rysuj());
+  rysuj(); map.setView([50.617, 18.895], 14);
+})();
+<?php endif ?>
 </script>
 </body></html>

@@ -47,7 +47,8 @@ _gb = _shape(GMINA).exterior if GMINA["type"] == "Polygon" else max(_shape(GMINA
 gmina_ll = [[round(y, 5), round(x, 5)] for x, y in _gb.coords]
 # stacja przy pomniku J. Ligonia: na mapie www ok. 30 m na wschód, żeby nie zasłaniała piktogramu pomnika
 przes = lambda q: 0.0004 if any(o.get("icon") == "heritage" and abs(o["lat"] - q["lat"]) + abs(o["lon"] - q["lon"]) < 1e-4 for o in D.get("pois", [])) else 0
-places = [dict(typ="stacja", nazwa="Stacja napraw rowerów", opis="planowana – fundusz sołecki 2027", lat=q["lat"], lon=q["lon"] + przes(q), plan=1)
+# k – stały klucz miejsca: panel administratora może je przesunąć, poprawić albo ukryć (tabela korekty_miejsc)
+places = [dict(k=f"stacja:{q['lat']:.5f},{q['lon']:.5f}", typ="stacja", nazwa="Stacja napraw rowerów", opis="planowana – fundusz sołecki 2027", lat=q["lat"], lon=q["lon"] + przes(q), plan=1)
           for q in D.get("pois", []) if q.get("icon") == "service"]
 # cele lokalne (wcześniej gwiazdki) jako miejsca z piktogramami – 12.11.2026 wg Bartosza: bar, restauracja, kościół, zabytek, sport
 TYP_POI = {"church": ("kosciol", None), "heritage": ("zabytek", None), "community": ("zabytek", None), "bar": ("bar", None),
@@ -55,9 +56,9 @@ TYP_POI = {"church": ("kosciol", None), "heritage": ("zabytek", None), "communit
 for q in D.get("pois", []):
     if q.get("icon") in TYP_POI:
         t_, ik_ = TYP_POI[q["icon"]]
-        places.append(dict(typ=t_, nazwa=q["name"], opis="", lat=q["lat"], lon=q["lon"], **({"ik": ik_} if ik_ else {})))
+        places.append(dict(k=f"poi:{q['name']}", typ=t_, nazwa=q["name"], opis="", lat=q["lat"], lon=q["lon"], **({"ik": ik_} if ik_ else {})))
 for f in json.load(open("../dane/miejsca.geojson"))["features"]:
-    x, y = f["geometry"]["coordinates"]; places.append(dict(f["properties"], lat=y, lon=x))
+    x, y = f["geometry"]["coordinates"]; places.append(dict(f["properties"], k=f"stale:{f['properties'].get('typ', '')}:{f['properties'].get('nazwa', '')}"[:80], lat=y, lon=x))
 for f in json.load(open("../dane/osm_gmina.geojson"))["features"]:
     q = f["properties"]; g = f["geometry"]
     if g["type"] != "Point": continue
@@ -67,7 +68,7 @@ for f in json.load(open("../dane/osm_gmina.geojson"))["features"]:
            "wc" if q.get("amenity") == "toilets" else "woda" if q.get("amenity") == "drinking_water" else
            "zabawa" if q.get("leisure") == "playground" else "stojak" if q.get("amenity") == "bicycle_parking" else None)
     if typ and hull.contains(Point(g["coordinates"])):
-        places.append(dict(typ=typ, nazwa=q.get("name", ""), opis="", lat=g["coordinates"][1], lon=g["coordinates"][0], osm=1))
+        places.append(dict(k=f"osm:{q.get('@id', '')}", typ=typ, nazwa=q.get("name", ""), opis="", lat=g["coordinates"][1], lon=g["coordinates"][0], osm=1))
 # wspólne odcinki tras: każda trasa dzielona na kawałki o stałym zestawie tras; na stronie rysowane obok siebie (przesunięcie)
 import re as _re, collections as _col
 _ord = lambda i: (int(_re.match(r"\d+", i).group()), i)

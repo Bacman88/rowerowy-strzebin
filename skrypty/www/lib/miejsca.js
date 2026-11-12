@@ -61,14 +61,22 @@ window.MIEJSCA = (() => {
   }
 
   // Tworzy warstwy i wczytuje miejsca: stałe (data.js) + zatwierdzone zgłoszenia (api/miejsca.php).
+  // korekta z panelu administratora: {u:1} = ukryte, inaczej nadpisane pola (t – rodzaj, n – nazwa, o – opis, lat, lon)
+  function popraw(m, K) {
+    const k = m.k && K[m.k]; if (!k) return m; if (k.u) return null;
+    const z = {...m}; if (k.t) { z.typ = k.t; if (k.t !== m.typ) delete z.ik; } if (k.n !== undefined) z.nazwa = k.n; if (k.o !== undefined) z.opis = k.o;
+    if (k.lat != null) { z.lat = k.lat; z.lon = k.lon; } return z;
+  }
   function warstwy(map, stale) {
     const L_ = {odpoczynek: L.layerGroup(), serwis: L.layerGroup(), ciekawe: L.layerGroup()};
-    const dodaj = m => { const t = TYP[m.typ]; if (!t) return;
+    const dodaj = m => { if (!m) return; const t = TYP[m.typ]; if (!t) return;
       L.marker([m.lat, m.lon], {icon: icon(m), title: m.nazwa || t.n, zIndexOffset: 200}).bindPopup(popup(m), {maxWidth: 260}).addTo(L_[t.g]); };
     (stale || []).forEach(dodaj);
     fetch((window.HUB_BASE || '') + 'api/miejsca.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null)
-      .then(j => { (j?.miejsca || []).forEach(dodaj); }).catch(() => {});
+      .then(j => { if (!j) return; const K = j.korekty || {};
+        if (Object.keys(K).length) { Object.values(L_).forEach(l => l.clearLayers()); (stale || []).forEach(m => dodaj(popraw(m, K))); }
+        (j.miejsca || []).forEach(m => dodaj(popraw(m, K))); }).catch(() => {});
     return L_;
   }
-  return {TYP, GRUPY, WARSTWY, svg, icon, popup, warstwy, esc};
+  return {TYP, GRUPY, WARSTWY, svg, icon, popup, warstwy, popraw, esc};
 })();

@@ -81,6 +81,8 @@ Czwarty tryb – **Twoja trasa** (kreator): kliknięte punkty łączone drogami 
 
 Na mapie wspólnej: przełącznik **Zaznaczanie / Tylko oglądanie** i przycisk **Wyczyść** (zaznaczenia, pinezka, punkty trasy, punkt lokalizacji). Znaczniki każdego trybu są widoczne tylko w tym trybie.
 
+**Edycja miejsc w panelu** (`/admin/?t=mapa`, „Miejsca na mapie – edycja”): każde miejsce na mapie (z OSM, z projektu, cele lokalne, zatwierdzone zgłoszenia) można przeciągnąć, zmienić mu rodzaj, nazwę i opis albo usunąć z mapy. Poprawki trafiają do tabeli `korekty_miejsc` (klucz miejsca `k` z `data.js`, np. `osm:node/123`, `poi:Zagroda u Czesi`, `db:12`) i działają od razu na stronie (`api/miejsca.php` zwraca je razem z miejscami). Cele lokalne są też na tabliczkach i mapach PDF – ich poprawki przenosi się do projektu z „eksport poprawek miejsc”.
+
 **Zdjęcia**: przy ocenie drogi i nowym miejscu można dołączyć jedno zdjęcie. Przeglądarka zmniejsza je (najdłuższy bok 1280 px, JPEG ok. 100–400 kB), serwer zapisuje je w `hub_dane/zdjecia/` (poza `public_html`), widzi je tylko administrator w panelu i są **usuwane po zatwierdzeniu albo odrzuceniu** zgłoszenia.
 
 Baza SQLite i kopie dobowe (JSON, ostatnie 60) zapisują się w `hub_dane/` obok `public_html` – wdrożenie ich nie nadpisuje. Kontakty są kasowane po roku, skróty IP po 30 dniach.

@@ -3,9 +3,11 @@
 require __DIR__ . '/_db.php';
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        $r = hub_db()->query("SELECT typ, nazwa, opis, lat, lon, nick, utworzono FROM miejsca WHERE moderacja = 'zatwierdzone' ORDER BY id")->fetchAll();
-        hub_json(['miejsca' => array_map(fn($m) => ['typ' => $m['typ'], 'nazwa' => $m['nazwa'], 'opis' => (string)$m['opis'],
-            'lat' => (float)$m['lat'], 'lon' => (float)$m['lon'], 'nick' => $m['nick'], 'data' => substr($m['utworzono'], 0, 10)], $r)]);
+        $db = hub_db();
+        $r = $db->query("SELECT id, typ, nazwa, opis, lat, lon, nick, utworzono FROM miejsca WHERE moderacja = 'zatwierdzone' ORDER BY id")->fetchAll();
+        hub_json(['miejsca' => array_map(fn($m) => ['k' => 'db:' . $m['id'], 'typ' => $m['typ'], 'nazwa' => $m['nazwa'], 'opis' => (string)$m['opis'],
+            'lat' => (float)$m['lat'], 'lon' => (float)$m['lon'], 'nick' => $m['nick'], 'data' => substr($m['utworzono'], 0, 10)], $r),
+            'korekty' => hub_korekty($db)]);
     }
     $in = hub_wejscie();
     $typ = (string)($in['typ'] ?? ''); $lat = (float)($in['lat'] ?? 0); $lon = (float)($in['lon'] ?? 0);

@@ -53,6 +53,10 @@ function hub_db(): PDO {
         id $ai, utworzono VARCHAR(19) NOT NULL, nazwa VARCHAR(80) NOT NULL, opis TEXT, punkty TEXT NOT NULL, geom TEXT NOT NULL,
         km DOUBLE PRECISION NOT NULL DEFAULT 0, nick VARCHAR(60) NOT NULL, kontakt VARCHAR(120) NOT NULL DEFAULT '',
         moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
+    // korekty miejsc z panelu (12.11.2026): przesunięcie, zmiana rodzaju/nazwy/opisu albo ukrycie dowolnego miejsca na mapie
+    $db->exec("CREATE TABLE IF NOT EXISTS korekty_miejsc (
+        klucz VARCHAR(80) NOT NULL PRIMARY KEY, ukryj INT NOT NULL DEFAULT 0, typ VARCHAR(12), nazwa VARCHAR(80), opis TEXT,
+        lat DOUBLE PRECISION, lon DOUBLE PRECISION, zmieniono VARCHAR(19) NOT NULL)");
     // zdjęcie do zgłoszenia (12.11.2026): nazwa pliku w <dane>/zdjecia, kasowane po decyzji administratora
     foreach (['zgloszenia', 'miejsca'] as $t) {
         $kol = $my ? array_column($db->query("SHOW COLUMNS FROM $t")->fetchAll(), 'Field')
@@ -84,6 +88,7 @@ function hub_zrzut(): array {
         'miejsca' => $db->query('SELECT * FROM miejsca ORDER BY id')->fetchAll(),
         'wezly' => $db->query('SELECT * FROM wezly ORDER BY id')->fetchAll(),
         'trasy' => $db->query('SELECT * FROM trasy ORDER BY id')->fetchAll(),
+        'korekty_miejsc' => $db->query('SELECT * FROM korekty_miejsc ORDER BY klucz')->fetchAll(),
     ];
 }
 
@@ -155,6 +160,14 @@ function hub_foto_zapisz(PDO $db, array $in, string $tab, int $id): string {
     @chmod($dir . '/' . $plik, 0600);
     $db->prepare("UPDATE $tab SET foto = ? WHERE id = ?")->execute([$plik, $id]);
     return $plik;
+}
+// korekty miejsc w postaci dla mapy: {klucz: {u:1} | {t, n, o, lat, lon}}
+function hub_korekty(PDO $db): array {
+    $out = [];
+    foreach ($db->query('SELECT * FROM korekty_miejsc') as $k)
+        $out[$k['klucz']] = $k['ukryj'] ? ['u' => 1] : array_filter(['t' => $k['typ'], 'n' => $k['nazwa'], 'o' => $k['opis'],
+            'lat' => $k['lat'] === null ? null : (float)$k['lat'], 'lon' => $k['lon'] === null ? null : (float)$k['lon']], fn($v) => $v !== null);
+    return $out;
 }
 function hub_foto_usun(PDO $db, string $tab, int $id): void {
     if (!in_array($tab, ['zgloszenia', 'miejsca'], true)) return;
