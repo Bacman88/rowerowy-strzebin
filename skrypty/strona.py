@@ -55,6 +55,15 @@ def dl_item(t, fs):
     ch = "".join(f'<a href="pdf/{fn}" download title="{sz(fn)}"><b>{lab}</b><span>{sz(fn)}</span></a>' for lab, fn in fs)
     return f'<li class="dl-m"><span class="dl-t">{t}</span><span class="dl-f">{ch}</span></li>'
 dl = "\n".join(dl_item(t, fs) for t, fs in PDFS)
+# generator tabliczek: wersja do otwarcia online + paczka ZIP
+shutil.copy("../generator/generator_drogowskazow.html", f"{S}/generator.html")
+os.makedirs(f"{S}/pobierz", exist_ok=True); zp = f"{S}/pobierz/generator_tabliczek_HUB_Strzebin.zip"
+if os.path.exists(zp): os.remove(zp)
+os.system(f'cd .. && zip -qr "skrypty/{zp}" generator')
+zsz = f"{os.path.getsize(zp) / 1e6:.1f} MB".replace(".", ",")
+dl += (f'\n<li class="dl-m"><span class="dl-t">Generator tabliczek (wzór „HUB Strzebiń”)</span><span class="dl-f">'
+       f'<a href="generator.html" target="_blank" rel="noopener"><b>Otwórz</b><span>online</span></a>'
+       f'<a href="pobierz/generator_tabliczek_HUB_Strzebin.zip" download><b>ZIP</b><span>{zsz}</span></a></span></li>')
 n_posts = len(posts); n_pl = sum(len(p["imgs"]) for p in posts)
 html = open("strona_template.html").read().replace("{{DOWNLOADS}}", dl).replace("{{NPOSTS}}", str(n_posts)).replace("{{NPLATES}}", str(n_pl)).replace(
     "{{NROUTES}}", str(sum(1 for r in routes if not r["alt"])))
