@@ -72,6 +72,7 @@ for r in routes:
     for k, cs in parts:
         if cs[0] > cs[-1]: cs = cs[::-1]   # ten sam kierunek dla wszystkich tras na wspólnym kawałku
         out.append(dict(c=[list(x) for x in cs], k=k.index(r["id"]), n=len(k)))
+    r["a"], r["b"] = list(c[0]), list(c[-1])   # początek i koniec (do linku Mapy.com)
     r["parts"] = out; del r["coords"]
 # piktogramy dla stron (te same co na tabliczkach) + kilka dodatkowych z Tabler Icons
 import glob as _gl
