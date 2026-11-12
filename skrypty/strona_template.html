@@ -405,7 +405,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <div class="card anat">
     <div class="anat-plate" id="tb-anat" role="img" aria-label="Przykładowa tabliczka z opisanymi elementami"></div>
     <ol class="anat-key">
-      <li><span class="callout">1</span><span><b>Strzałka</b> – w którą stronę skręcić. Tabliczka sama jest strzałką: grot wskazuje drogę.</span></li>
+      <li><span class="callout">1</span><span><b>Strzałka</b> – w którą stronę skręcić. Tabliczka sama jest strzałką: grot wskazuje drogę. Dwa kierunki tej samej trasy mają na słupku przeciwne strzałki.</span></li>
       <li><span class="callout">2</span><span><b>Rower</b> – oznakowanie dla rowerzystów, inne niż drogowe i turystyczne.</span></li>
       <li><span class="callout">3</span><span><b>Cel</b> – miejscowość albo miejsce, do którego prowadzi ta droga.</span></li>
       <li><span class="callout">4</span><span><b>Kółka tras</b> – w tę stronę jadą trasy pokazowe o tych numerach (kolory jak na mapie).</span></li>
@@ -418,12 +418,12 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <p class="sub">Sześć kolorów tła, a przy celach innych niż miejscowości – piktogram (kościół, sztućce, klucz, piłka…), żeby dało się je rozpoznać z daleka.</p>
   <div class="kolory" id="tb-kolory"></div>
 
-  <h3 class="sub">Cały słupek – przykład węzła 25</h3>
+  <h3 class="sub">Cały słupek – przykład węzła 17</h3>
   <div class="card slupek-box">
-    <div class="slupek" id="tb-slupek" role="img" aria-label="Słupek nr 25 z tabliczkami, numerem węzła i paskami tras"></div>
+    <div class="slupek" id="tb-slupek" role="img" aria-label="Słupek nr 17 z tabliczkami, numerem węzła i paskami tras"></div>
     <div>
       <p style="margin:0 0 10px;color:var(--muted);font-size:14.5px">Tabliczki ze strzałką w lewo mocujemy po lewej stronie słupka, ze strzałką w prawo – po prawej, jedna pod drugą. Niżej <b>naklejka z numerem węzła</b> (ten sam numer na mapie i w pliku GPX) i <b>kolorowe paski tras</b>, które przez ten węzeł przechodzą.</p>
-      <p style="margin:0;color:var(--muted);font-size:14.5px">Rowerzysta jadący czerwoną trasą 1 szuka na każdym słupku czerwonego paska z „1”, a na tabliczkach – czerwonego kółka. Przy zmianie przebiegu trasy wystarczy wymienić pasek i nakleić albo zakleić kółko – same tabliczki zostają.</p>
+      <p style="margin:0;color:var(--muted);font-size:14.5px">Rowerzysta jadący zieloną trasą 3 (Kalety – Strzebiń – Boronów) szuka na każdym słupku zielonego paska z „3”, a na tabliczkach – zielonego kółka: tu prowadzi ono w lewo do Kalet i w prawo do Boronowa. Przy zmianie przebiegu trasy wystarczy wymienić pasek i nakleić albo zakleić kółko – same tabliczki zostają.</p>
     </div>
   </div>
 
@@ -762,7 +762,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     function trasa(c) { if (!odP) odP = TR.od([wyb.lat, wyb.lon]); const k = cel(c.n); return k ? odP([k.lat, k.lon]) : null; }
     function przelicz(c) {
       const r = trasa(c); if (!r) { c.km = '?'; return; }
-      c.km = kmTxt(r.m); c.kmv = r.m / 1000; c.d = TR.strzalka(TR.azymut(r.ll)); c.rts = TR.trasy(r.ll, H.routes); c.ll = r.ll;
+      c.km = kmTxt(r.m); c.kmv = r.m / 1000; c.d = TR.strzalka(TR.azymut(r.ll), wyb.os ?? 340); c.rts = TR.trasy(r.ll, H.routes); c.ll = r.ll;
     }
     function dodaj(n) {
       const k = cel(n); if (!k) return;
@@ -1118,7 +1118,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     return `<div class="kol">${TB.svg(t.d, 800, t.cat, t.e).svg}<h4><i style="background:${T.PALETTE[cat]}"></i>${tyt}</h4><p>${opis}</p></div>`;
   }).join('');
   // 3. cały słupek 25
-  const p = post(25) || H.posts.find(p => p.tab.length >= 4);
+  const p = post(17) || H.posts.find(p => p.tab.length >= 3);
   if (p) {
     const el = document.getElementById('tb-slupek'), rows = p.tab.length;
     let h = p.tab.map((t, i) => `<div class="pl ${t.d === 'left' ? 'l' : 'r'}" style="grid-row:${i + 1}"><div>${TB.svg(t.d, 800, t.cat, t.e).svg}</div></div>`).join('');

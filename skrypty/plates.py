@@ -164,6 +164,7 @@ def category(pl):
     if pl.get("cat"): return pl["cat"], pl.get("icon")
     return "blue", None
 def side(pl):
+    if pl.get("strona"): return pl["strona"]   # oś dobrana dla słupka (strzalki.py)
     d_ = pl.get("deg"); return "right" if (d_ is not None and (math.sin(math.radians(d_)) > 0.34 or (abs(math.sin(math.radians(d_))) <= 0.34 and math.cos(math.radians(d_)) > 0))) else "left"   # wsch. →, zach. ←; płn. →, płd. ← (żeby przeciwne kierunki nie miały tej samej strzałki)
 def close(a, b, tol=35): return a is not None and b is not None and abs((a - b + 180) % 360 - 180) <= tol
 def cluster_dirs(plates_):

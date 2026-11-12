@@ -25,6 +25,7 @@ def _node_at(path, m=150):
         if acc >= m: return tuple(n)
     return tuple(path[-1])
 def _side(pl):
+    if pl.get("strona"): return "R" if pl["strona"] == "right" else "L"   # oś dobrana dla słupka (strzalki.py)
     d_ = pl.get("deg")
     return "R" if (d_ is not None and (math.sin(math.radians(d_)) > 0.34 or (abs(math.sin(math.radians(d_))) <= 0.34 and math.cos(math.radians(d_)) > 0))) else "L"
 def _close(a, b, tol=35):
@@ -259,7 +260,7 @@ T(M + 13, y, "cele lokalne: kościoły i zabytki (brąz), restauracje\ni bary (c
 wrench(pan, M + 4, y, 6)
 T(M + 13, y, "stacja napraw rowerów (fundusz sołecki 2027; przy boisku także WC)", fontsize=9, va="center"); y -= 14
 T(M, y, "Odległości na tabliczkach (katalog) liczone po drogach\nz OpenStreetMap do centrum miejscowości.\n"
-        "Zwrot tabliczek (← / →) przyjęto wstępnie: cel na wschód = →,\nna zachód = ←. Do weryfikacji w terenie.",
+        "Zwrot tabliczek (← / →) dobrany dla każdego słupka: dwa kierunki\ntej samej trasy mają przeciwne strzałki, poza tym\nwschód →, zachód ←. Do weryfikacji w terenie.",
   fontsize=8.5, va="top", color="#4b5d53", linespacing=1.45)
 T(M, 10, "Status: PROPOZYCJA · dane mapy © autorzy OpenStreetMap (ODbL)", fontsize=7.5, color="#4b5d53")
 # scale + north
@@ -393,7 +394,7 @@ TPL = {
 def plate(a, x, y, grp, w=86):
     """Plate exactly in the agreed layout: [arrow tip] bike  Name  x,x km  (1 or 2 lines)."""
     deg = grp[0].get("deg")
-    right = deg is not None and (math.sin(math.radians(deg)) > 0.34 or (abs(math.sin(math.radians(deg))) <= 0.34 and math.cos(math.radians(deg)) > 0))
+    right = grp[0]["strona"] == "right" if grp[0].get("strona") else deg is not None and (math.sin(math.radians(deg)) > 0.34 or (abs(math.sin(math.radians(deg))) <= 0.34 and math.cos(math.radians(deg)) > 0))
     t = TPL[(str(len(grp)), "R" if right else "L")]
     H, W = t["img"].shape[:2]; sc = w / W; h = H * sc
     a.imshow(t["img"], extent=(x, x + w, y, y + h), interpolation="lanczos", zorder=2, aspect="auto")

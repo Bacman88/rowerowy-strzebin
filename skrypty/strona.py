@@ -33,7 +33,7 @@ for p in D["posts"]:
         Image.open(e["png"]).convert("RGBA").resize((600, 150), Image.LANCZOS).save(f"{S}/tabliczki/{fn}", "WEBP", quality=88)
         imgs.append(fn)
     tab = [dict(d=e["dir"], cat=e["cat"], W=e["W"], e=e.get("ent", [])) for e in MF.get(str(p["nr"]), [])]   # treść tabliczek (edytor węzłów)
-    posts.append(dict(nr=p["nr"], lat=round(p["lat"], 6), lon=round(p["lon"], 6), loc=p.get("loc", ""), pole=p["pole"], agree=p.get("agree", []), gmina=p.get("gmina", "Koszęcin"),
+    posts.append(dict(nr=p["nr"], lat=round(p["lat"], 6), lon=round(p["lon"], 6), loc=p.get("loc", ""), pole=p["pole"], agree=p.get("agree", []), gmina=p.get("gmina", "Koszęcin"), os=p.get("os", 340),
                       routes=sorted(set(onr.get(p["nr"], [])), key=int), imgs=imgs, tab=tab))
 pois = [dict(name=q["name"], lat=q["lat"], lon=q["lon"], cat=q["cat"], icon=q.get("icon", "")) for q in D.get("pois", []) if q.get("icon") not in ("wc", "service")]
 # miejsca odpoczynku i serwisu: planowane stacje napraw + lista ręczna (dane/miejsca.geojson) + OSM (wiaty, piknik, widoki, ławki)

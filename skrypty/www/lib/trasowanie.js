@@ -41,8 +41,8 @@ window.TRASOWANIE = (() => {
     const x = (b[1] - ll[0][1]) * Math.cos(ll[0][0] * rad), y = b[0] - ll[0][0];
     return (Math.atan2(x, y) / rad + 360) % 360;
   }
-  // strzałka jak w plates.py: wsch. i płn. →, zach. i płd. ←
-  const strzalka = deg => { const s = Math.sin(deg * rad), c = Math.cos(deg * rad); return (s > .34 || (Math.abs(s) <= .34 && c > 0)) ? 'right' : 'left'; };
+  // strzałka jak w strzalki.py: → dla kierunków po prawej stronie osi słupka (os; domyślnie 340° = wschód i północ →)
+  const strzalka = (deg, os = 340) => { const k = ((deg - os) % 360 + 360) % 360; return k > 0 && k < 180 ? 'right' : 'left'; };
   // trasy pokazowe, którymi prowadzi ścieżka: punkty pierwszego min(1 km, 60%) drogi (bez pierwszych 60 m od słupka) leżą do 20 m od trasy
   function trasy(ll, routes) {
     let total = 0; for (let i = 1; i < ll.length; i++) total += dist(ll[i - 1], ll[i]);

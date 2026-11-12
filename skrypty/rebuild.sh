@@ -10,6 +10,7 @@ python3 -I signs_data.py $D/osm2_clean.geojson "$SV" signs.json 2>&1 | grep POI 
 # trasy pokazowe najpierw: kierunki tras na tabliczkach (directions.py) i kółka tras V22 (plates.py) korzystają z ich przebiegu
 python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs.json $O/drogowskazy | tail -1
 python3 -I directions.py $D/osm2_clean.geojson signs.json signs_prop.json kierunki_raport.json "$SV" >/dev/null
+python3 -I strzalki.py signs_prop.json $O/drogowskazy_trasy.geojson
 for v in "tabliczki" "tabliczki_pojedyncze --single" "tabliczki_prostokatne --plate=rect" "tabliczki_prostokatne_zaokraglone --plate=roundrect"; do
   set -- $v; python3 -I plates.py signs_prop.json $GEN $O/$1 $2 | head -1
 done
