@@ -8,7 +8,16 @@ window.TRASOWANIE = (() => {
   function graf(stanOf) {
     const key = p => p[0].toFixed(5) + ',' + p[1].toFixed(5);
     const nodes = new Map(), adj = [];
-    const id = p => { const k = key(p); if (!nodes.has(k)) { nodes.set(k, nodes.size); adj.push([]); P.push(p); } return nodes.get(k); };
+    // końce odcinków do 4 m od siebie = ten sam węzeł (w OSM drogi leśne często „prawie” się stykają)
+    const WS = new Map();
+    const id = p => {
+      const k = key(p); if (nodes.has(k)) return nodes.get(k);
+      const y = Math.floor(p[0] * 2e4), x = Math.floor(p[1] * 1.4e4);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) for (const i of WS.get((y + dy) + ':' + (x + dx)) || []) if (dist(p, P[i]) < 4) { nodes.set(k, i); return i; }
+      const i = P.length; nodes.set(k, i); adj.push([]); P.push(p);
+      const c = y + ':' + x; if (!WS.has(c)) WS.set(c, []); WS.get(c).push(i);
+      return i;
+    };
     const P = [];
     for (const s of window.ODC) {
       const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
