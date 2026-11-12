@@ -32,7 +32,13 @@ for p in D["posts"]:
         fn = os.path.basename(e["png"]).replace(".png", ".webp")
         Image.open(e["png"]).convert("RGBA").resize((600, 150), Image.LANCZOS).save(f"{S}/tabliczki/{fn}", "WEBP", quality=88)
         imgs.append(fn)
-    tab = [dict(d=e["dir"], cat=e["cat"], W=e["W"], e=e.get("ent", [])) for e in MF.get(str(p["nr"]), [])]   # treść tabliczek (edytor węzłów)
+    # g = azymut drogi, w którą wskazuje tabliczka (z pierwszego celu) – nawigacja „Jedź” dobiera po nim tabliczkę
+    deg_of = {pl["name"]: pl.get("deg") for pl in p["plates"]}
+    def _g(e):
+        for en in e.get("ent", []):
+            if deg_of.get(en[0]) is not None: return round(deg_of[en[0]])
+        return None
+    tab = [dict(d=e["dir"], cat=e["cat"], W=e["W"], e=e.get("ent", []), g=_g(e)) for e in MF.get(str(p["nr"]), [])]   # treść tabliczek (edytor węzłów)
     posts.append(dict(nr=p["nr"], lat=round(p["lat"], 6), lon=round(p["lon"], 6), loc=p.get("loc", ""), pole=p["pole"], agree=p.get("agree", []), gmina=p.get("gmina", "Koszęcin"), os=p.get("os", 340),
                       routes=sorted(set(onr.get(p["nr"], [])), key=int), imgs=imgs, tab=tab))
 pois = [dict(name=q["name"], lat=q["lat"], lon=q["lon"], cat=q["cat"], icon=q.get("icon", "")) for q in D.get("pois", []) if q.get("icon") not in ("wc", "service")]
@@ -126,6 +132,8 @@ open(f"{S}/_fav_apple.svg", "w").write(_fav(False))
 import subprocess as _sp
 _sp.run(["rsvg-convert", "-w", "32", "-h", "32", f"{S}/favicon.svg", "-o", f"{S}/favicon-32.png"], check=True)
 _sp.run(["rsvg-convert", "-w", "180", "-h", "180", f"{S}/_fav_apple.svg", "-o", f"{S}/apple-touch-icon.png"], check=True)
+for _w in (192, 512):   # ikony instalacji „Jedź” na telefonie (PWA)
+    _sp.run(["rsvg-convert", "-w", str(_w), "-h", str(_w), f"{S}/_fav_apple.svg", "-o", f"{S}/ikona-{_w}.png"], check=True)
 os.remove(f"{S}/_fav_apple.svg")
 open(f"{S}/lib/tabliczka-dane.js", "w").write("window.TABD = " + json.dumps(TABD, ensure_ascii=False, separators=(",", ":")) + ";")
 os.makedirs(f"{S}/lib/fonts", exist_ok=True); shutil.copy("../fonts/FiraSansCondensed-SemiBold.ttf", f"{S}/lib/fonts/")

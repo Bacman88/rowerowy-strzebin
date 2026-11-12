@@ -93,3 +93,10 @@ Baza SQLite i kopie dobowe (JSON, ostatnie 60) zapisują się w `hub_dane/` obok
 - mapy, opisy i wzory tabliczek: CC BY 4.0 – z podaniem autora i źródła
 - dane mapowe: © autorzy OpenStreetMap, licencja ODbL
 - piktogramy: Tabler Icons (MIT), kroje: SIL OFL, Leaflet: BSD-2
+
+## Nawigacja „Jedź” (beta) – `jedz.html`
+Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak aplikację – PWA).
+- Trasa liczona w telefonie po drogach z mapy wspólnej (`stan/odcinki.js`), tryby: **trasami rowerowymi** (odcinki tras HUB ×0,7) i **najkrócej**; opcja **omijaj drogi wojewódzkie** (×5, poza odcinkami z drogą rowerową obok).
+- `skrypty/jedz_dane.py` (po `odcinki.py`) → `stan/jedz.js`: odcinki na trasach i odcinki DW z ciągiem pieszo-rowerowym (z pomiarów uMap).
+- Prowadzenie „następny kierunek”: przy przyszłych drogowskazach – tabliczka tak, jak widzi ją nadjeżdżający; poza nimi – skręty z nazwami ulic. Zejście z trasy → przeliczenie od bieżącej pozycji.
+- Kierunek tabliczki: pole `g` (azymut) w `data.js` (strona.py). Symulacja przejazdu do testów w domu.

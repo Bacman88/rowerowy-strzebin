@@ -1,0 +1,17 @@
+{
+  "name": "Jedź – nawigacja HUB rowerowy Strzebiń",
+  "short_name": "Jedź",
+  "description": "Nawigacja rowerowa po trasach HUB rowerowego Strzebiń (beta)",
+  "start_url": "jedz.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f4ec",
+  "theme_color": "#00737e",
+  "lang": "pl",
+  "icons": [
+    {"src": "ikona-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "ikona-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "ikona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

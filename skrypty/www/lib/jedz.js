@@ -1,0 +1,421 @@
+// „Jedź” – nawigacja rowerowa HUB Strzebiń (beta).
+// Trasa liczona w telefonie po drogach z mapy wspólnej (stan/odcinki.js). Prowadzenie kierunkami z drogowskazów:
+// przy każdym słupku na trasie apka pokazuje tabliczkę, za której kierunkiem jechać (tak, jak widzi ją rowerzysta),
+// poza słupkami – skręty z nazwami ulic.
+(() => {
+  'use strict';
+  const H = window.HUB, ODC = window.ODC || [], J = window.JEDZ || {trasy: [], rower: []}, TB = window.TABLICZKA;
+  const $ = id => document.getElementById(id);
+  const rad = Math.PI / 180, RZ = 6371000;
+  const dist = (a, b) => { const x = (b[1] - a[1]) * rad * Math.cos((a[0] + b[0]) / 2 * rad), y = (b[0] - a[0]) * rad; return Math.hypot(x, y) * RZ; };
+  const brg = (a, b) => (Math.atan2((b[1] - a[1]) * Math.cos(a[0] * rad), b[0] - a[0]) / rad + 360) % 360;
+  const kat = (a, b) => ((a - b + 540) % 360) - 180;       // a względem b, -180..180 (+ = w prawo)
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+  const kmTxt = m => m < 950 ? (Math.round(m / 10) * 10) + ' m' : (m / 1000).toFixed(m < 9950 ? 1 : 0).replace('.', ',') + ' km';
+  const minTxt = m => { const t = Math.max(1, Math.round(m / 1000 / 15 * 60)); return t < 60 ? '~' + t + ' min' : '~' + Math.floor(t / 60) + ' h ' + (t % 60) + ' min'; };
+  const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
+  const LS = {get(k, d) { try { const v = localStorage.getItem('jedz.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+              set(k, v) { try { localStorage.setItem('jedz.' + k, JSON.stringify(v)); } catch (e) {} }};
+
+  // ===================== graf dróg =====================
+  const TRASY = new Set(J.trasy), ROWER = new Set(J.rower);
+  const F = {osm: 1, dobra: 1, srednia: 1.35, trudna: 2.2, nieprzejezdna: 50, brak: 1.25};
+  const P = [], adj = [], klucz = new Map();
+  const wezel = p => { const k = p[0].toFixed(5) + ',' + p[1].toFixed(5); if (!klucz.has(k)) { klucz.set(k, P.length); P.push(p); adj.push([]); } return klucz.get(k); };
+  for (const s of ODC) {
+    const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
+    const a = wezel(ll[0]), b = wezel(ll[ll.length - 1]);
+    adj[a].push({v: b, s, ll}); adj[b].push({v: a, s, ll: ll.slice().reverse()});
+  }
+  const DW = s => s[1] === 'droga wojewódzka' || s[1] === 'droga krajowa';
+  function koszt(s, opc) {
+    const st = s[4] || 'brak';
+    let f;
+    if (opc.tryb === 'krotko') f = st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 1.4 : 1;
+    else { f = F[st] ?? 1.25; if (TRASY.has(s[0])) f *= 0.7; }
+    if (ROWER.has(s[0])) f = Math.min(f, 0.85);
+    else if (opc.bezDW && DW(s)) f *= 5;
+    return s[6] * f;
+  }
+  // najbliższy węzeł grafu (siatka ~1 km, żeby nie przeszukiwać 27 tys. punktów co sekundę)
+  const SIAT = new Map(), sk = p => Math.floor(p[0] * 100) + ':' + Math.floor(p[1] * 70);
+  P.forEach((p, i) => { const k = sk(p); if (!SIAT.has(k)) SIAT.set(k, []); SIAT.get(k).push(i); });
+  function najblizszy(p) {
+    let b = -1, bd = Infinity; const y = Math.floor(p[0] * 100), x = Math.floor(p[1] * 70);
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) for (const i of SIAT.get((y + dy) + ':' + (x + dx)) || []) { const d = dist(p, P[i]); if (d < bd) { bd = d; b = i; } }
+    return [b, bd];
+  }
+  function trasuj(a, b, opc) {
+    const [s, ds] = najblizszy(a), [t, dt] = najblizszy(b);
+    if (s < 0 || t < 0 || ds > 600 || dt > 600) return {blad: ds > 600 || s < 0 ? 'start' : 'cel'};
+    const n = P.length, cost = new Float64Array(n).fill(Infinity), prev = new Int32Array(n).fill(-1), via = new Array(n);
+    cost[s] = 0; const h = [[0, s]];
+    const push = x => { h.push(x); let i = h.length - 1; while (i > 0) { const j = (i - 1) >> 1; if (h[j][0] <= h[i][0]) break; [h[i], h[j]] = [h[j], h[i]]; i = j; } };
+    const pop = () => { const top = h[0], e = h.pop(); if (h.length) { h[0] = e; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[i], h[m]] = [h[m], h[i]]; i = m; } } return top; };
+    while (h.length) {
+      const [c, u] = pop(); if (c > cost[u]) continue; if (u === t) break;
+      for (const e of adj[u]) { const w = c + koszt(e.s, opc); if (w < cost[e.v]) { cost[e.v] = w; prev[e.v] = u; via[e.v] = e; push([w, e.v]); } }
+    }
+    if (!isFinite(cost[t])) return {blad: 'brak'};
+    const kroki = []; for (let v = t; v !== s; v = prev[v]) kroki.unshift(via[v]);
+    const ll = [a]; const seg = [];   // seg[i] = odcinek, na którym leży punkt ll[i] → ll[i+1]
+    if (dist(a, P[s]) > 3) { ll.push(P[s]); seg.push(null); }
+    for (const e of kroki) for (let i = 1; i < e.ll.length; i++) { seg.push(e.s); ll.push(e.ll[i]); }
+    if (dist(b, P[t]) > 3) { seg.push(null); ll.push(b); }
+    const cum = [0]; for (let i = 1; i < ll.length; i++) cum.push(cum[i - 1] + dist(ll[i - 1], ll[i]));
+    // węzły grafu na trasie (do wykrywania skrętów): pozycja w ll i liczba dróg w skrzyżowaniu
+    const wez = []; let k = ll.length > 1 && dist(a, P[s]) > 3 ? 1 : 0;
+    wez.push({i: k, deg: adj[s].length});
+    for (const e of kroki) { k += e.ll.length - 1; wez.push({i: k, deg: adj[e.v].length}); }
+    return {ll, seg, cum, m: cum[cum.length - 1], wez, kroki};
+  }
+  // punkt na trasie w odległości d (m) od startu
+  function wDal(T, d) {
+    d = Math.max(0, Math.min(T.m, d));
+    let lo = 0, hi = T.cum.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (T.cum[m] <= d) lo = m; else hi = m; }
+    const a = T.ll[lo], b = T.ll[hi], L = T.cum[hi] - T.cum[lo] || 1, t = (d - T.cum[lo]) / L;
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  }
+
+  // ===================== manewry =====================
+  // nazwa drogi do komunikatu: „ul. Leśna”, „DW 906”, „Dojazd pożarowy 75”; drogi bez nazwy – pusto
+  const nazwaDrogi = s => {
+    if (!s || !s[2]) return '';
+    if (DW(s)) return (s[1] === 'droga krajowa' ? 'DK ' : 'DW ') + (/^\d+$/.test(s[2]) ? s[2] : s[2]);
+    if (/^\d+$/.test(s[2])) return '';
+    return ['ulica', 'droga powiatowa/gminna', 'droga lokalna', 'droga dojazdowa'].includes(s[1]) && !/^(ul\.|aleja|al\.|plac|dojazd)/i.test(s[2]) ? 'ul. ' + s[2] : s[2];
+  };
+  function strzalkaSVG(kier, kol = '#00737e', w = 44) {
+    const d = {lewo: 'M19 12H5M11 6l-6 6 6 6', prawo: 'M5 12h14M13 6l6 6-6 6', prosto: 'M12 20V4M6 10l6-6 6 6', 'lekko w lewo': 'M17 20V12L8 5M8 11V5h6', 'lekko w prawo': 'M7 20V12l9-7M16 11V5h-6', 'ostro w lewo': 'M17 4v9a5 5 0 0 1-10 0V8M3 11l4-4 4 4', 'ostro w prawo': 'M7 4v9a5 5 0 0 0 10 0V8M13 11l4-4 4 4', cel: 'M6 21V3l12 5-12 5'}[kier] || 'M12 20V4M6 10l6-6 6 6';
+    return `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="${kol}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+  }
+  const kierunek = t => { const a = Math.abs(t); return a < 25 ? 'prosto' : a < 55 ? (t < 0 ? 'lekko w lewo' : 'lekko w prawo') : a < 140 ? (t < 0 ? 'lewo' : 'prawo') : (t < 0 ? 'ostro w lewo' : 'ostro w prawo'); };
+  const kierTxt = k => ({lewo: 'W lewo', prawo: 'W prawo', prosto: 'Prosto', 'lekko w lewo': 'Lekko w lewo', 'lekko w prawo': 'Lekko w prawo', 'ostro w lewo': 'Ostro w lewo', 'ostro w prawo': 'Ostro w prawo'}[k] || k);
+  function manewry(T) {
+    const out = [];
+    // 1) drogowskazy (przyszłe słupki) na trasie
+    for (const p of H.posts) {
+      const q = [p.lat, p.lon]; let b = -1, bd = 30;
+      for (let i = 0; i < T.ll.length; i++) { const d = dist(q, T.ll[i]); if (d < bd) { bd = d; b = i; } }
+      if (b < 0) continue;
+      const c = T.cum[b]; if (c < 20 || c > T.m - 20) continue;
+      const wej = brg(wDal(T, c - 40), q), wyj = brg(q, wDal(T, c + 60));
+      let best = null;
+      for (const t of p.tab) { if (t.g == null) continue; const d = Math.abs(kat(t.g, wyj)); if (d < 40 && (!best || d < best.d)) best = {t, d}; }
+      if (!best) continue;
+      const k = kierunek(kat(wyj, wej));
+      const wzgl = kat(best.t.g, wej);   // tabliczka oglądana od strony nadjeżdżającego: grot po lewej czy po prawej?
+      const strona = Math.abs(wzgl) < 15 ? best.t.d : (wzgl < 0 ? 'left' : 'right');
+      out.push({typ: 'tab', c, k, t: best.t, strona, cele: best.t.e.map(e => e[0]), nr: p.nr});
+    }
+    // 2) skręty poza drogowskazami (nazwy ulic z OSM)
+    for (let j = 1; j < T.wez.length - 1; j++) {
+      const w = T.wez[j]; if (w.deg < 3) continue;
+      const c = T.cum[w.i]; if (c < 15 || c > T.m - 15) continue;
+      if (out.some(m => Math.abs(m.c - c) < 70)) continue;
+      const q = T.ll[w.i], t = kat(brg(q, wDal(T, c + 30)), brg(wDal(T, c - 30), q));
+      if (Math.abs(t) < 35) continue;
+      const nz = nazwaDrogi(T.seg[w.i]), przed = T.seg[w.i - 1];
+      if (nz && przed && nazwaDrogi(przed) === nz && Math.abs(t) < 75) continue;   // ta sama droga, tylko zakręt
+      out.push({typ: 'skret', c, k: kierunek(t), ulica: nz});
+    }
+    out.sort((a, b) => a.c - b.c);
+    out.push({typ: 'cel', c: T.m, k: 'cel'});
+    return out;
+  }
+  const mTekst = m => m.typ === 'tab' ? `${kierTxt(m.k)}, kierunek ${m.cele.join(' · ')}`
+    : m.typ === 'skret' ? (m.ulica ? `${kierTxt(m.k)} · ${m.ulica}` : kierTxt(m.k))
+    : 'Cel: ' + stan.celN;
+  const tabSVG = (m, cls = '') => TB.svg(m.strona, 800, m.t.cat, m.t.e).svg.replace('<svg ', `<svg class="${cls}" `);
+
+  // ===================== wyszukiwanie celu =====================
+  const CELE = (H.cele || []).map(c => ({n: c.n, s: c.cat === 'blue' ? 'Miejscowość' : 'Cel z drogowskazów', lat: c.lat, lon: c.lon, typ: 'm'}));
+  const MIEJSCOWOSCI = (H.cele || []).filter(c => c.cat === 'blue');
+  const najblizszaMiejscowosc = p => { let b = null, bd = Infinity; for (const c of MIEJSCOWOSCI) { const d = dist(p, [c.lat, c.lon]); if (d < bd) { bd = d; b = c.n; } } return b; };
+  const ULICE = (() => {
+    const m = new Map();
+    for (const s of ODC) {
+      if (!s[2] || /^\d+$/.test(s[2]) || /pożarowy/i.test(s[2]) || !['ulica', 'droga powiatowa/gminna', 'droga lokalna', 'droga dojazdowa', 'droga wojewódzka'].includes(s[1])) continue;
+      const c = s[7], mid = [c[Math.floor(c.length / 4) * 2], c[Math.floor(c.length / 4) * 2 + 1]], miej = najblizszaMiejscowosc(mid), k = s[2] + '|' + miej;
+      const e = m.get(k); if (!e || s[6] > e.len) m.set(k, {n: 'ul. ' + s[2], s: 'Ulica · ' + miej, lat: mid[0], lon: mid[1], len: s[6], typ: 'u'});
+    }
+    return [...m.values()];
+  })();
+  const TYPM = {stacja: 'Stacja napraw rowerów', serwis: 'Serwis rowerowy', wiata: 'Wiata', lawka: 'Ławka', piknik: 'Piknik / ognisko', widok: 'Punkt widokowy', woda: 'Woda', jedzenie: 'Jedzenie', kawa: 'Kawiarnia', bar: 'Bar', nocleg: 'Nocleg', kosciol: 'Kościół / kapliczka', zabytek: 'Zabytek', przyroda: 'Przyroda', sport: 'Sport', zabawa: 'Plac zabaw', wc: 'WC', parking: 'Parking', ciekawe: 'Ciekawe miejsce'};
+  const MIEJSCA = (H.places || []).filter(p => p.nazwa && p.typ !== 'lawka').map(p => ({n: p.nazwa, s: (TYPM[p.typ] || 'Miejsce') + (najblizszaMiejscowosc([p.lat, p.lon]) ? ' · ' + najblizszaMiejscowosc([p.lat, p.lon]) : ''), lat: p.lat, lon: p.lon, typ: 'p'}));
+  const WSZYSTKO = [...CELE, ...MIEJSCA, ...ULICE].map(x => ({...x, q: norm(x.n + ' ' + x.s)}));
+  function szukaj(q) {
+    q = norm(q.trim()); if (q.length < 2) return [];
+    const sl = q.split(/\s+/);
+    return WSZYSTKO.map(x => {
+      if (!sl.every(w => x.q.includes(w))) return null;
+      const n = norm(x.n).replace(/^ul\. /, ''); let sc = n.startsWith(q) ? 0 : n.includes(' ' + q) ? 1 : 2;
+      sc += {m: 0, p: .3, u: .6}[x.typ];
+      return [sc, x];
+    }).filter(Boolean).sort((a, b) => a[0] - b[0] || a[1].n.length - b[1].n.length).slice(0, 12).map(a => a[1]);
+  }
+  const IKW = {m: ['#e7eef8', '#0759A7', 'M3 21h18M5 21V10l7-5 7 5v11M10 21v-6h4v6'], u: ['#dfe9e4', '#1d3b30', 'M4 20 10 4M20 20 14 4M12 6v2M12 11v2M12 16v2'], p: ['#f3e9dc', '#81552F', 'M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12zM12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5'], g: ['#e5e7eb', '#1d2a23', 'M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z']};
+  function pokazWyniki(lista) {
+    const el = $('wyniki');
+    el.classList.toggle('hide', !lista.length); $('szybkie').classList.toggle('hide', !!lista.length);
+    el.innerHTML = lista.map((x, i) => { const [bg, kol, d] = IKW[x.typ] || IKW.g;
+      return `<button type="button" role="option" data-i="${i}"><span class="ik" style="background:${bg}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${kol}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg></span><span><span class="t">${esc(x.n)}</span><br><span class="s">${esc(x.s)}</span></span></button>`; }).join('');
+    el.querySelectorAll('button').forEach(b => b.onclick = () => { const x = lista[+b.dataset.i]; ustawCel([x.lat, x.lon], x.n, x.s); });
+  }
+  $('szukaj').addEventListener('input', e => pokazWyniki(szukaj(e.target.value)));
+  $('szukaj').addEventListener('keydown', e => { if (e.key === 'Enter') { const w = szukaj(e.target.value); if (w[0]) ustawCel([w[0].lat, w[0].lon], w[0].n, w[0].s); } });
+  const SZYBKIE = [['Strzebiń', ''], ['Bukowiec', ''], ['Koszęcin', ''], ['Kalety', ''], ['Boronów', ''], ['Leśno Rajza', 'g'], ['Stacja napraw', 's']];
+  $('chipy').innerHTML = SZYBKIE.map(([n, c]) => `<button type="button" class="${c}">${n}</button>`).join('');
+  $('chipy').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const n = b.textContent;
+    if (n === 'Stacja napraw') { const s = (H.places || []).filter(p => p.typ === 'stacja'); const ja = stan.start || [50.616, 18.897]; s.sort((a, c) => dist(ja, [a.lat, a.lon]) - dist(ja, [c.lat, c.lon])); if (s[0]) ustawCel([s[0].lat, s[0].lon], 'Stacja napraw rowerów', s[0].opis || ''); return; }
+    if (n === 'Leśno Rajza') { const best = najblizszyPunktTrasy('7'); if (best) ustawCel(best, 'Leśno Rajza', 'najbliższy punkt szlaku'); return; }
+    const c = (H.cele || []).find(c => c.n === n); if (c) ustawCel([c.lat, c.lon], c.n, 'Miejscowość');
+  });
+  function najblizszyPunktTrasy(id) {
+    const r = H.routes.find(r => String(r.id) === id); if (!r) return null;
+    const ja = stan.start || [50.616, 18.897]; let b = null, bd = Infinity;
+    for (const pt of r.parts.flatMap(p => p.c)) { const d = dist(ja, pt); if (d < bd) { bd = d; b = pt; } }
+    return b;
+  }
+
+  // ===================== stan i mapa =====================
+  const stan = {start: null, startN: 'Twoja lokalizacja', startGPS: true, cel: null, celN: '', celS: '', tryb: LS.get('tryb', 'trasy'), bezDW: LS.get('bezDW', true),
+                T: null, M: [], wybor: null, jazda: false, glos: LS.get('glos', true)};
+  let map = null, warstwa = null, jaM = null, celM = null, sledz = true;
+  function mapa() {
+    if (map) return map;
+    map = L.map('mapa', {zoomControl: false, attributionControl: true, preferCanvas: true}).setView([50.615, 18.9], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(map);
+    warstwa = L.layerGroup().addTo(map);
+    map.on('dragstart', () => { if (stan.jazda) { sledz = false; $('b-srodek').classList.remove('hide'); } });
+    map.on('click', e => { if (stan.wybor) stan.wybor([e.latlng.lat, e.latlng.lng]); });
+    return map;
+  }
+  function ekran(id) { document.querySelectorAll('.ekran').forEach(e => e.classList.toggle('on', e.id === id)); if (id === 's-mapa') setTimeout(() => map && map.invalidateSize(), 30); }
+  $('wstecz').onclick = () => { if (stan.jazda) return; stan.wybor = null; ekran('s-cel'); };
+
+  // --- start: GPS albo punkt na mapie
+  function gps(ok, zle) {
+    if (!navigator.geolocation) return zle('Ten telefon nie udostępnia lokalizacji.');
+    navigator.geolocation.getCurrentPosition(p => ok([p.coords.latitude, p.coords.longitude]), e => zle(e.code === 1 ? 'Brak zgody na lokalizację – zezwól w ustawieniach przeglądarki albo wskaż start na mapie.' : 'Nie udało się ustalić lokalizacji.'), {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000});
+  }
+  function opiszStart() { $('skad-t').textContent = stan.startGPS ? 'Twoja lokalizacja' + (stan.start ? ' · ' + (najblizszaMiejscowosc(stan.start) || '') : '') : stan.startN; }
+  gps(p => { stan.start = p; opiszStart(); }, () => {});
+  $('skad-zmien').onclick = () => wybierzNaMapie('Stuknij w mapę, skąd startujesz', p => { stan.start = p; stan.startGPS = false; stan.startN = 'Punkt na mapie · ' + (najblizszaMiejscowosc(p) || ''); opiszStart(); ekran('s-cel'); }, true);
+  $('cel-mapa').onclick = () => wybierzNaMapie('Stuknij w mapę, dokąd jedziesz', p => ustawCel(p, 'Punkt na mapie', najblizszaMiejscowosc(p) || ''));
+  function wybierzNaMapie(tytul, cb, start) {
+    mapa(); ekran('s-mapa'); warstwa.clearLayers(); panele('wybor');
+    $('gora').innerHTML = `<div class="pasek" style="padding-left:70px"><div class="co">${esc(tytul)}</div><div class="lab">Działa na obszarze mapy HUB (Koszęcin i okolice)</div></div>`;
+    $('dol').innerHTML = start ? `<button type="button" class="btn2" id="b-gps">${strzalkaSVG('prosto', '#1d2a23', 18)}Użyj mojej lokalizacji (GPS)</button><p class="msg" id="msg-w"></p>` : '<p class="msg" id="msg-w"></p>';
+    if (start) $('b-gps').onclick = () => gps(p => { stan.start = p; stan.startGPS = true; opiszStart(); stan.wybor = null; ekran('s-cel'); }, e => { $('msg-w').textContent = e; });
+    map.setView(stan.cel || stan.start || [50.615, 18.9], 13);
+    stan.wybor = p => { if (najblizszy(p)[1] > 600) { $('msg-w').textContent = 'Za daleko od dróg z mapy HUB – wybierz punkt bliżej Koszęcina i okolic.'; $('msg-w').className = 'msg err'; return; } stan.wybor = null; cb(p); };
+  }
+  function ustawCel(p, n, s) {
+    stan.cel = p; stan.celN = n; stan.celS = s || ''; $('szukaj').value = ''; pokazWyniki([]);
+    if (!stan.start) {
+      $('msg-cel').textContent = 'Ustalam Twoją lokalizację…'; $('msg-cel').className = 'msg';
+      gps(q => { stan.start = q; stan.startGPS = true; opiszStart(); $('msg-cel').textContent = ''; podglad(); },
+          e => { $('msg-cel').textContent = e; $('msg-cel').className = 'msg err'; wybierzNaMapie('Nie mamy Twojej lokalizacji – stuknij w mapę, skąd startujesz', q => { stan.start = q; stan.startGPS = false; stan.startN = 'Punkt na mapie'; opiszStart(); podglad(); }, true); });
+      return;
+    }
+    podglad();
+  }
+
+  // --- rysowanie trasy
+  function rysuj(T, M) {
+    warstwa.clearLayers();
+    L.polyline(T.ll, {color: '#fff', weight: 10, opacity: .95, interactive: false}).addTo(warstwa);
+    L.polyline(T.ll, {color: '#0f766e', weight: 6, opacity: .95, interactive: false}).addTo(warstwa);
+    for (const m of M) if (m.typ === 'tab') L.marker(wDal(T, m.c), {interactive: false, icon: L.divIcon({className: '', html: '<div class="km-m"></div>', iconSize: [22, 22], iconAnchor: [11, 11]})}).addTo(warstwa);
+    L.circleMarker(T.ll[0], {radius: 8, color: '#fff', weight: 3, fillColor: '#1d4ed8', fillOpacity: 1, interactive: false}).addTo(warstwa);
+    L.marker(T.ll[T.ll.length - 1], {interactive: false, icon: L.divIcon({className: '', html: '<div class="cel-m"><svg width="11" height="13" viewBox="0 0 14 18"><path d="M2 17V1l10 4-10 4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/></svg></div>', iconSize: [26, 26], iconAnchor: [13, 13]})}).addTo(warstwa);
+  }
+  function panele(tryb) {
+    $('wstecz').classList.toggle('hide', tryb === 'jazda');
+    $('b-glos').classList.toggle('hide', tryb !== 'jazda'); $('b-srodek').classList.add('hide');
+    $('status').classList.toggle('hide', tryb !== 'jazda'); $('b-sym').classList.toggle('hide', !(tryb === 'jazda' && sym));
+  }
+
+  // ===================== 2. podgląd trasy =====================
+  function policz() {
+    const opc = {tryb: stan.tryb, bezDW: stan.bezDW};
+    const T = trasuj(stan.start, stan.cel, opc);
+    if (T.blad) return T;
+    T.km = {dw: 0, trasy: 0}; for (let i = 0; i < T.seg.length; i++) { const s = T.seg[i]; if (!s) continue; const d = T.cum[i + 1] - T.cum[i]; if (DW(s) && !ROWER.has(s[0])) T.km.dw += d; if (TRASY.has(s[0])) T.km.trasy += d; }
+    return T;
+  }
+  function podglad() {
+    mapa(); ekran('s-mapa'); panele('podglad'); stan.wybor = null;
+    $('gora').innerHTML = '';
+    const T = policz();
+    if (T.blad) {
+      warstwa.clearLayers();
+      $('dol').innerHTML = `<div class="uchwyt"></div><p class="msg err">${T.blad === 'start' ? 'Jesteś poza obszarem mapy HUB (Koszęcin i okolice). Zmień start – możesz go wskazać na mapie.' : T.blad === 'cel' ? 'Cel jest poza obszarem mapy HUB.' : 'Nie znalazłem drogi między tymi punktami.'}</p><button type="button" class="btn2" id="b-wroc">Wróć</button>`;
+      $('b-wroc').onclick = () => ekran('s-cel'); return;
+    }
+    stan.T = T; stan.M = manewry(T); rysuj(T, stan.M);
+    // porównanie z drugim trybem (do przełącznika)
+    const inny = trasuj(stan.start, stan.cel, {tryb: stan.tryb === 'trasy' ? 'krotko' : 'trasy', bezDW: stan.bezDW});
+    const kmT = stan.tryb === 'trasy' ? T.m : inny.m, kmK = stan.tryb === 'krotko' ? T.m : inny.m;
+    const nTab = stan.M.filter(m => m.typ === 'tab').length;
+    const lista = stan.M.slice(0, 40).map(m => `<div>${strzalkaSVG(m.k, m.typ === 'tab' ? '#0759A7' : m.typ === 'cel' ? '#1d3b30' : '#1d2a23', 22)}<span>${esc(mTekst(m))}</span><span class="km">${kmTxt(m.c)}</span></div>`).join('');
+    $('dol').innerHTML = `<div class="uchwyt"></div>
+      <div><div class="msg">${esc(stan.startGPS ? 'Z Twojej lokalizacji' : stan.startN)} →</div><div style="font-size:21px;font-weight:800">${esc(stan.celN)}</div>${stan.celS ? `<div class="msg">${esc(stan.celS)}</div>` : ''}</div>
+      <div class="tryb" role="radiogroup" aria-label="Rodzaj trasy">
+        <button type="button" role="radio" data-t="trasy" aria-checked="${stan.tryb === 'trasy'}"><b>Trasami rowerowymi</b><span>${kmTxt(kmT)}</span></button>
+        <button type="button" role="radio" data-t="krotko" aria-checked="${stan.tryb === 'krotko'}"><b>Najkrócej</b><span>${kmTxt(kmK)}</span></button>
+      </div>
+      <label class="chk"><input type="checkbox" id="c-dw" ${stan.bezDW ? 'checked' : ''}><span><b>Omijaj drogi wojewódzkie</b> <span class="msg">– krótkie odcinki i ścieżki rowerowe obok DW są OK</span></span></label>
+      <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b>${minTxt(T.m)}</b><span>przy 15 km/h</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
+      <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich: ${kmTxt(T.km.dw)}.` : 'Bez dłuższych odcinków po drogach wojewódzkich.'}</div>
+      <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}Jedź</button>
+      <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a><button type="button" class="btn2" id="b-gpx">GPX</button></div>
+      <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
+      <div class="sek">Po drodze</div><div class="manew">${lista}</div>`;
+    $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
+    $('c-dw').onchange = e => { stan.bezDW = e.target.checked; LS.set('bezDW', stan.bezDW); podglad(); };
+    $('b-jedz').onclick = () => startJazdy(false);
+    $('b-symstart').onclick = () => startJazdy(true);
+    $('b-gpx').onclick = () => gpx(T);
+    $('b-google').href = linkGoogle(T);
+    map.fitBounds(L.polyline(T.ll).getBounds(), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(window.innerHeight * .55, 420)]});
+  }
+  function linkGoogle(T) {
+    const f = p => p[0].toFixed(5) + ',' + p[1].toFixed(5);
+    const wp = [.25, .5, .75].map(x => f(wDal(T, T.m * x))).join('|');
+    return `https://www.google.com/maps/dir/?api=1&origin=${f(T.ll[0])}&destination=${f(T.ll[T.ll.length - 1])}&waypoints=${encodeURIComponent(wp)}&travelmode=bicycling`;
+  }
+  function gpx(T) {
+    const x = s => String(s).replace(/[<>&"]/g, c => ({'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;'}[c]));
+    const n = 'Do: ' + stan.celN;
+    const t = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="HUB rowerowy Strzebiń – Jedź" xmlns="http://www.topografix.com/GPX/1/1">\n<trk><name>${x(n)}</name><trkseg>\n` + T.ll.map(p => `<trkpt lat="${p[0].toFixed(6)}" lon="${p[1].toFixed(6)}"/>`).join('\n') + '\n</trkseg></trk>\n</gpx>\n';
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], {type: 'application/gpx+xml'}));
+    a.download = 'trasa_' + norm(stan.celN).replace(/[^\w]+/g, '_').slice(0, 40) + '.gpx'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+
+  // ===================== 3. jazda =====================
+  let watch = null, sym = null, symV = 1, wake = null, poza = 0, ostPrzel = 0, idx = 0, wzdluz = 0, ostPoz = null, zapowiedz = new Set(), kierPokaz = null;
+  async function budzik() { try { if ('wakeLock' in navigator) { wake = await navigator.wakeLock.request('screen'); } } catch (e) {} }
+  document.addEventListener('visibilitychange', () => { if (stan.jazda && document.visibilityState === 'visible') budzik(); });
+  function startJazdy(symulacja) {
+    stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; zapowiedz = new Set(); kierPokaz = null; sledz = true;
+    sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
+    $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
+    $('b-stop').onclick = koniecJazdy;
+    map.setView(stan.T.ll[0], 17);
+    if (sym) { symV = 1; $('b-sym').textContent = 'Symulacja: ×1'; sym.t = setInterval(() => { sym.d += 6 * symV; const p = wDal(stan.T, sym.d); pozycja(p, 5, sym.d); }, 1000); }
+    else watch = navigator.geolocation.watchPosition(e => pozycja([e.coords.latitude, e.coords.longitude], e.coords.accuracy), () => { $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Brak sygnału GPS'; }, {enableHighAccuracy: true, maximumAge: 1000, timeout: 20000});
+    odswiez();
+  }
+  $('b-sym').onclick = () => { symV = symV === 1 ? 3 : symV === 3 ? 8 : 1; $('b-sym').textContent = 'Symulacja: ×' + symV; };
+  function koniecJazdy() {
+    stan.jazda = false; if (watch != null) navigator.geolocation.clearWatch(watch); watch = null;
+    if (sym) clearInterval(sym.t); sym = null; try { wake && wake.release(); } catch (e) {} wake = null;
+    if (jaM) { jaM.remove(); jaM = null; } ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
+  }
+  // rzut pozycji na trasę: szukamy w okolicy ostatniego znanego miejsca (żeby nie „przeskakiwać” na równoległy fragment)
+  function rzut(T, p) {
+    let best = null;
+    const od = Math.max(0, idx - 30), doo = Math.min(T.ll.length - 1, idx + 600);
+    for (let i = od; i < doo; i++) {
+      const a = T.ll[i], b = T.ll[i + 1], kx = Math.cos(p[0] * rad);
+      const ax = (a[1] - p[1]) * kx, ay = a[0] - p[0], bx = (b[1] - p[1]) * kx, by = b[0] - p[0], dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
+      const t = L2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L2)) : 0;
+      const d = Math.hypot(ax + t * dx, ay + t * dy) * rad * RZ;
+      if (!best || d < best.d - 0.5) best = {d, i, w: T.cum[i] + t * (T.cum[i + 1] - T.cum[i])};
+    }
+    return best;
+  }
+  function pozycja(p, acc, wSym) {
+    const T = stan.T; if (!T || !stan.jazda) return;
+    const r = rzut(T, p);
+    const kierRuchu = ostPoz && dist(ostPoz, p) > 3 ? brg(ostPoz, p) : null; if (!ostPoz || dist(ostPoz, p) > 3) ostPoz = p;
+    // ikona „ja” – strzałka w kierunku jazdy
+    const rot = kierRuchu ?? brg(wDal(T, r.w), wDal(T, r.w + 20));
+    const ik = L.divIcon({className: '', html: `<svg class="ja" viewBox="0 0 30 30" style="transform:rotate(${rot}deg)"><circle cx="15" cy="15" r="13" fill="#1d4ed8" stroke="#fff" stroke-width="3"/><path d="M15 7l6 13-6-3-6 3z" fill="#fff"/></svg>`, iconSize: [30, 30], iconAnchor: [15, 15]});
+    if (!jaM) jaM = L.marker(p, {icon: ik, interactive: false, zIndexOffset: 1000}).addTo(map); else { jaM.setLatLng(p); jaM.setIcon(ik); }
+    if (sledz) map.panTo(p, {animate: true, duration: .5});
+    // zejście z trasy → przeliczenie od miejsca, w którym jesteś
+    const prog = Math.max(40, Math.min(80, (acc || 20) * 1.5));
+    if (r.d > prog && !wSym) {
+      poza++;
+      $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Poza trasą';
+      if (poza >= 3 && Date.now() - ostPrzel > 8000) { ostPrzel = Date.now(); przelicz(p); }
+      return;
+    }
+    poza = 0; $('status').className = 'status'; $('status').querySelector('span').textContent = acc > 40 ? 'Słaby GPS (±' + Math.round(acc) + ' m)' : 'Na trasie';
+    if (r.w >= wzdluz - 30) { wzdluz = Math.max(wzdluz, r.w); idx = r.i; }
+    odswiez();
+  }
+  function przelicz(p) {
+    stan.start = p; const T = policz(); if (T.blad) return;
+    stan.T = T; stan.M = manewry(T); idx = 0; wzdluz = 0; zapowiedz = new Set(); rysuj(T, stan.M);
+    powiedz('Nowa trasa'); navigator.vibrate && navigator.vibrate([80, 60, 80]);
+    odswiez();
+  }
+  function odswiez() {
+    const T = stan.T, M = stan.M;
+    const zost = T.m - wzdluz;
+    if (zost < 25) return dojechales();
+    const nast = M.find(m => m.c > wzdluz - 20 && m.typ !== 'cel') || M[M.length - 1];
+    const doN = Math.max(0, nast.c - wzdluz);
+    // ekran przy drogowskazie (4b): od 30 m przed do 25 m za skrzyżowaniem
+    const przy = M.find(m => m.typ === 'tab' && wzdluz > m.c - 30 && wzdluz < m.c + 25);
+    if (przy !== kierPokaz) { kierPokaz = przy || null; if (przy) pokazKier(przy, M); else ekran('s-mapa'); }
+    // pasek u góry: następny kierunek
+    let html;
+    if (nast.typ === 'tab') {
+      html = `<div class="pasek"><div class="r1"><div class="strz">${strzalkaSVG(nast.k, '#00737e', 44)}</div><div><div class="lab">Następny kierunek · za ${kmTxt(doN)}</div><div class="co">${esc(kierTxt(nast.k))}, ${esc(nast.cele.join(' · '))}</div></div></div><div class="tab">${tabSVG(nast)}</div></div>`;
+    } else if (nast.typ === 'skret') {
+      html = `<div class="pasek"><div class="r1"><div class="strz">${strzalkaSVG(nast.k, '#00737e', 44)}</div><div><div class="lab">Następny skręt</div><div class="odl">${kmTxt(doN)}</div><div class="co">${esc(mTekst(nast))}</div></div></div></div>`;
+    } else {
+      html = `<div class="pasek"><div class="r1"><div class="strz">${strzalkaSVG('cel', '#1d3b30', 40)}</div><div><div class="lab">Do celu</div><div class="odl">${kmTxt(doN)}</div><div class="co">${esc(stan.celN)}</div></div></div></div>`;
+    }
+    if ($('gora').dataset.h !== html) { $('gora').innerHTML = html; $('gora').dataset.h = html; }
+    const g = $('gora').getBoundingClientRect().height;
+    $('prawe').style.top = (g + 12) + 'px'; $('status').style.top = (g + 12) + 'px'; $('b-sym').style.top = (g + 12) + 'px'; $('b-sym').style.right = '70px';
+    $('j-zost').textContent = kmTxt(zost) + ' · ' + minTxt(zost);
+    const nTab = M.filter(m => m.typ === 'tab' && m.c > wzdluz).length;
+    $('j-opis').textContent = 'do: ' + stan.celN + (nTab ? ' · ' + nTab + ' drogowsk' + (nTab === 1 ? 'az' : nTab < 5 ? 'azy' : 'azów') + ' po drodze' : '');
+    // zapowiedzi głosowe: ~150 m przed i na miejscu
+    if (nast.typ !== 'cel') {
+      const k = M.indexOf(nast);
+      if (doN < 160 && doN > 60 && !zapowiedz.has(k + 'z')) { zapowiedz.add(k + 'z'); powiedz('Za ' + Math.round(doN / 10) * 10 + ' metrów: ' + mTekst(nast)); }
+      if (doN <= 30 && !zapowiedz.has(k + 'n')) { zapowiedz.add(k + 'n'); powiedz(mTekst(nast)); navigator.vibrate && navigator.vibrate(200); }
+    }
+  }
+  function pokazKier(m, M) {
+    $('k-strz').innerHTML = strzalkaSVG(m.k, '#00737e', 48);
+    $('k-tekst').innerHTML = esc(kierTxt(m.k)) + ', kierunek<br>' + esc(m.cele.join(' · '));
+    $('k-tab').innerHTML = tabSVG(m, 'tb');
+    const kol = m.t.e.flatMap(e => e[3] || []);
+    $('k-opis').textContent = kol.length ? 'Kolorowe kółka na tabliczce to numery tras HUB – możesz się ich trzymać dalej.' : '';
+    const i = M.indexOf(m), dalej = M[i + 1];
+    $('k-potem').innerHTML = dalej ? `<b>Potem:</b> ${esc(mTekst(dalej))} · za ${kmTxt(dalej.c - m.c)}` : '';
+    ekran('s-kier');
+  }
+  function dojechales() {
+    if (!stan.jazda) return;
+    powiedz('Jesteś na miejscu'); navigator.vibrate && navigator.vibrate([100, 80, 100, 80, 200]);
+    if (watch != null) navigator.geolocation.clearWatch(watch); watch = null; if (sym) clearInterval(sym.t); sym = null;
+    stan.jazda = false; try { wake && wake.release(); } catch (e) {}
+    ekran('s-mapa'); panele('podglad');
+    $("gora").innerHTML = `<div class="pasek" style="padding-left:76px"><div class="r1"><div class="strz">${strzalkaSVG("cel", "#1d3b30", 40)}</div><div><div class="lab">Jesteś na miejscu</div><div class="co">${esc(stan.celN)}</div></div></div></div>`; $('gora').dataset.h = '';
+    $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Dojechałeś! ${kmTxt(stan.T.m)}</div><p class="msg">Coś było nie tak z trasą albo drogą? Oceń drogę na mapie wspólnej – poprawimy trasy dla wszystkich.</p><div class="rzad"><a class="btn2" href="./#wspolna" style="text-decoration:none;color:inherit">Oceń drogę</a><button type="button" class="btn2" id="b-nowy">Nowy cel</button></div>`;
+    $('b-nowy').onclick = () => { stan.start = jaM ? [jaM.getLatLng().lat, jaM.getLatLng().lng] : stan.start; if (jaM) { jaM.remove(); jaM = null; } ekran('s-cel'); };
+  }
+  // głos
+  function powiedz(t) { if (!stan.glos || !window.speechSynthesis) return; try { const u = new SpeechSynthesisUtterance(t); u.lang = 'pl-PL'; u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
+  function glosIkona() { $('b-glos').innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/>${stan.glos ? '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>' : '<path d="M17 9l5 6M22 9l-5 6"/>'}</svg>`; $('b-glos').ariaLabel = stan.glos ? 'Wyłącz komunikaty głosowe' : 'Włącz komunikaty głosowe'; }
+  $('b-glos').onclick = () => { stan.glos = !stan.glos; LS.set('glos', stan.glos); glosIkona(); if (stan.glos) powiedz('Komunikaty głosowe włączone'); };
+  $('b-srodek').onclick = () => { sledz = true; $('b-srodek').classList.add('hide'); if (jaM) map.setView(jaM.getLatLng(), Math.max(map.getZoom(), 16)); };
+  $('s-kier').onclick = () => { kierPokaz = null; ekran('s-mapa'); };   // dotknięcie – wróć do mapy
+
+  // link z celem: jedz.html#do=lat,lon&n=Nazwa
+  const hs = new URLSearchParams(location.hash.slice(1));
+  if (hs.get('do')) { const [a, b] = hs.get('do').split(',').map(Number); if (isFinite(a) && isFinite(b)) setTimeout(() => ustawCel([a, b], hs.get('n') || 'Punkt na mapie', najblizszaMiejscowosc([a, b]) || ''), 300); }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('jedz-sw.js').catch(() => {});
+  window.JEDZ_DEBUG = {trasuj, manewry, stan, wDal, skok: d => { if (sym) sym.d = d; }};
+})();
