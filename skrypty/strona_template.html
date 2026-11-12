@@ -169,20 +169,29 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 </div>
 
 <script src="lib/leaflet.js"></script>
+<script src="lib/leaflet.polylineoffset.js"></script>
 <script src="data.js"></script>
 <script src="lib/miejsca.js"></script>
 <script>
 (function(){
   const H = window.HUB;
-  const map = L.map('map', {zoomControl:true, scrollWheelZoom:true});
+  const map = L.map('map', {zoomControl:true, scrollWheelZoom:true}); window.mapa = map;
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18,
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
   const byId = {}; const all = L.featureGroup().addTo(map);
   const main = H.routes.filter(r => !r.alt);
+  // wspólne odcinki: trasy obok siebie, cieńszymi liniami (przesunięcie w pikselach, wtyczka polylineoffset)
+  map.createPane('obwodki').style.zIndex = 390;   // białe obwódki zawsze pod liniami tras
+  const casL = L.layerGroup().addTo(map);
   H.routes.forEach(r => {
-    const casing = L.polyline(r.coords, {color:'#fff', weight:7, opacity:.9, interactive:false});
-    const line = L.polyline(r.coords, {color:r.col, weight:4, opacity:.95, dashArray:r.alt ? '8 6' : null});
-    const g = L.featureGroup([casing, line]).addTo(all);
+    const lines = [], cas = [];
+    r.parts.forEach(p => {
+      const w = p.n > 1 ? 3.2 : 4;
+      if (p.k === 0) cas.push(L.polyline(p.c, {color:'#fff', weight:w * p.n + 3, opacity:.9, interactive:false, pane:'obwodki'}).addTo(casL));
+      lines.push(L.polyline(p.c, {color:r.col, weight:w, opacity:.95, offset:(p.k - (p.n - 1) / 2) * w, dashArray:r.alt ? '8 6' : null, lineCap:'butt'}));
+    });
+    const line = L.featureGroup(lines), casing = L.featureGroup(cas);
+    const g = L.featureGroup([line]).addTo(all);
     line.on('click', () => select(r.alt ? '1' : r.id));
     line.bindTooltip((r.alt ? 'Wariant 1a – ' : 'Trasa ' + r.id + ': ') + r.name, {sticky:true});
     byId[r.id] = {r, g, line, casing};
@@ -237,7 +246,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     document.querySelectorAll('.route').forEach(e => { e.classList.toggle('on', e.dataset.id === id); e.classList.toggle('dim', !!id && e.dataset.id !== id); });
     Object.values(byId).forEach(o => {
       const act = !id || o.r.id === id || (id === '1' && o.r.id === '1a');
-      o.line.setStyle({opacity: act ? .95 : .18, weight: act && id ? 5 : 4}); o.casing.setStyle({opacity: act ? .9 : 0});
+      o.line.setStyle({opacity: act ? .95 : .18}); o.casing.setStyle({opacity: !id ? .9 : 0});
       if (act) o.g.bringToFront();
     });
     reset.hidden = !id;

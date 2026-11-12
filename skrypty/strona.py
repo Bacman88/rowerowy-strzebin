@@ -52,6 +52,25 @@ for f in json.load(open("../dane/osm2_clean.geojson"))["features"]:
            "widok" if q.get("tourism") == "viewpoint" else "lawka" if q.get("amenity") == "bench" else None)
     if typ and hull.contains(Point(g["coordinates"])):
         places.append(dict(typ=typ, nazwa=q.get("name", ""), opis="", lat=g["coordinates"][1], lon=g["coordinates"][0], osm=1))
+# wspólne odcinki tras: każda trasa dzielona na kawałki o stałym zestawie tras; na stronie rysowane obok siebie (przesunięcie)
+import re as _re, collections as _col
+_ord = lambda i: (int(_re.match(r"\d+", i).group()), i)
+_E = _col.defaultdict(set)
+_rc = {r["id"]: [tuple(round(v, 6) for v in c) for c in r["coords"]] for r in routes}
+for i, c in _rc.items():
+    for a_, b_ in zip(c, c[1:]): _E[frozenset((a_, b_))].add(i)
+for r in routes:
+    c = _rc[r["id"]]; parts = []; cur = None
+    for a_, b_ in zip(c, c[1:]):
+        k = tuple(sorted(_E[frozenset((a_, b_))], key=_ord))
+        if cur and cur[0] == k: cur[1].append(b_)
+        else:
+            cur = (k, [a_, b_]); parts.append(cur)
+    out = []
+    for k, cs in parts:
+        if cs[0] > cs[-1]: cs = cs[::-1]   # ten sam kierunek dla wszystkich tras na wspólnym kawałku
+        out.append(dict(c=[list(x) for x in cs], k=k.index(r["id"]), n=len(k)))
+    r["parts"] = out; del r["coords"]
 open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places), ensure_ascii=False, separators=(",", ":")) + ";")
 print("miejsca:", len(places))
 M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
