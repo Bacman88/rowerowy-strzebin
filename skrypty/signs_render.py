@@ -26,7 +26,7 @@ def _node_at(path, m=150):
     return tuple(path[-1])
 def _side(pl):
     d_ = pl.get("deg")
-    return "R" if (d_ is not None and math.sin(math.radians(d_)) > 0.05) else "L"
+    return "R" if (d_ is not None and (math.sin(math.radians(d_)) > 0.34 or (abs(math.sin(math.radians(d_))) <= 0.34 and math.cos(math.radians(d_)) > 0))) else "L"
 def _close(a, b, tol=35):
     if a is None or b is None: return False
     return abs((a - b + 180) % 360 - 180) <= tol
@@ -376,7 +376,7 @@ TPL = {
 def plate(a, x, y, grp, w=86):
     """Plate exactly in the agreed layout: [arrow tip] bike  Name  x,x km  (1 or 2 lines)."""
     deg = grp[0].get("deg")
-    right = deg is not None and math.sin(math.radians(deg)) > 0.05
+    right = deg is not None and (math.sin(math.radians(deg)) > 0.34 or (abs(math.sin(math.radians(deg))) <= 0.34 and math.cos(math.radians(deg)) > 0))
     t = TPL[(str(len(grp)), "R" if right else "L")]
     H, W = t["img"].shape[:2]; sc = w / W; h = H * sc
     a.imshow(t["img"], extent=(x, x + w, y, y + h), interpolation="lanczos", zorder=2, aspect="auto")

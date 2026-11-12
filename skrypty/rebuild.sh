@@ -7,9 +7,9 @@ D=../dane; O=../out; GEN=../generator/generator_drogowskazow.html
 SV=$D/umap_mapa_rowerowa.geojson; M1=$D/streetview_zasieg_1.png; M2=$D/streetview_zasieg_2.png
 mkdir -p $O/_tmp
 python3 -I signs_data.py $D/osm2_clean.geojson "$SV" signs.json 2>&1 | grep POI || true
+# trasy pokazowe najpierw: kierunki tras na tabliczkach (directions.py) i kółka tras V22 (plates.py) korzystają z ich przebiegu
+python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs.json $O/drogowskazy | tail -1
 python3 -I directions.py $D/osm2_clean.geojson signs.json signs_prop.json kierunki_raport.json "$SV" >/dev/null
-# trasy przed tabliczkami: V22 – numery tras w kółkach na tabliczkach wg przebiegu tras
-python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy | tail -1
 for v in "tabliczki" "tabliczki_pojedyncze --single" "tabliczki_prostokatne --plate=rect" "tabliczki_prostokatne_zaokraglone --plate=roundrect"; do
   set -- $v; python3 -I plates.py signs_prop.json $GEN $O/$1 $2 | head -1
 done
@@ -28,6 +28,7 @@ from pypdf import PdfWriter;w=PdfWriter();[w.append(f) for f in ['drogowskazy_ma
 python3 -I export_umap.py
 python3 -I opis_pdf.py
 python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy --objazd | tail -1
+python3 -I kontrola_tabliczek.py signs_prop.json $O/drogowskazy_trasy.geojson | head -1
 python3 strona.py
 python3 -I -W ignore odcinki.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/strona
 echo "Gotowe – wyniki w $(cd $O && pwd)"

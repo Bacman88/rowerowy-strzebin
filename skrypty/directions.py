@@ -197,6 +197,80 @@ for nr, names in MANUAL.items():
         new.append(dict(name=v, km=round(km, 1), deg=round(bearing(pth)), path=pth, why="przegląd ręczny"))
     prop[nr] = new
 
+# 12.11.2026 – kierunki tras pokazowych (wg Bartosza: „na węźle 30 brakuje kierunku Strzebiń czy Boronów”).
+# Każdy słupek na trasie: jeśli w którąś stronę trasy nie ma tabliczki prowadzącej trasą – tabliczka do najbliższej miejscowości
+# na trasie w tę stronę, poprowadzona dokładnie trasą (wtedy dostaje też kółko z numerem trasy). Wymaga przebiegu tras: drogowskazy_trasy.geojson.
+import os
+TRASY = os.environ.get("TRASY_GEOJSON", "../out/drogowskazy_trasy.geojson")
+for v_ in ("Drutarnia", "Hucisko"):   # końce tras 7 i 2
+    if v_ in places and v_ not in tgt_node: tgt_node[v_] = snap(*places[v_])
+DEST = {v for names in MANUAL.values() for v in names if v in tgt_node} | {"Drutarnia", "Hucisko"} & set(tgt_node)
+from pyproj import Geod
+_geod = Geod(ellps="WGS84"); _m = lambda a, b: _geod.inv(a[0], a[1], b[0], b[1])[2]
+dodane_trasy = []
+def _wzdluz(path, rc, i, step):
+    """ścieżka tabliczki wychodzi ze słupka krawędzią trasy (i -> i+step) i jedzie nią min(1 km, 60% drogi do celu) – tak samo jak kółka tras"""
+    path = [tuple(round(v, 7) for v in q) for q in path]
+    if len(path) < 2 or not (0 <= i + step < len(rc)): return False
+    total = sum(_m(a_, b_) for a_, b_ in zip(path, path[1:]))
+    for k in range(min(10, len(path) - 1)):
+        if (path[k], path[k + 1]) == (rc[i], rc[i + step]):
+            run, j, kk = 0, i, k
+            while kk < len(path) - 1 and 0 <= j + step < len(rc) and (path[kk], path[kk + 1]) == (rc[j], rc[j + step]):
+                run += _m(rc[j], rc[j + step]); j += step; kk += 1
+            return run >= min(1000, 0.6 * total) - 1 or kk == len(path) - 1
+    return False
+if os.path.exists(TRASY):
+    for f in json.load(open(TRASY))["features"]:
+        rid = f["properties"]["id"]; rc = [tuple(round(v, 7) for v in c) for c in f["geometry"]["coordinates"]]
+        rxy = np.array([P(*c) for c in rc])
+        # miejscowości na trasie: pierwszy wierzchołek trasy w pobliżu centrum (indeks -> nazwa)
+        przez = []
+        for v in DEST:
+            dd = np.hypot(*(rxy - P(*places[v])).T) / 1000
+            hit = np.where(dd < max(RADIUS.get(v, 0.6) * 0.7, 0.4))[0]
+            if len(hit): przez.append((int(hit[0]), int(hit[-1]), v))
+        for p in posts:
+            nr = p["nr"]; pd = np.hypot(*(rxy - P(p["lon"], p["lat"])).T); i = int(np.argmin(pd))
+            if pd[i] > 40: continue
+            for step in (1, -1):
+                # miejscowości w tym kierunku, w kolejności jazdy (bez tej, w której stoi słupek)
+                cel = sorted(((a_ if step == 1 else -b_), v) for a_, b_, v in przez
+                             if (a_ > i if step == 1 else b_ < i) and not inside(p, v))
+                if rid == "1a": continue   # wariant w środku Strzebinia – kierunki daje trasa 1
+                # kierunek już ma tabliczkę prowadzącą trasą (np. Kalety ③ na słupku 30) – nic nie dodajemy
+                if any(_wzdluz(e["path"], rc, i, step) for e in prop[nr]): continue
+                end = len(rc) - 1 if step == 1 else 0
+                if cel: v, k = cel[0][1], None   # najbliższa miejscowość na trasie w tę stronę
+                else:   # trasa nie przechodzi przez żadną miejscowość (np. kończy się przy kościele św. Trójcy) – miejscowość przy końcu trasy
+                    dd = sorted((np.hypot(*(rxy[end] - P(*places[v_]))) / 1000, v_) for v_ in DEST)
+                    if not dd or dd[0][0] > 2.5 or inside(p, dd[0][1]): continue
+                    v, k = dd[0][1], end
+                for v in [v]:
+                    if k is None: k = next(k_ for k_ in (range(i, len(rc)) if step == 1 else range(i, -1, -1))
+                             if np.hypot(*(rxy[k_] - P(*places[v]))) / 1000 < max(RADIUS.get(v, 0.6) * 0.7, 0.4))
+                    seg = rc[i:k + 1] if step == 1 else rc[k:i + 1][::-1]
+                    if len(seg) < 2: continue
+                    # od słupka do trasy i od miejsca wjazdu do miejscowości do jej centrum – po grafie
+                    head = nx.shortest_path(G, post_node[nr], seg[0], weight="w") if seg[0] in G and post_node[nr] != seg[0] else [post_node[nr]]
+                    tail = nx.shortest_path(G, seg[-1], tgt_node[v], weight="w") if seg[-1] in G else [seg[-1]]
+                    pth = head[:-1] + list(seg) + tail[1:]
+                    km = sum(_m(a_, b_) for a_, b_ in zip(pth, pth[1:])) / 1000
+                    if km < NEAR: continue
+                    ex = next((e for e in prop[nr] if e["name"] == v), None)
+                    if ex:
+                        # ten cel już jest: jeśli tabliczka wskazuje inną drogę niż trasa – prowadzimy trasą (gdy nie dłużej niż o 25%)
+                        if km > ex["km"] * 1.25: continue
+                        if True:
+                            ex.update(km=round(km, 1), deg=round(bearing(pth)), path=pth, why=f"kierunek trasy {rid}")
+                            dodane_trasy.append((nr, v, rid, "zmiana kierunku")); continue
+                    prop[nr].append(dict(name=v, km=round(km, 1), deg=round(bearing(pth)), path=pth, why=f"kierunek trasy {rid}"))
+                    dodane_trasy.append((nr, v, rid, "nowa"))
+    print("kierunki tras:", len([d for d in dodane_trasy if d[3] == "nowa"]), "nowych tabliczek,",
+          len([d for d in dodane_trasy if d[3] != "nowa"]), "zmienionych kierunków")
+    for d in dodane_trasy: print("  ", d)
+else: print("UWAGA: brak", TRASY, "– bez uzupełnienia kierunków tras")
+
 # extra destinations requested by Bartosz for specific posts (weighted routing like the rest)
 EXTRA = [
     dict(name="Kościół św. Trójcy", lon=18.843296, lat=50.62077, cat="brown", icon="church", posts=[2]),
