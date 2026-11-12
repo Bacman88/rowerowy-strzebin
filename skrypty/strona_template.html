@@ -78,6 +78,10 @@ section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 .dl a:hover{border-color:var(--green)}
 .dl-t{font-weight:600;font-size:15px}
 .dl-s{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.dl-m{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px 9px 16px}
+.dl-f{display:flex;gap:6px;flex-shrink:0}
+.dl .dl-f a{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 10px;border-radius:8px;min-width:54px}
+.dl-f b{font-size:14px}.dl-f span{font-size:11px;color:var(--muted)}
 .bands{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
 .pole{width:34px;height:150px;background:linear-gradient(90deg,#7f888d,#c7ced2 35%,#6f787d);border-radius:2px;position:relative}
 .pole .n{position:absolute;top:22px;left:0;right:0;height:38px;background:#fff;display:grid;place-items:center}
@@ -89,6 +93,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   #map{height:62vh;order:-1}
   .side{border-right:0;border-top:1px solid var(--line);max-height:none}
   .grid3,.dl{grid-template-columns:1fr}
+  .dl-m{flex-wrap:wrap}
   .wrap{padding:0 16px}
 }
 </style>

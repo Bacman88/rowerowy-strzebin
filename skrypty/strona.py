@@ -36,14 +36,25 @@ for p in D["posts"]:
                       routes=sorted(set(onr.get(p["nr"], [])), key=int), imgs=imgs))
 pois = [dict(name=q["name"], lat=q["lat"], lon=q["lon"], cat=q["cat"], icon=q.get("icon", "")) for q in D.get("pois", []) if q.get("icon") != "wc"]
 open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois), ensure_ascii=False, separators=(",", ":")) + ";")
-PDFS = [("Solectwo_Strzebin_jako_HUB_rowerowy.pdf", "Projekt – komplet (opis, kosztorys, mapy, katalog)"),
-        ("Solectwo_Strzebin_jako_HUB_rowerowy_opis_i_kosztorys.pdf", "Opis projektu i kosztorys"),
-        ("drogowskazy_trasy.pdf", "Mapa tras rowerowych (A2)"), ("drogowskazy_mapa.pdf", "Mapa wszystkich słupków (A2)"),
-        ("drogowskazy_mapa_strzebin.pdf", "Mapa Strzebinia – powiększenie (A2)"), ("drogowskazy_stan_drog.pdf", "Stan dróg na trasach (A2)"),
-        ("A4_mapy_komplet.pdf", "Wszystkie mapy do druku na A4"), ("drogowskazy_katalog.pdf", "Katalog słupków i tabliczek")]
-for fn, _ in PDFS: shutil.copy(f"{O}/{fn}", f"{S}/pdf/{fn}")
+M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
+PDFS = [("Projekt – komplet (opis, kosztorys, mapy, katalog)", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy.pdf")]),
+        ("Opis projektu i kosztorys", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy_opis_i_kosztorys.pdf")]),
+        ("Mapa tras rowerowych", M("drogowskazy_trasy.pdf", "mapa_trasy")),
+        ("Mapa wszystkich słupków", M("drogowskazy_mapa.pdf", "mapa_wszystkie_slupki")),
+        ("Mapa Strzebinia – powiększenie", M("drogowskazy_mapa_strzebin.pdf", "mapa_strzebin")),
+        ("Stan dróg na trasach", M("drogowskazy_stan_drog.pdf", "mapa_stan_drog")),
+        ("Wszystkie mapy w jednym pliku", [("A3", "A3_mapy_komplet.pdf"), ("A4", "A4_mapy_komplet.pdf")]),
+        ("Katalog słupków i tabliczek", [("PDF", "drogowskazy_katalog.pdf")])]
+for _, fs in PDFS:
+    for _, fn in fs: shutil.copy(f"{O}/{fn}", f"{S}/pdf/{fn}")
 sz = lambda fn: f"{os.path.getsize(f'{S}/pdf/{fn}') / 1e6:.1f} MB".replace(".", ",")
-dl = "\n".join(f'<li><a href="pdf/{fn}" download><span class="dl-t">{t}</span><span class="dl-s">PDF · {sz(fn)}</span></a></li>' for fn, t in PDFS)
+def dl_item(t, fs):
+    if len(fs) == 1:
+        fn = fs[0][1]
+        return f'<li><a href="pdf/{fn}" download><span class="dl-t">{t}</span><span class="dl-s">PDF · {sz(fn)}</span></a></li>'
+    ch = "".join(f'<a href="pdf/{fn}" download title="{sz(fn)}"><b>{lab}</b><span>{sz(fn)}</span></a>' for lab, fn in fs)
+    return f'<li class="dl-m"><span class="dl-t">{t}</span><span class="dl-f">{ch}</span></li>'
+dl = "\n".join(dl_item(t, fs) for t, fs in PDFS)
 n_posts = len(posts); n_pl = sum(len(p["imgs"]) for p in posts)
 html = open("strona_template.html").read().replace("{{DOWNLOADS}}", dl).replace("{{NPOSTS}}", str(n_posts)).replace("{{NPLATES}}", str(n_pl)).replace(
     "{{NROUTES}}", str(sum(1 for r in routes if not r["alt"])))
