@@ -15,6 +15,11 @@ window.NAWIGACJA = (map, box, calosc) => {
     @media (max-width:900px){.mapa-pelna{display:flex!important;flex-direction:column}.mapa-pelna>.side{max-height:42vh;overflow:auto;order:2}.mapa-pelna>.leaflet-container,.mapa-pelna>[id^=map]{flex:1;order:1;height:auto!important}}`;
   if (!document.getElementById('nav-css')) { css.id = 'nav-css'; document.head.appendChild(css); }
   const IK = {"↑": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 19V5M6 11l6-6 6 6\"/></svg>", "↓": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M6 13l6 6 6-6\"/></svg>", "←": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 12H5M11 6l-6 6 6 6\"/></svg>", "→": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg>", "⌂": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 11l8-7 8 7\"/><path d=\"M6 10v10h12V10\"/></svg>", "⛶": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/></svg>", "✕": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/></svg>", "◎": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3\"/></svg>"};
+  // Wtyczka gestureHandling wyłącza przesuwanie na zdarzeniu „mouseout” mapy – a to zdarzenie przychodzi też
+  // przy zjechaniu kursorem z drogi lub znacznika. Wtedy mapy nie dało się złapać myszą. Wyłączamy tylko
+  // przy faktycznym opuszczeniu kontenera mapy (dotyk dalej: jeden palec przewija stronę, dwa – mapę).
+  const napraw = () => { const g = map.gestureHandling; if (g && g.enabled()) { L.DomEvent.off(map, 'mouseout', g._handleMouseOut, g); if (!matchMedia('(pointer: coarse)').matches) map.dragging.enable(); } };
+  napraw();
   const stop = el => { L.DomEvent.disableClickPropagation(el); L.DomEvent.disableScrollPropagation(el); return el; };
   // strzałki: przesunięcie o 1/3 widoku, środek = pokaż całość
   const Strz = L.Control.extend({onAdd() {
@@ -36,7 +41,7 @@ window.NAWIGACJA = (map, box, calosc) => {
     fs.onclick = () => {
       pelny = !pelny; box.classList.toggle('mapa-pelna', pelny); document.body.classList.toggle('ma-pelna', pelny);
       fs.innerHTML = IK[pelny ? '✕' : '⛶']; fs.title = fs.ariaLabel = pelny ? 'Zamknij pełny ekran' : 'Pełny ekran';
-      if (map.gestureHandling) pelny ? map.gestureHandling.disable() : map.gestureHandling.enable();
+      if (map.gestureHandling) { pelny ? map.gestureHandling.disable() : map.gestureHandling.enable(); napraw(); }
       setTimeout(() => map.invalidateSize(), 50);
     };
     if (navigator.geolocation) {

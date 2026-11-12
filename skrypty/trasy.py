@@ -79,7 +79,7 @@ ROUTES = [
     ("6", "Psary – Bukowiec – Koszęcin (kościół św. Trójcy)", "", ["Psary", 8, 7, 10, 21, 25, 3, 2, 39, 38, 37, 36, "Trójca"], KOLORY["6"][0]),
     ("7", "Drutarnia – Dubiele – Strzebiń", "", ["Drutarnia", 40, 41, 17], KOLORY["7"][0]),
     ("8", "Kalety (stadion Unii) – Sośnica", "przejezdność do sprawdzenia", ["Kalety Unia", 5, 34, 52, "Sośnica"], KOLORY["8"][0]),
-    ("9", "Sośnica – Koszęcin (kościół św. Trójcy)", "trasa dodatkowa, lasem i Leśno Rajzą", ["Sośnica", 52, 34, 33, 51, 50, 41, 40, "Trójca"], KOLORY["9"][0]),
+    ("9", "Sośnica – Koszęcin (kościół św. Trójcy)", "trasa dodatkowa, lasem i Leśną Rajzą", ["Sośnica", 52, 34, 33, 51, 50, 41, 40, "Trójca"], KOLORY["9"][0]),
     ("1a", "Wariant trasy 1 drogą rowerową wzdłuż DW 906", "", [7, 26, 16, 6, 20, 25], KOLORY["1"][0])]
 def is_paved(pr):
     sf, h = pr.get("surface"), pr.get("highway")

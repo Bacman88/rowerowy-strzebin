@@ -171,10 +171,11 @@ section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 #wsp .modes{grid-template-columns:1fr 1fr}
 /* przełącznik klikania i „Wyczyść” na mapie */
 .klik-ctl{display:flex;flex-direction:column;gap:6px}
-.klik-ctl button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;background:#fff;border-radius:8px;padding:0 10px 0 8px;height:38px;font:700 13.5px/1 Inter,system-ui,sans-serif;color:#1d2a23;box-shadow:0 1px 5px rgba(0,0,0,.25)}
+.klik-ctl button{all:unset;cursor:pointer;display:grid;place-items:center;background:#fff;border-radius:8px;width:40px;height:40px;color:#1d2a23;box-shadow:0 1px 5px rgba(0,0,0,.25);position:relative}
+.klik-ctl button.off::after{content:'';position:absolute;left:8px;right:8px;top:50%;height:2.6px;background:#e9b949;transform:rotate(-45deg);border-radius:2px}
 .klik-ctl button:hover{background:#efe9da}.klik-ctl button:focus-visible{outline:3px solid #1d4ed8}
 .klik-ctl button.off{background:#1d3b30;color:#fff}
-.klik-ctl svg{flex-shrink:0}
+.klik-ctl svg{width:22px;height:22px}
 #wsp #mapw.nieklik,#wsp #mapw.nieklik .leaflet-interactive{cursor:grab!important}
 /* kreator trasy */
 #wsp .tr-sum{font-size:15px}#wsp .tr-sum b{font-size:18px}
@@ -255,7 +256,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <header class="top">
   <p class="eyebrow">Sołectwo Strzebiń · gmina Koszęcin</p>
   <h1>HUB rowerowy Strzebiń</h1>
-  <p class="lead">Strzebiń leży między Leśno Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
+  <p class="lead">Strzebiń leży między Leśną Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
   <nav class="jump" aria-label="Na stronie">
     <a class="main" href="#wspolna"><span class="num">1</span>Mapa wspólna – oceń drogę, dodaj miejsce, wyznacz trasę</a>
     <a href="#trasy"><span class="num">2</span>Proponowane trasy i drogowskazy</a>
@@ -278,7 +279,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     </div>
     <div class="m-drogi">
     <h2>Jak to działa</h2>
-    <p class="how">Klikaj odcinki dróg na mapie – możesz zaznaczyć kilka naraz. Przycisk „Zaznaczanie” w rogu mapy wyłącza klikanie, gdy chcesz tylko oglądać, a „Wyczyść” usuwa zaznaczenia i pinezki. Wybierz, jak się nimi jedzie rowerem, i wyślij. Zgłoszenie pojawi się na mapie po sprawdzeniu przez administratora strony.</p>
+    <p class="how">Klikaj odcinki dróg na mapie – możesz zaznaczyć kilka naraz. Przycisk z dłonią w rogu mapy wyłącza zaznaczanie, gdy chcesz tylko oglądać, a gumka czyści zaznaczenia i pinezki. Wybierz, jak się nimi jedzie rowerem, i wyślij. Zgłoszenie pojawi się na mapie po sprawdzeniu przez administratora strony.</p>
 
     <h2>Legenda</h2>
     <div class="key">
@@ -338,7 +339,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     </div>
     <form id="form" autocomplete="on" novalidate>
       <div class="typy m-miejsce" id="typy"></div>
-      <label class="f m-miejsce"><span>Nazwa (nieobowiązkowo)</span><input type="text" name="nazwa" maxlength="80" placeholder="np. Wiata przy Leśno Rajzie"></label>
+      <label class="f m-miejsce"><span>Nazwa (nieobowiązkowo)</span><input type="text" name="nazwa" maxlength="80" placeholder="np. Wiata przy Leśnej Rajzie"></label>
       <label class="f m-miejsce"><span>Opis</span><textarea name="opis" maxlength="1000" placeholder="np. dwie ławki i stół, zadaszenie, kosz na śmieci"></textarea></label>
       <div class="stany m-drogi">
         <label><input type="radio" name="stan" value="dobra"> <span class="chip c-dobra">dobra</span></label>
@@ -439,7 +440,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <h2>Dlaczego to robimy</h2>
   <div class="grid3 why">
     <div class="card"><h3>Bezpieczny objazd DW 906</h3><p>Między Bukowcem, Strzebiniem, Prądami i Koszęcinem nie ma drogi rowerowej wzdłuż drogi wojewódzkiej – temat wraca na każdym zebraniu. Oznakowany objazd bocznymi i leśnymi drogami jest wielokrotnie tańszy i do zrobienia w jeden sezon, a nie zamyka drogi do ścieżki wzdłuż DW 906, jeśli kiedyś powstanie.</p></div>
-    <div class="card"><h3>Połączenia, o których nie wiemy</h3><p>Coraz więcej z nas mieszka tu od niedawna i zna tylko główne drogi. Tabliczki pokazują, którędy da się wygodnie dojechać do sąsiednich wsi, do Leśno Rajzy i Liswarciańskiego Szlaku Rowerowego.</p></div>
+    <div class="card"><h3>Połączenia, o których nie wiemy</h3><p>Coraz więcej z nas mieszka tu od niedawna i zna tylko główne drogi. Tabliczki pokazują, którędy da się wygodnie dojechać do sąsiednich wsi, do Leśnej Rajzy i Liswarciańskiego Szlaku Rowerowego.</p></div>
     <div class="card"><h3>Wiedza o stanie dróg</h3><p>Mapa wspólna zbiera w jednym miejscu, jak się jedzie drogami wokół Strzebinia. Mieszkańcy wiedzą, którędy pojechać, a gmina dostaje listę konkretnych odcinków do naprawy.</p></div>
     <div class="card"><h3>Uroki sołectwa i gminy</h3><p>Tabliczki kierują do zabytków, miejsc spotkań, przyrody i lokalnych punktów. Rowerzysta, który dziś tylko przejeżdża szlakiem, ma powód, żeby zboczyć, zatrzymać się i zostać na chwilę.</p></div>
     <div class="card"><h3>Uzupełnienie tego, co już ruszyło</h3><p>Sołectwo zaplanowało w funduszu sołeckim na 2027 r. dwa miejsca odpoczynku dla rowerzystów ze stacjami naprawy oraz tablice o historii przy Piekarnioku i pomniku J. Ligonia. Oznakowanie HUB-u będzie do nich prowadzić.</p></div>
@@ -975,10 +976,11 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
       const d = L.DomUtil.create('div', 'klik-ctl'); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
       const t = L.DomUtil.create('button', '', d), w = L.DomUtil.create('button', '', d);
       t.type = w.type = 'button';
-      const opis = () => { t.innerHTML = klikOn ? IKK.on + 'Zaznaczanie: wł.' : IKK.off + 'Tylko oglądanie'; t.classList.toggle('off', !klikOn);
-        t.setAttribute('aria-pressed', String(klikOn)); t.title = klikOn ? 'Kliknięcia zaznaczają drogi i stawiają punkty. Kliknij, żeby tylko oglądać mapę.' : 'Kliknięcia nic nie zaznaczają. Kliknij, żeby znów zaznaczać.'; };
+      const opis = () => { t.innerHTML = IKK.on; t.classList.toggle('off', !klikOn);
+        t.setAttribute('aria-pressed', String(klikOn));
+        t.title = t.ariaLabel = klikOn ? 'Zaznaczanie włączone – kliknij, żeby tylko oglądać mapę' : 'Zaznaczanie wyłączone (tylko oglądanie) – kliknij, żeby znów zaznaczać'; };
       t.onclick = () => { klikOn = !klikOn; opis(); $('mapw').classList.toggle('nieklik', !klikOn); warstwyTrybu(); };
-      w.innerHTML = IKK.x + 'Wyczyść'; w.title = 'Usuń zaznaczenia, pinezkę, punkty trasy i punkt Twojej lokalizacji';
+      w.innerHTML = IKK.x; w.title = w.ariaLabel = 'Wyczyść: usuń zaznaczenia, pinezkę, punkty trasy i punkt Twojej lokalizacji';
       w.onclick = () => {
         if (tryb === 'drogi') { sel.clear(); rysujSel(); $('info').hidden = true; }
         else if (tryb === 'miejsce') { if (pin) { pin.remove(); pin = null; pkt(); } }
@@ -1109,7 +1111,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   const znajdz = (cat, pref) => { for (const p of H.posts) for (const t of p.tab) if (t.cat === cat && (!pref || t.e.some(e => e[0] === pref))) return t; return null; };
   const KOLORY = [
     ['blue', 'Strzebiń', 'Miejscowości', 'Sąsiednie wsie i miasta – najwięcej tabliczek. Kółka przy nazwie pokazują trasy pokazowe.'],
-    ['green', 'Leśno Rajza', 'Szlaki i przyroda', 'Dojazd do szlaków rowerowych – Leśno Rajzy i Liswarciańskiego Szlaku Rowerowego.'],
+    ['green', 'Leśno Rajza', 'Szlaki i przyroda', 'Dojazd do szlaków rowerowych – Leśnej Rajzy i Liswarciańskiego Szlaku Rowerowego.'],
     ['brown', 'Kościół św. Krzyża', 'Zabytki, historia i kultura', 'Kościoły, kapliczki, pomniki i miejsca spotkań, np. Piekarniok.'],
     ['red', 'Zagroda u Czesi', 'Gastronomia', 'Lokale przy trasach. Mogą współfinansować oznakowanie – na tych samych zasadach dla wszystkich.'],
     ['gray', 'WC', 'Infrastruktura dla rowerzystów', 'Stacje naprawy rowerów, WC, woda, parkingi.'],
