@@ -132,6 +132,8 @@ os.makedirs(f"{S}/lib/fonts", exist_ok=True); shutil.copy("../fonts/FiraSansCond
 open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places, cele=cele, gmina=gmina_ll), ensure_ascii=False, separators=(",", ":")) + ";")
 print("miejsca:", len(places))
 M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
+# 12.11.2026: załącznik A4 – wzór drogowskazu i montaż na istniejącym słupku z nazwą ulicy
+os.system(f'python3 wzor_montazu.py "{S}" "{O}/wzor_drogowskazu_montaz.pdf"')
 PDFS = [("Projekt – komplet (opis, kosztorys, mapy, katalog)", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy.pdf")]),
         ("Opis projektu i kosztorys", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy_opis_i_kosztorys.pdf")]),
         ("Mapa tras rowerowych", M("drogowskazy_trasy.pdf", "mapa_trasy")),
@@ -139,6 +141,7 @@ PDFS = [("Projekt – komplet (opis, kosztorys, mapy, katalog)", [("PDF", "Solec
         ("Mapa Strzebinia – powiększenie", M("drogowskazy_mapa_strzebin.pdf", "mapa_strzebin")),
         ("Stan dróg na trasach", M("drogowskazy_stan_drog.pdf", "mapa_stan_drog")),
         ("Wszystkie mapy w jednym pliku", [("A3", "A3_mapy_komplet.pdf"), ("A4", "A4_mapy_komplet.pdf")]),
+        ("Wzór drogowskazu i montaż na słupku z nazwą ulicy (A4)", [("PDF", "wzor_drogowskazu_montaz.pdf")]),
         ("Katalog słupków i tabliczek", [("PDF", "drogowskazy_katalog.pdf")]),
         ("Kółka tras – naklejki do doklejania (A4)", [("PDF", "kropki_tras_A4.pdf")])]
 for _, fs in PDFS:
@@ -170,15 +173,18 @@ import html as _h, sys as _sy
 _sy.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import teksty as TX
 _e = _h.escape
 R4 = (f'''<section id="r4" class="msec">
-  <h2><span class="num">6</span>Dlaczego własne drogowskazy, a nie znaki R-4</h2>
+  <h2><span class="num">6</span>Uzupełnienie, nie zastępstwo – relacja do znaków R-4</h2>
   <p class="r4-eyebrow">{_e(TX.R4_TYTUL)}</p>
   {"".join(f'<p class="lead2">{_e(t)}</p>' for t in TX.R4_WSTEP)}
-  <div class="card" style="margin-top:14px"><h3>Dlaczego nie stosujemy oznakowania R-4?</h3><p>{_e(TX.R4_DLACZEGO)}</p>
+  <div class="card" style="margin-top:14px"><h3>{_e(TX.R4_PYTANIE)}</h3><p>{_e(TX.R4_DLACZEGO)}</p>
   <ol class="r4-list">{"".join(f"<li><b>{_e(h)}</b>{_e(t)}</li>" for h, t in TX.R4_ZALOZENIA)}</ol></div>
   <div class="r4-dol">
     <div class="card"><h3>Charakter projektowanego oznakowania</h3>{"".join(f"<p>{_e(t)}</p>" for t in TX.R4_CHARAKTER)}</div>
     <div class="r4-pod"><h3>Podsumowanie</h3><p>{_e(TX.R4_PODSUMOWANIE)}</p></div>
   </div>
+  <h3 class="sub" style="font-size:19px;margin:34px 0 4px">Podobne rozwiązania w Polsce</h3>
+  <p class="lead2">Lokalne drogowskazy rowerowe z nazwami miejscowości i odległościami, własna numeracja tras i własny wygląd oznakowania to rozwiązania stosowane już przez polskie samorządy:</p>
+  <ul class="podobne">{"".join(f'<li><b>{_e(n)}</b> – {_e(t)} (<a href="{_e(u)}" target="_blank" rel="noopener">źródło</a>).</li>' for n, t, u in TX.PODOBNE)}</ul>
   <h3 class="sub" id="kolka" style="font-size:19px;margin:34px 0 4px">Kółka z numerami tras na tabliczkach</h3>
   <p class="r4-eyebrow">{_e(TX.KOLKA_TYTUL)}</p>
   {"".join(f'<p class="lead2">{_e(t)}</p>' for t in TX.KOLKA_WSTEP)}

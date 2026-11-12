@@ -1,7 +1,8 @@
 """Wspólne teksty projektu (jedno źródło dla strony www i opisu PDF).
 R4 – uzasadnienie autorskiego systemu informacji kierunkowej zamiast oznakowania R-4 (Bartosz, 12.11.2026)."""
 
-R4_TYTUL = "Uzasadnienie zastosowania autorskiego systemu informacji kierunkowej zamiast oznakowania R-4"
+R4_TYTUL = "Uzasadnienie zastosowania autorskiego systemu informacji kierunkowej – rozwiązania o innej funkcji niż oznakowanie R-4"
+R4_PYTANIE = "Czym system różni się od oznakowania R-4?"
 R4_WSTEP = [
     "Projekt „HUB rowerowy Strzebiń” zakłada stworzenie lokalnego systemu informacji kierunkowej dla rowerzystów, którego podstawowym zadaniem "
     "jest ułatwienie orientacji w terenie oraz wskazywanie możliwych kierunków dojazdu do sąsiednich miejscowości, obiektów użyteczności "
@@ -58,3 +59,13 @@ KOLKA_ZASADY = [
 ]
 KOLKA_PODSUMOWANIE = ("Oznaczenia tras są dodatkiem do lokalnego systemu informacji kierunkowej, a nie jego główną treścią. Tabliczka istnieje po to, "
                       "by wskazać kierunek i odległość do celu; kółko jedynie podpowiada, którą z opisanych tras prowadzi ten kierunek.")
+
+# Podobne rozwiązania w Polsce (krótkie wzmianki na stronie; pełny opis w piśmie do Wójt)
+PODOBNE = [
+    ("Gmina Kobierzyce (dolnośląskie)", "własne oznakowanie lokalnych tras rowerowych K1 i K2 z opracowaną formą graficzną; w zamówieniu z 2019 r. projekty organizacji ruchu tylko dla wybranych lokalizacji, dla pozostałych – szkice rozwiązań technicznych",
+     "https://przetargi.favore.pl/zamowienia/motoryzacja-i-transport%2C16/oznakowanie-tras-rowerowych-k1-i-k2-na-terenie-gminy-kobierzyce-iv-postepowani%2C2961418.html"),
+    ("Gliwice", "drogowskazy rowerowe z nazwami miejscowości, dzielnic i obiektów, strzałkami i numerami tras, stawiane na rozwidleniach i skrzyżowaniach (opis Klubu Znakarzy Tras Turystycznych)",
+     "https://kztt.org.pl/013.html"),
+    ("Katowice", "własna numeracja tras rowerowych (np. 1, 2, 3, 5, 101, 103, 121) na miejskich mapach",
+     "https://katowice.eu/czas-wolny/katowice-na-rowery/trasy"),
+]

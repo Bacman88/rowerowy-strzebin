@@ -134,7 +134,7 @@ for t_ in [f"<b>Węzły</b> – tabliczki stoją tam, gdzie rowerzysta musi wybr
     st.append(Paragraph(t_, BUL, bulletText="•"))
 st.append(Paragraph("Nie prosimy więc gminy o utworzenie nowych szlaków. Proponujemy uporządkowany, lokalny system drogowskazów, który pomaga "
                     "mieszkańcom i turystom poruszać się po istniejących drogach – do formalnego uzgodnienia z zarządcami dróg i Nadleśnictwem Koszęcin. "
-                    "Dlaczego własne tabliczki zamiast znaków R-4 – zob. uzasadnienie na ostatniej stronie opisu.", P))
+                    "Czym system różni się od oznakowania szlaków R-4 i po co kółka tras – zob. uzasadnienie na końcu opisu.", P))
 
 # 12.11.2026: warunek – współpraca Gminy Koszęcin i Nadleśnictwa Koszęcin (udział lasów w sieci tras i w słupkach)
 import json as _js
@@ -300,7 +300,7 @@ import sys as _sy, os as _os; _sy.path.insert(0, _os.path.dirname(_os.path.abspa
 st.append(PageBreak())
 st.append(Paragraph(TX.R4_TYTUL, ParagraphStyle("h2big", parent=H2, fontSize=15, leading=19, spaceBefore=0)))
 for t_ in TX.R4_WSTEP: st.append(Paragraph(t_, P))
-st.append(Paragraph("Dlaczego nie stosujemy oznakowania R-4?", H2))
+st.append(Paragraph(TX.R4_PYTANIE, H2))
 st.append(Paragraph(TX.R4_DLACZEGO, P))
 for k_, (h_, t_) in enumerate(TX.R4_ZALOZENIA, 1): st.append(Paragraph(f"<b>{h_}.</b> {t_}", BUL, bulletText=f"{k_}."))
 st.append(Paragraph("Charakter projektowanego oznakowania", H2))
