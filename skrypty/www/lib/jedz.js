@@ -249,9 +249,8 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(map);
     warstwa = L.layerGroup().addTo(map);
     map.on('dragstart', () => { if (stan.jazda) { sledz = false; $('b-srodek').classList.remove('hide'); } });
-    // obrócona mapa nie da się sensownie przesuwać – pierwszy dotyk przełącza na „północ u góry” i swobodne przesuwanie
-    const dotyk = () => { if (obrocona) { sledz = false; obroc(false); $('b-srodek').classList.remove('hide'); } };
-    $('mapa').addEventListener('touchstart', dotyk, {passive: true}); $('mapa').addEventListener('mousedown', dotyk);
+    // obrót „zablokowany” kompasem: mapy nie da się przesunąć, ale da się ją przybliżać/oddalać (wokół Twojej pozycji);
+    // odblokowanie – tylko przyciskiem kompasu
     window.addEventListener('resize', () => { if (obrocona) obroc(true); });
     map.on('click', e => { if (stan.wybor) stan.wybor([e.latlng.lat, e.latlng.lng]); });
     return map;
@@ -372,13 +371,16 @@
   function obroc(on) {
     const el = $('mapa'), box = $('s-mapa'), w = box.clientWidth, h = box.clientHeight;
     obrocona = on;
+    map.options.touchZoom = map.options.doubleClickZoom = map.options.scrollWheelZoom = on ? 'center' : true;
     if (on) { const D = Math.ceil(Math.hypot(w, h)) + 4, ay = Math.round(h * .62); el.style.cssText = `inset:auto;left:${Math.round((w - D) / 2)}px;top:${ay - Math.round(D / 2)}px;width:${D}px;height:${D}px;transform:rotate(${-B}deg);transition:transform .6s linear`; map.dragging.disable(); }
     else { el.style.cssText = ''; map.dragging.enable(); }
     map.invalidateSize({pan: false}); if (jaM && sledz) map.setView(jaM.getLatLng(), map.getZoom(), {animate: false});
     kompas();
   }
   function kompas() { $('b-kurs').innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(${obrocona ? -B : 0}deg);transition:transform .6s linear"><path d="M12 2l4 10h-8z" fill="#d62828"/><path d="M12 22l-4-10h8z" fill="#9aa3a8"/><text x="12" y="9.5" text-anchor="middle" font-size="5" font-weight="800" fill="#fff" font-family="Inter,Arial">N</text></svg>`;
-    $('b-kurs').ariaLabel = obrocona ? 'Ustaw północ u góry' : 'Obracaj mapę w kierunku jazdy'; }
+    $('b-kurs').ariaLabel = obrocona ? 'Odblokuj: północ u góry' : 'Zablokuj: kierunek jazdy u góry';
+    $('b-kurs').style.background = obrocona ? '#00737e' : '#fff'; $('b-kurs').style.boxShadow = obrocona ? '0 0 0 3px #fff, 0 1px 6px rgba(0,0,0,.3)' : '';
+    $('b-kurs').querySelector('svg path:last-of-type').setAttribute('fill', obrocona ? '#cfe6e6' : '#9aa3a8'); }
   function startJazdy(symulacja) {
     stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
