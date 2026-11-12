@@ -4,7 +4,7 @@ Propozycja oznakowania rowerowego dla **Sołectwa Strzebiń (gmina Koszęcin)**:
 
 Projekt jest oddolny i ma charakter **propozycji do dyskusji** z sołectwem, gminą i nadleśnictwami. Przebieg tras wymaga potwierdzenia w terenie.
 
-**Strona projektu:** https://rowerowy-strzebin.smart-ant.pl – gałąź [`strona`](../../tree/strona), folder `public/` (wdrażana automatycznie na hosting).
+**Strona projektu:** https://rowerowy-strzebin.smart-ant.pl – gałąź [`strona`](../../tree/strona), folder `public/`. Hosting (Joton): katalog publikacji pusty, skrypt budowy `node scripts/publish-webroot.mjs public`, document root `/public_html` (pliki w `joton/`).
 
 ## Co jest w środku
 

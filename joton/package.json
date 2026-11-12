@@ -1,0 +1,5 @@
+{
+  "name": "rowerowy-strzebin-strona",
+  "private": true,
+  "scripts": { "deploy": "node scripts/publish-webroot.mjs public" }
+}
