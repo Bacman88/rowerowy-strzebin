@@ -417,5 +417,20 @@
   const hs = new URLSearchParams(location.hash.slice(1));
   if (hs.get('do')) { const [a, b] = hs.get('do').split(',').map(Number); if (isFinite(a) && isFinite(b)) setTimeout(() => ustawCel([a, b], hs.get('n') || 'Punkt na mapie', najblizszaMiejscowosc([a, b]) || ''), 300); }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('jedz-sw.js').catch(() => {});
+  // przycisk „Zainstaluj na telefonie”: Android/Chrome – systemowe okno, iPhone – instrukcja; po instalacji znika
+  const zainst = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let prosba = null;
+  if (!zainst) {
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prosba = e; $('b-instaluj').classList.remove('hide'); });
+    if (ios) $('b-instaluj').classList.remove('hide');
+  }
+  window.addEventListener('appinstalled', () => $('b-instaluj').classList.add('hide'));
+  $('b-instaluj').onclick = async () => {
+    if (prosba) { prosba.prompt(); const w = await prosba.userChoice.catch(() => null); if (w && w.outcome === 'accepted') $('b-instaluj').classList.add('hide'); prosba = null; }
+    else { $('ios').classList.remove('hide'); $('ios-ok').focus(); }
+  };
+  $('ios-ok').onclick = () => $('ios').classList.add('hide');
+  $('ios').onclick = e => { if (e.target.id === 'ios') $('ios').classList.add('hide'); };
   window.JEDZ_DEBUG = {trasuj, manewry, stan, wDal, skok: d => { if (sym) sym.d = d; }};
 })();
