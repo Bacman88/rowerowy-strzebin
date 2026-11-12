@@ -35,3 +35,26 @@ R4_CHARAKTER = [
 R4_PODSUMOWANIE = ("Celem projektu nie jest oznaczanie rowerzyście jednej wybranej drogi, którą powinien podążać, lecz pokazanie mu możliwych "
                    "kierunków podróży i pozostawienie swobody wyboru. Z tego względu przyjęto koncepcję lokalnego systemu informacji kierunkowej, "
                    "który uzupełnia istniejące oznakowanie szlaków rowerowych, zamiast powielać jego funkcje.")
+
+# Strona projektu na Facebooku – po ustawieniu nazwy użytkownika podmienić na https://www.facebook.com/<nazwa>
+FB_URL = "https://www.facebook.com/profile.php?id=61596715731745"
+
+# KOLKA – uzasadnienie oznaczeń tras (kółek z numerami) na tabliczkach kierunkowych (12.11.2026)
+KOLKA_TYTUL = "Uzasadnienie stosowania oznaczeń tras na tabliczkach kierunkowych"
+KOLKA_WSTEP = [
+    "Dodatkowe oznaczenia w postaci małych kolorowych kół z numerami tras służą wyłącznie identyfikacji przebiegu tras proponowanych "
+    "w ramach projektu „HUB rowerowy Strzebiń”. Nie stanowią samodzielnego systemu oznakowania szlaków, nie mają charakteru nakazowego "
+    "i nie zastępują informacji kierunkowej.",
+    "Dziewięć tras pokazowych korzysta z tej samej sieci dróg i przechodzi przez te same węzły. Skoro trasy są opisane w materiałach "
+    "projektu – na mapach, w plikach GPX i na stronie internetowej – w punktach decyzyjnych potrzebny jest spójny sposób ich rozpoznania. "
+    "Kółko z numerem pozwala użytkownikowi powiązać dany kierunek jazdy z jedną lub kilkoma opisanymi trasami.",
+]
+KOLKA_ZASADY = [
+    ("Treść główna bez zmian", "Podstawową treścią tabliczki pozostaje kierunek, nazwa miejscowości lub obiektu i odległość. Oznaczenia tras mają charakter pomocniczy i uzupełniający."),
+    ("Mniejsze niż nazwa celu", "Kółko o średnicy 31 mm stoi z boku, za nazwą celu, i nie jest wyższe od jej liter. Numer trasy nigdy nie dominuje nad nazwą miejscowości."),
+    ("Najwyżej cztery przy jednym kierunku", "Kółko pojawia się tylko wtedy, gdy wskazana droga rzeczywiście prowadzi wzdłuż danej trasy (co najmniej 1 km lub większość drogi do celu)."),
+    ("Spójne z materiałami projektu", "Kolory i numery są te same na tabliczkach, na mapach, w plikach GPX i na paskach na słupkach."),
+    ("Naklejane, łatwe do zmiany", "Kółka są naklejkami. Zmiana albo rezygnacja z trasy nie wymaga wymiany tabliczek – tabliczka bez kółek zachowuje pełną funkcję informacyjną."),
+]
+KOLKA_PODSUMOWANIE = ("Oznaczenia tras są dodatkiem do lokalnego systemu informacji kierunkowej, a nie jego główną treścią. Tabliczka istnieje po to, "
+                      "by wskazać kierunek i odległość do celu; kółko jedynie podpowiada, którą z opisanych tras prowadzi ten kierunek.")

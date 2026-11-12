@@ -309,6 +309,14 @@ pod = Table([[[Paragraph("PODSUMOWANIE", BOXH), Paragraph(TX.R4_PODSUMOWANIE, Pa
 pod.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), GREEN), ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 12),
     ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
 st.append(Spacer(1, 6)); st.append(pod)
+st.append(CondPageBreak(70 * mm))
+st.append(Paragraph(TX.KOLKA_TYTUL, ParagraphStyle("h2big2", parent=H2, fontSize=15, leading=19, spaceBefore=14)))
+for t_ in TX.KOLKA_WSTEP: st.append(Paragraph(t_, P))
+for k_, (h_, t_) in enumerate(TX.KOLKA_ZASADY, 1): st.append(Paragraph(f"<b>{h_}.</b> {t_}", BUL, bulletText=f"{k_}."))
+pod2 = Table([[[Paragraph("W SKRÓCIE", BOXH), Paragraph(TX.KOLKA_PODSUMOWANIE, ParagraphStyle("boxp3", parent=BOX, leftIndent=0))]]], colWidths=[W])
+pod2.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), GREEN), ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+    ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
+st.append(Spacer(1, 6)); st.append(pod2)
 doc.build(st)
 
 # złożenie całości

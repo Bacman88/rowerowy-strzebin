@@ -277,6 +277,9 @@ section.msec h2{display:flex;align-items:center;gap:12px}
   .jump a{flex:1 1 100%}
   section.msec h2{font-size:22px}
 }
+.social{margin:16px 0 0}
+.social .fb{display:inline-flex;align-items:center;gap:8px;background:#1877F2;color:#fff;text-decoration:none;font-weight:700;font-size:14.5px;padding:8px 14px 8px 11px;border-radius:999px}
+.social .fb:hover{background:#0f5fd0}
 footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 @media (max-width:900px){
   .app{grid-template-columns:1fr;height:auto}
@@ -294,6 +297,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <p class="eyebrow">Sołectwo Strzebiń · gmina Koszęcin</p>
   <h1>HUB rowerowy Strzebiń</h1>
   <p class="lead">Strzebiń leży między Leśną Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
+  <p class="social"><a class="fb" href="{{FB}}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8v3h2.6V21h2.9z"/></svg>Obserwuj projekt na Facebooku</a></p>
   <div class="idea">
     <h2>Lokalny system informacji kierunkowej dla rowerzystów</h2>
     <p>Drogowskazy informacyjne w punktach rozjazdów i skrzyżowań – pokazują, dokąd można dojechać do pobliskich miejscowości, obiektów i atrakcji i ile to kilometrów. System <b>uzupełnia</b> istniejącą infrastrukturę turystyczną i rowerową: nie zastępuje znaków drogowych ani oficjalnych szlaków turystycznych i nie tworzy nowych szlaków.</p>
@@ -454,7 +458,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       <li><span class="callout">1</span><span><b>Strzałka</b> – w którą stronę skręcić. Tabliczka sama jest strzałką: grot wskazuje drogę. Dwa kierunki tej samej trasy mają na słupku przeciwne strzałki.</span></li>
       <li><span class="callout">2</span><span><b>Rower</b> – oznakowanie dla rowerzystów, inne niż drogowe i turystyczne.</span></li>
       <li><span class="callout">3</span><span><b>Cel</b> – miejscowość albo miejsce, do którego prowadzi ta droga.</span></li>
-      <li><span class="callout">4</span><span><b>Kółka tras</b> – w tę stronę jadą trasy pokazowe o tych numerach (kolory jak na mapie).</span></li>
+      <li><span class="callout">4</span><span><b>Kółka tras</b> – w tę stronę jadą trasy pokazowe o tych numerach (kolory jak na mapie). To tylko podpowiedź – <a href="#kolka">dlaczego i jakie zasady</a>.</span></li>
       <li><span class="callout">5</span><span><b>Odległość po drogach</b> – rzeczywista długość dojazdu rowerem, a nie w linii prostej.</span></li>
       <li><span class="callout">6</span><span><b>Drugi cel</b> w tym samym kierunku – zawsze dalszy, pod bliższym.</span></li>
     </ol>
@@ -518,7 +522,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 
 <footer>
   Projekt oddolny mieszkańców Strzebinia, przygotowany dla Sołectwa Strzebiń i Gminy Koszęcin · propozycja do dyskusji, przebieg tras do potwierdzenia w terenie.<br>
-  Dane mapy © autorzy <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · piktogramy tabliczek: Tabler Icons (MIT).
+  <a href="{{FB}}" target="_blank" rel="noopener">HUB rowerowy Strzebiń na Facebooku</a> · Dane mapy © autorzy <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · piktogramy tabliczek: Tabler Icons (MIT).
 </footer>
 </div>
 

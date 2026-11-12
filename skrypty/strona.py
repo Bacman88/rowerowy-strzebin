@@ -179,8 +179,13 @@ R4 = (f'''<section id="r4" class="msec">
     <div class="card"><h3>Charakter projektowanego oznakowania</h3>{"".join(f"<p>{_e(t)}</p>" for t in TX.R4_CHARAKTER)}</div>
     <div class="r4-pod"><h3>Podsumowanie</h3><p>{_e(TX.R4_PODSUMOWANIE)}</p></div>
   </div>
+  <h3 class="sub" id="kolka" style="font-size:19px;margin:34px 0 4px">Kółka z numerami tras na tabliczkach</h3>
+  <p class="r4-eyebrow">{_e(TX.KOLKA_TYTUL)}</p>
+  {"".join(f'<p class="lead2">{_e(t)}</p>' for t in TX.KOLKA_WSTEP)}
+  <ol class="r4-list">{"".join(f"<li><b>{_e(h)}</b>{_e(t)}</li>" for h, t in TX.KOLKA_ZASADY)}</ol>
+  <div class="r4-pod" style="margin-top:14px"><h3>W skrócie</h3><p>{_e(TX.KOLKA_PODSUMOWANIE)}</p></div>
 </section>''')
-html = html.replace("{{R4}}", R4)
+html = html.replace("{{R4}}", R4).replace("{{FB}}", _e(TX.FB_URL))
 open(f"{S}/index.html", "w").write(html)
 z = zipfile.ZipFile(f"{O}/strona.zip", "w", zipfile.ZIP_DEFLATED)
 for root, _, files in os.walk(S):
