@@ -27,4 +27,5 @@ python3 -I export_umap.py
 python3 -I opis_pdf.py
 python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy --objazd | tail -1
 python3 strona.py
+python3 -I -W ignore odcinki.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/strona
 echo "Gotowe – wyniki w $(cd $O && pwd)"

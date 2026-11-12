@@ -53,6 +53,27 @@ bash skrypty/publikuj_strone.sh
 - tekst opisu i kosztorys: `skrypty/opis_pdf.py`
 - strona: `skrypty/strona_template.html`
 
+## Mapa stanu dróg (stan.html) – zgłoszenia mieszkańców
+
+Każdy może zaznaczyć odcinki dróg i ocenić ich stan (dobra / średnia / trudna / nieprzejezdna). Zgłoszenia trafiają do moderacji, na mapie pojawiają się po zatwierdzeniu w panelu `/admin/`.
+
+- odcinki: `skrypty/odcinki.py` (wszystkie drogi z OSM w okolicy słupków, cięte na skrzyżowaniach i co ~400 m; stan początkowy z pomiarów w uMap),
+- strona i API: `skrypty/www/` (`stan.html`, `api/*.php`, `admin/index.php`) – PHP 8, baza SQLite (domyślnie) albo MySQL.
+
+Na serwerze, **obok** katalogu `public_html` (nie w nim), utwórz plik `hub_config.php`:
+
+```php
+<?php return [
+  'admin_haslo' => 'długie-hasło-do-panelu',
+  'sol'         => 'dowolny-losowy-ciąg',
+  // 'powiadom' => 'adres@do.powiadomien',          // e-mail przy każdym nowym zgłoszeniu
+  // MySQL zamiast SQLite:
+  // 'dsn' => 'mysql:host=localhost;dbname=NAZWA;charset=utf8mb4', 'db_user' => '...', 'db_pass' => '...',
+];
+```
+
+Baza SQLite i kopie dobowe (JSON, ostatnie 60) zapisują się w `hub_dane/` obok `public_html` – wdrożenie ich nie nadpisuje. Kontakty są kasowane po roku, skróty IP po 30 dniach.
+
 ## Licencje
 
 - kod (`skrypty/`): MIT – plik `LICENSE`
