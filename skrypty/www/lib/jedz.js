@@ -245,10 +245,14 @@
   let map = null, warstwa = null, jaM = null, celM = null, sledz = true;
   function mapa() {
     if (map) return map;
-    map = L.map('mapa', {zoomControl: false, attributionControl: true, preferCanvas: true}).setView([50.615, 18.9], 13);
+    map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: true}).setView([50.615, 18.9], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(map);
     warstwa = L.layerGroup().addTo(map);
     map.on('dragstart', () => { if (stan.jazda) { sledz = false; $('b-srodek').classList.remove('hide'); } });
+    // obrócona mapa nie da się sensownie przesuwać – pierwszy dotyk przełącza na „północ u góry” i swobodne przesuwanie
+    const dotyk = () => { if (obrocona) { sledz = false; obroc(false); $('b-srodek').classList.remove('hide'); } };
+    $('mapa').addEventListener('touchstart', dotyk, {passive: true}); $('mapa').addEventListener('mousedown', dotyk);
+    window.addEventListener('resize', () => { if (obrocona) obroc(true); });
     map.on('click', e => { if (stan.wybor) stan.wybor([e.latlng.lat, e.latlng.lng]); });
     return map;
   }
@@ -292,7 +296,9 @@
     L.circleMarker(T.ll[0], {radius: 8, color: '#fff', weight: 3, fillColor: '#1d4ed8', fillOpacity: 1, interactive: false}).addTo(warstwa);
     L.marker(T.ll[T.ll.length - 1], {interactive: false, icon: L.divIcon({className: '', html: '<div class="cel-m"><svg width="11" height="13" viewBox="0 0 14 18"><path d="M2 17V1l10 4-10 4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/></svg></div>', iconSize: [26, 26], iconAnchor: [13, 13]})}).addTo(warstwa);
   }
+  const atryb = () => setTimeout(() => { const d = $('dol'); $('atryb').style.bottom = (d && d.offsetHeight ? d.offsetHeight + 4 : 4) + 'px'; }, 50);
   function panele(tryb) {
+    atryb();
     $('wstecz').classList.toggle('hide', tryb === 'jazda');
     $('b-glos').classList.toggle('hide', tryb !== 'jazda'); $('b-srodek').classList.add('hide');
     $('status').classList.toggle('hide', tryb !== 'jazda'); $('b-sym').classList.toggle('hide', !(tryb === 'jazda' && sym));
@@ -340,6 +346,7 @@
     $('b-symstart').onclick = () => startJazdy(true);
     $('b-gpx').onclick = () => gpx(T);
     $('b-google').href = linkGoogle(T);
+    atryb();
     map.fitBounds(L.polyline(T.ll).getBounds(), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(window.innerHeight * .55, 420)]});
   }
   function linkGoogle(T) {
@@ -359,12 +366,27 @@
   let watch = null, sym = null, symV = 1, wake = null, poza = 0, ostPrzel = 0, idx = 0, wzdluz = 0, ostPoz = null, zapowiedz = new Set(), kierPokaz = null;
   async function budzik() { try { if ('wakeLock' in navigator) { wake = await navigator.wakeLock.request('screen'); } } catch (e) {} }
   document.addEventListener('visibilitychange', () => { if (stan.jazda && document.visibilityState === 'visible') budzik(); });
+  // ---- mapa obrócona „kierunkiem jazdy do góry”: kontener mapy to kwadrat o boku = przekątnej ekranu,
+  //      środek kwadratu (= Twoja pozycja) w 62% wysokości ekranu, obrót CSS wokół środka
+  let obrocona = false, B = 0, kurs = LS.get('kurs', true);
+  function obroc(on) {
+    const el = $('mapa'), box = $('s-mapa'), w = box.clientWidth, h = box.clientHeight;
+    obrocona = on;
+    if (on) { const D = Math.ceil(Math.hypot(w, h)) + 4, ay = Math.round(h * .62); el.style.cssText = `inset:auto;left:${Math.round((w - D) / 2)}px;top:${ay - Math.round(D / 2)}px;width:${D}px;height:${D}px;transform:rotate(${-B}deg);transition:transform .6s linear`; map.dragging.disable(); }
+    else { el.style.cssText = ''; map.dragging.enable(); }
+    map.invalidateSize({pan: false}); if (jaM && sledz) map.setView(jaM.getLatLng(), map.getZoom(), {animate: false});
+    kompas();
+  }
+  function kompas() { $('b-kurs').innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(${obrocona ? -B : 0}deg);transition:transform .6s linear"><path d="M12 2l4 10h-8z" fill="#d62828"/><path d="M12 22l-4-10h8z" fill="#9aa3a8"/><text x="12" y="9.5" text-anchor="middle" font-size="5" font-weight="800" fill="#fff" font-family="Inter,Arial">N</text></svg>`;
+    $('b-kurs').ariaLabel = obrocona ? 'Ustaw północ u góry' : 'Obracaj mapę w kierunku jazdy'; }
   function startJazdy(symulacja) {
     stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
     $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
     $('b-stop').onclick = koniecJazdy;
-    map.setView(stan.T.ll[0], 17);
+    map.setView(stan.T.ll[0], 17); B = brg(stan.T.ll[0], wDal(stan.T, 40)); if (kurs) obroc(true); else kompas();
+    $('b-kurs').classList.remove('hide');
+    if (!sym) pozycja(stan.start, 20, true);
     if (sym) { symV = 1; $('b-sym').textContent = 'Symulacja: ×1'; sym.t = setInterval(() => { sym.d += 6 * symV; const p = wDal(stan.T, sym.d); pozycja(p, 5, sym.d); }, 1000); }
     else watch = navigator.geolocation.watchPosition(e => pozycja([e.coords.latitude, e.coords.longitude], e.coords.accuracy), () => { $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Brak sygnału GPS'; }, {enableHighAccuracy: true, maximumAge: 1000, timeout: 20000});
     odswiez();
@@ -373,7 +395,7 @@
   function koniecJazdy() {
     stan.jazda = false; if (watch != null) navigator.geolocation.clearWatch(watch); watch = null;
     if (sym) clearInterval(sym.t); sym = null; try { wake && wake.release(); } catch (e) {} wake = null;
-    if (jaM) { jaM.remove(); jaM = null; } ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
+    if (jaM) { jaM.remove(); jaM = null; } if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
   }
   // rzut pozycji na trasę: szukamy w okolicy ostatniego znanego miejsca (żeby nie „przeskakiwać” na równoległy fragment)
   function rzut(T, p) {
@@ -396,7 +418,12 @@
     const rot = kierRuchu ?? brg(wDal(T, r.w), wDal(T, r.w + 20));
     const ik = L.divIcon({className: '', html: `<svg class="ja" viewBox="0 0 30 30" style="transform:rotate(${rot}deg)"><circle cx="15" cy="15" r="13" fill="#1d4ed8" stroke="#fff" stroke-width="3"/><path d="M15 7l6 13-6-3-6 3z" fill="#fff"/></svg>`, iconSize: [30, 30], iconAnchor: [15, 15]});
     if (!jaM) jaM = L.marker(p, {icon: ik, interactive: false, zIndexOffset: 1000}).addTo(map); else { jaM.setLatLng(p); jaM.setIcon(ik); }
-    if (sledz) map.panTo(p, {animate: true, duration: .5});
+    if (sledz && obrocona) {
+      // kierunek: trasa ok. 40 m przed Tobą (stabilny także na postoju), łagodnie wygładzony
+      const cel = brg(wDal(T, r.w), wDal(T, r.w + 40)); B = (B + kat(cel, B) * .6 + 360) % 360;
+      $('mapa').style.transform = `rotate(${-B}deg)`; kompas();
+      map.setView(p, map.getZoom(), {animate: false});
+    } else if (sledz) map.panTo(p, {animate: true, duration: .5});
     // zejście z trasy → przeliczenie od miejsca, w którym jesteś
     const prog = Math.max(40, Math.min(80, (acc || 20) * 1.5));
     if (r.d > prog && !wSym) {
@@ -437,6 +464,7 @@
     const g = $('gora').getBoundingClientRect().height;
     $('prawe').style.top = (g + 12) + 'px'; $('status').style.top = (g + 12) + 'px'; $('b-sym').style.top = (g + 12) + 'px'; $('b-sym').style.right = '70px';
     $('j-zost').textContent = kmTxt(zost) + ' · ' + minTxt(zost);
+    if (!odswiez.at) { odswiez.at = 1; atryb(); }
     const nTab = M.filter(m => m.typ === 'tab' && m.c > wzdluz).length;
     $('j-opis').textContent = 'do: ' + stan.celN + (nTab ? ' · ' + nTab + ' drogowsk' + (nTab === 1 ? 'az' : nTab < 5 ? 'azy' : 'azów') + ' po drodze' : '');
     // zapowiedzi głosowe: ~150 m przed i na miejscu
@@ -461,7 +489,7 @@
     powiedz('Jesteś na miejscu'); navigator.vibrate && navigator.vibrate([100, 80, 100, 80, 200]);
     if (watch != null) navigator.geolocation.clearWatch(watch); watch = null; if (sym) clearInterval(sym.t); sym = null;
     stan.jazda = false; try { wake && wake.release(); } catch (e) {}
-    ekran('s-mapa'); panele('podglad');
+    if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); ekran('s-mapa'); panele('podglad');
     $("gora").innerHTML = `<div class="pasek" style="padding-left:76px"><div class="r1"><div class="strz">${strzalkaSVG("cel", "#1d3b30", 40)}</div><div><div class="lab">Jesteś na miejscu</div><div class="co">${esc(stan.celN)}</div></div></div></div>`; $('gora').dataset.h = '';
     $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Dojechałeś! ${kmTxt(stan.T.m)}</div><p class="msg">Coś było nie tak z trasą albo drogą? Oceń drogę na mapie wspólnej – poprawimy trasy dla wszystkich.</p><div class="rzad"><a class="btn2" href="./#wspolna" style="text-decoration:none;color:inherit">Oceń drogę</a><button type="button" class="btn2" id="b-nowy">Nowy cel</button></div>`;
     $('b-nowy').onclick = () => { stan.start = jaM ? [jaM.getLatLng().lat, jaM.getLatLng().lng] : stan.start; if (jaM) { jaM.remove(); jaM = null; } ekran('s-cel'); };
@@ -470,7 +498,8 @@
   function powiedz(t) { if (!stan.glos || !window.speechSynthesis) return; try { const u = new SpeechSynthesisUtterance(t); u.lang = 'pl-PL'; u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
   function glosIkona() { $('b-glos').innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/>${stan.glos ? '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>' : '<path d="M17 9l5 6M22 9l-5 6"/>'}</svg>`; $('b-glos').ariaLabel = stan.glos ? 'Wyłącz komunikaty głosowe' : 'Włącz komunikaty głosowe'; }
   $('b-glos').onclick = () => { stan.glos = !stan.glos; LS.set('glos', stan.glos); glosIkona(); if (stan.glos) powiedz('Komunikaty głosowe włączone'); };
-  $('b-srodek').onclick = () => { sledz = true; $('b-srodek').classList.add('hide'); if (jaM) map.setView(jaM.getLatLng(), Math.max(map.getZoom(), 16)); };
+  $('b-srodek').onclick = () => { sledz = true; $('b-srodek').classList.add('hide'); if (kurs && stan.jazda) obroc(true); if (jaM) map.setView(jaM.getLatLng(), Math.max(map.getZoom(), 16), {animate: !obrocona}); };
+  $('b-kurs').onclick = () => { kurs = !obrocona; LS.set('kurs', kurs); sledz = true; $('b-srodek').classList.add('hide'); obroc(kurs); };
   $('s-kier').onclick = () => { kierPokaz = null; ekran('s-mapa'); };   // dotknięcie – wróć do mapy
 
   // link z celem: jedz.html#do=lat,lon&n=Nazwa
