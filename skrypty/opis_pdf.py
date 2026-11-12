@@ -133,7 +133,8 @@ for t_ in [f"<b>Węzły</b> – tabliczki stoją tam, gdzie rowerzysta musi wybr
            "<b>Własna identyfikacja wizualna</b> – spójny wygląd, kolory i oznaczenia, wyraźnie inne niż znaki drogowe i szlaki PTTK."]:
     st.append(Paragraph(t_, BUL, bulletText="•"))
 st.append(Paragraph("Nie prosimy więc gminy o utworzenie nowych szlaków. Proponujemy uporządkowany, lokalny system drogowskazów, który pomaga "
-                    "mieszkańcom i turystom poruszać się po istniejących drogach – do formalnego uzgodnienia z zarządcami dróg i Nadleśnictwem Koszęcin.", P))
+                    "mieszkańcom i turystom poruszać się po istniejących drogach – do formalnego uzgodnienia z zarządcami dróg i Nadleśnictwem Koszęcin. "
+                    "Dlaczego własne tabliczki zamiast znaków R-4 – zob. uzasadnienie na ostatniej stronie opisu.", P))
 
 # 12.11.2026: warunek – współpraca Gminy Koszęcin i Nadleśnictwa Koszęcin (udział lasów w sieci tras i w słupkach)
 import json as _js
@@ -293,6 +294,21 @@ st += bullets([
     "zapytanie ofertowe na tabliczki i mocowania; wybór wariantu materiału."])
 st.append(Spacer(1, 8))
 st.append(Paragraph("Przygotował: Bartosz · Strzebiń, listopad 2026 · dane map © autorzy OpenStreetMap (ODbL), piktogramy Tabler Icons (MIT)", SMALL))
+# 12.11.2026: uzasadnienie – własny system informacji kierunkowej zamiast znaków R-4 (teksty.py, to samo co na stronie)
+from reportlab.platypus import PageBreak
+import sys as _sy, os as _os; _sy.path.insert(0, _os.path.dirname(_os.path.abspath(__file__))); import teksty as TX
+st.append(PageBreak())
+st.append(Paragraph(TX.R4_TYTUL, ParagraphStyle("h2big", parent=H2, fontSize=15, leading=19, spaceBefore=0)))
+for t_ in TX.R4_WSTEP: st.append(Paragraph(t_, P))
+st.append(Paragraph("Dlaczego nie stosujemy oznakowania R-4?", H2))
+st.append(Paragraph(TX.R4_DLACZEGO, P))
+for k_, (h_, t_) in enumerate(TX.R4_ZALOZENIA, 1): st.append(Paragraph(f"<b>{h_}.</b> {t_}", BUL, bulletText=f"{k_}."))
+st.append(Paragraph("Charakter projektowanego oznakowania", H2))
+for t_ in TX.R4_CHARAKTER: st.append(Paragraph(t_, P))
+pod = Table([[[Paragraph("PODSUMOWANIE", BOXH), Paragraph(TX.R4_PODSUMOWANIE, ParagraphStyle("boxp2", parent=BOX, leftIndent=0))]]], colWidths=[W])
+pod.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), GREEN), ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+    ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
+st.append(Spacer(1, 6)); st.append(pod)
 doc.build(st)
 
 # złożenie całości

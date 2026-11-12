@@ -165,6 +165,22 @@ shutil.copytree("www", S, dirs_exist_ok=True)
 n_posts = len(posts); n_pl = sum(len(p["imgs"]) for p in posts)
 html = open("strona_template.html").read().replace("{{DOWNLOADS}}", dl).replace("{{NPOSTS}}", str(n_posts)).replace("{{NPLATES}}", str(n_pl)).replace(
     "{{NROUTES}}", str(sum(1 for r in routes if not r["alt"])))
+# 12.11.2026: sekcja „Dlaczego nie znaki R-4” – teksty wspólne z opisem PDF (teksty.py)
+import html as _h, sys as _sy
+_sy.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import teksty as TX
+_e = _h.escape
+R4 = (f'''<section id="r4" class="msec">
+  <h2><span class="num">6</span>Dlaczego własne drogowskazy, a nie znaki R-4</h2>
+  <p class="r4-eyebrow">{_e(TX.R4_TYTUL)}</p>
+  {"".join(f'<p class="lead2">{_e(t)}</p>' for t in TX.R4_WSTEP)}
+  <div class="card" style="margin-top:14px"><h3>Dlaczego nie stosujemy oznakowania R-4?</h3><p>{_e(TX.R4_DLACZEGO)}</p>
+  <ol class="r4-list">{"".join(f"<li><b>{_e(h)}</b>{_e(t)}</li>" for h, t in TX.R4_ZALOZENIA)}</ol></div>
+  <div class="r4-dol">
+    <div class="card"><h3>Charakter projektowanego oznakowania</h3>{"".join(f"<p>{_e(t)}</p>" for t in TX.R4_CHARAKTER)}</div>
+    <div class="r4-pod"><h3>Podsumowanie</h3><p>{_e(TX.R4_PODSUMOWANIE)}</p></div>
+  </div>
+</section>''')
+html = html.replace("{{R4}}", R4)
 open(f"{S}/index.html", "w").write(html)
 z = zipfile.ZipFile(f"{O}/strona.zip", "w", zipfile.ZIP_DEFLATED)
 for root, _, files in os.walk(S):

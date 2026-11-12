@@ -46,6 +46,20 @@ h1{font-size:clamp(30px,4.4vw,48px);line-height:1.08;margin:0 0 12px;font-weight
 .idea ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .idea li{font-size:14px;color:var(--muted)}.idea li b{display:block;color:var(--ink);font-size:15px;margin-bottom:2px}
 .idea .uw{margin:12px 0 0;font-size:13px;color:var(--muted)}
+.idea .uw a{color:#0759A7;font-weight:600}
+/* uzasadnienie: własny system zamiast R-4 */
+.r4-eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:-4px 0 10px}
+#r4 .lead2+.lead2{margin-top:-4px}
+.r4-list{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px;counter-reset:r4}
+.r4-list li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px 54px;position:relative;font-size:14.5px;color:var(--muted)}
+.r4-list li::before{counter-increment:r4;content:counter(r4);position:absolute;left:14px;top:13px;width:28px;height:28px;border-radius:50%;background:#0759A7;color:#fff;font:700 14px/28px Inter,sans-serif;text-align:center}
+.r4-list li b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:3px}
+.r4-dol{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;margin-top:16px}
+.r4-pod{background:#1d3b30;color:#f4efe2;border-radius:12px;padding:16px 18px}
+.r4-pod h3{color:#e9b949;font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px}
+.r4-pod p{margin:0;font-size:15.5px;line-height:1.5}
+#r4 .card p+p{margin-top:8px}
+@media (max-width:900px){.r4-dol{grid-template-columns:1fr}}
 @media (max-width:900px){.idea ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.idea ul{grid-template-columns:1fr}}
 .stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:22px}
@@ -289,7 +303,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       <li><b>{{NROUTES}} tras pokazowych</b>Propozycje przejazdu istniejącymi drogami, a nie nowe oficjalne szlaki.</li>
       <li><b>Własny wygląd</b>Spójne kolory i oznaczenia, wyraźnie inne niż znaki drogowe i szlaki PTTK.</li>
     </ul>
-    <p class="uw">Lokalizację każdej tabliczki uzgadniamy z zarządcą drogi, a w lesie z Nadleśnictwem Koszęcin.</p>
+    <p class="uw">Lokalizację każdej tabliczki uzgadniamy z zarządcą drogi, a w lesie z Nadleśnictwem Koszęcin. <a href="#r4">Dlaczego własne drogowskazy, a nie znaki R-4? →</a></p>
   </div>
   <nav class="jump" aria-label="Na stronie">
     <a class="main" href="#wspolna"><span class="num">1</span>Mapa wspólna – oceń drogę, dodaj miejsce, wyznacz trasę</a>
@@ -297,7 +311,8 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <a href="#tabliczki"><span class="num">3</span>Słupki i tabliczki – jak je czytać</a>
     <a href="#dlaczego"><span class="num">4</span>Dlaczego to robimy</a>
     <a href="#jak"><span class="num">5</span>Jak to działa</a>
-    <a href="#pobierz"><span class="num">6</span>Do pobrania</a>
+    <a href="#r4"><span class="num">6</span>Dlaczego nie znaki R-4</a>
+    <a href="#pobierz"><span class="num">7</span>Do pobrania</a>
   </nav>
 </header>
 
@@ -491,8 +506,10 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   </div>
 </section>
 
+{{R4}}
+
 <section id="pobierz" class="msec">
-  <h2><span class="num">6</span>Do pobrania</h2>
+  <h2><span class="num">7</span>Do pobrania</h2>
   <ul class="dl">
 {{DOWNLOADS}}
   </ul>
