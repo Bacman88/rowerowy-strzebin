@@ -125,6 +125,7 @@ $csrf = $h($_SESSION['csrf']);
 ?><!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Panel – mapa wspólna</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" type="image/png" sizes="32x32">
 <link rel="stylesheet" href="../lib/leaflet.css">
 <style>
 :root{--bg:#f7f4ec;--card:#fffdf8;--ink:#1d2a23;--muted:#56665c;--line:#e3dccb;--green:#1d3b30}

@@ -114,6 +114,18 @@ TABD = dict(PALETTE=dict(_re.findall(r"(\w+):'(#[0-9A-Fa-f]{6})'", _re.search(r"
             ADV={chr(c): round(_hm[g][0] / _upm, 4) for c, g in _cm.items() if c < 0x2000},
             ASC=_f["hhea"].ascent / _upm, DESC=-_f["hhea"].descent / _upm,
             KOL={k: v[:2] for k, v in KOLORY.items()})
+# ikonka strony: niebieski rower z generatora w białym kółku (SVG + PNG dla starszych przeglądarek i ekranu głównego telefonu)
+def _fav(tlo_kolo=True, sw=17):
+    sc = 46 / 324; tx, ty = 32 - (39 + 162) * sc, 32 - (69 + 106) * sc
+    tlo = '<circle cx="32" cy="32" r="30.5" fill="#fff" stroke="#0759A7" stroke-width="2.2"/>' if tlo_kolo else '<rect width="64" height="64" fill="#fff"/>'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">{tlo}<g transform="translate({tx:.2f} {ty:.2f}) scale({sc:.4f})" fill="none" '
+            f'stroke="#0759A7" stroke-width="{sw}" stroke-linecap="round" stroke-linejoin="round">{TABD["BIKE"]}</g></svg>')
+open(f"{S}/favicon.svg", "w").write(_fav())
+open(f"{S}/_fav_apple.svg", "w").write(_fav(False))
+import subprocess as _sp
+_sp.run(["rsvg-convert", "-w", "32", "-h", "32", f"{S}/favicon.svg", "-o", f"{S}/favicon-32.png"], check=True)
+_sp.run(["rsvg-convert", "-w", "180", "-h", "180", f"{S}/_fav_apple.svg", "-o", f"{S}/apple-touch-icon.png"], check=True)
+os.remove(f"{S}/_fav_apple.svg")
 open(f"{S}/lib/tabliczka-dane.js", "w").write("window.TABD = " + json.dumps(TABD, ensure_ascii=False, separators=(",", ":")) + ";")
 os.makedirs(f"{S}/lib/fonts", exist_ok=True); shutil.copy("../fonts/FiraSansCondensed-SemiBold.ttf", f"{S}/lib/fonts/")
 open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places, cele=cele, gmina=gmina_ll), ensure_ascii=False, separators=(",", ":")) + ";")
