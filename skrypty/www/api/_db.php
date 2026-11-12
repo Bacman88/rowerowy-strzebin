@@ -57,7 +57,8 @@ function hub_teraz(): string { return date('Y-m-d H:i:s'); }
 function hub_json($data, int $code = 200): void {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-store');
+    header('Cache-Control: no-store, no-cache, must-revalidate, private, max-age=0');
+    header('X-LiteSpeed-Cache-Control: no-cache');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }

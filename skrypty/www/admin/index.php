@@ -2,7 +2,9 @@
 // Panel administratora: zatwierdzanie zgłoszeń stanu dróg. Hasło: 'admin_haslo' w /var/www/<witryna>/hub_config.php
 require dirname(__DIR__) . '/api/_db.php';
 header('X-Frame-Options: DENY');
-header('Cache-Control: no-store');
+header('Cache-Control: no-store, no-cache, must-revalidate, private, max-age=0');
+header('Pragma: no-cache'); header('Expires: 0');
+header('X-LiteSpeed-Cache-Control: no-cache');   // Joton/LiteSpeed: panel nigdy z pamięci podręcznej serwera
 header('X-Robots-Tag: noindex');
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict', 'secure' => !empty($_SERVER['HTTPS']), 'path' => '/admin/']);
 session_name('hub_admin');
