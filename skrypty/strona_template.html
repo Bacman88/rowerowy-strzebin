@@ -147,7 +147,7 @@ section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 .slupek .pl{display:flex}.slupek .pl.l{grid-column:1;justify-content:flex-end}.slupek .pl.r{grid-column:3}
 .slupek .pl > div{width:100%;max-width:330px}
 .slupek .rura{grid-column:2;grid-row:1 / -1;background:linear-gradient(90deg,#7f888d,#c7ced2 35%,#6f787d);border-radius:2px;position:relative;margin:-10px 0 0}
-.slupek .rura .n{position:absolute;bottom:62px;left:-7px;right:-7px;height:34px;background:#fff;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(0,0,0,.1)}
+.slupek .rura .n{position:absolute;bottom:76px;left:-7px;right:-7px;height:34px;background:#fff;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(0,0,0,.1)}
 .slupek .rura .n i{width:26px;height:26px;border-radius:50%;background:var(--node);color:#fff;font:700 11.5px/26px Inter;text-align:center;font-style:normal}
 .slupek .rura .b{position:absolute;left:0;right:0;height:11px;font:700 8.5px/11px Inter;text-align:center}
 .slupek .stopka{grid-column:1 / -1;height:110px}
@@ -1172,12 +1172,14 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     const t = znajdz(cat, pref) || znajdz(cat); if (!t) return '';
     return `<div class="kol">${TB.svg(t.d, 800, t.cat, t.e).svg}<h4><i style="background:${T.PALETTE[cat]}"></i>${tyt}</h4><p>${opis}</p></div>`;
   }).join('');
-  // 3. cały słupek 25
+  // 3. cały słupek (przykład)
   const p = post(17) || H.posts.find(p => p.tab.length >= 3);
   if (p) {
-    const el = document.getElementById('tb-slupek'), rows = p.tab.length;
-    let h = p.tab.map((t, i) => `<div class="pl ${t.d === 'left' ? 'l' : 'r'}" style="grid-row:${i + 1}"><div>${TB.svg(t.d, 800, t.cat, t.e).svg}</div></div>`).join('');
-    const rr = (p.routes || []).map((r, i) => { const R = KOLR.find(x => String(x.id) === String(r)) || {}; return `<div class="b" style="bottom:${46 - i * 12}px;background:${R.col || '#555'};color:${R.txt || '#fff'}">${r}</div>`; }).join('');
+    // lewe i prawe tabliczki numerowane osobno – oba rzędy zaczynają się na tej samej wysokości
+    const el = document.getElementById('tb-slupek'), ile = { l: 0, r: 0 };
+    const wiersz = p.tab.map(t => ++ile[t.d === 'left' ? 'l' : 'r']), rows = Math.max(ile.l, ile.r, 1);
+    let h = p.tab.map((t, i) => `<div class="pl ${t.d === 'left' ? 'l' : 'r'}" style="grid-row:${wiersz[i]}"><div>${TB.svg(t.d, 800, t.cat, t.e).svg}</div></div>`).join('');
+    const rr = (p.routes || []).map((r, i) => { const R = KOLR.find(x => String(x.id) === String(r)) || {}; return `<div class="b" style="bottom:${63 - i * 12}px;background:${R.col || '#555'};color:${R.txt || '#fff'}">${r}</div>`; }).join('');
     h += `<div class="stopka" style="grid-row:${rows + 1}"></div><div class="rura" style="grid-row:1 / ${rows + 2}"><div class="n"><i>${p.nr}</i></div>${rr}</div>`;
     el.innerHTML = h;
     el.closest('.slupek-box').previousElementSibling.textContent = `Cały słupek – przykład węzła ${p.nr}`;
