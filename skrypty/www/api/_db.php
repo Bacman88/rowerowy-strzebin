@@ -44,6 +44,10 @@ function hub_db(): PDO {
         id $ai, utworzono VARCHAR(19) NOT NULL, typ VARCHAR(12) NOT NULL, nazwa VARCHAR(80) NOT NULL DEFAULT '', opis TEXT,
         lat DOUBLE PRECISION NOT NULL, lon DOUBLE PRECISION NOT NULL, nick VARCHAR(60) NOT NULL, kontakt VARCHAR(120) NOT NULL DEFAULT '',
         moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
+    $db->exec("CREATE TABLE IF NOT EXISTS wezly (
+        id $ai, utworzono VARCHAR(19) NOT NULL, wezel INT, lat DOUBLE PRECISION NOT NULL, lon DOUBLE PRECISION NOT NULL,
+        slupek VARCHAR(12) NOT NULL DEFAULT '', zmiany TEXT NOT NULL, komentarz TEXT, nick VARCHAR(60) NOT NULL, kontakt VARCHAR(120) NOT NULL DEFAULT '',
+        moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
     if (!$my) $db->exec('PRAGMA busy_timeout=3000');
     return $db;
 }
@@ -66,6 +70,7 @@ function hub_zrzut(): array {
         'zgloszenia' => $db->query('SELECT * FROM zgloszenia ORDER BY id')->fetchAll(),
         'zgloszenia_odcinki' => $db->query('SELECT * FROM zgloszenia_odcinki ORDER BY zgloszenie, odcinek')->fetchAll(),
         'miejsca' => $db->query('SELECT * FROM miejsca ORDER BY id')->fetchAll(),
+        'wezly' => $db->query('SELECT * FROM wezly ORDER BY id')->fetchAll(),
     ];
 }
 
@@ -79,7 +84,7 @@ function hub_dobowo(): void {
     @touch($znacznik);
     try {
         $db = hub_db();
-        foreach (['zgloszenia', 'miejsca'] as $t) {
+        foreach (['zgloszenia', 'miejsca', 'wezly'] as $t) {
             $db->prepare("UPDATE $t SET kontakt = '' WHERE kontakt <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-1 year'))]);
             $db->prepare("UPDATE $t SET ip = '' WHERE ip <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-30 days'))]);
         }
@@ -105,7 +110,7 @@ function hub_txt(array $in, string $k, int $max): string {
 function hub_ip_limit(PDO $db): string {
     $ip = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . hub_cfg()['sol']);
     $od = date('Y-m-d H:i:s', time() - 3600); $n = 0;
-    foreach (['zgloszenia', 'miejsca'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE ip = ? AND utworzono > ?"); $q->execute([$ip, $od]); $n += (int)$q->fetchColumn(); }
+    foreach (['zgloszenia', 'miejsca', 'wezly'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE ip = ? AND utworzono > ?"); $q->execute([$ip, $od]); $n += (int)$q->fetchColumn(); }
     if ($n >= 20) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);
     return $ip;
 }

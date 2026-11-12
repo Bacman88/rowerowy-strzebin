@@ -254,7 +254,7 @@ for p in D["posts"]:
         subprocess.run(["rsvg-convert", "-w", str(int(1200 * W / 800)), "-o", os.path.join(pngdir, fn + ".png"), os.path.join(svgdir, fn + ".svg")], check=True)
         deg = pl["grp"][0].get("deg"); stats[pole] += 1
         manifest[p["nr"]].append(dict(png=os.path.join(pngdir, fn + ".png"), deg=deg, dir=pl["d"], note=note, size=lay["size"], cat=pl["cat"], W=W,
-                                      routes=[e[3] for e in pl["entries"]]))
+                                      routes=[e[3] for e in pl["entries"]], ent=[list(e) for e in pl["entries"]]))
         flat = [x for e in pl["entries"] for x in e[:2]]
         trs = " / ".join(",".join(e[3]) for e in pl["entries"])
         why = "; ".join(sorted({g.get("why", "") for g in pl["grp"] if g.get("why") and g.get("why") != "jest w uMap"}))

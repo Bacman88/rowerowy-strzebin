@@ -138,7 +138,24 @@ section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 #wsp .modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#efe9da;padding:4px;border-radius:10px;margin-bottom:6px}
 #wsp .modes button{font:inherit;font-weight:700;font-size:14px;border:0;border-radius:7px;padding:8px;background:transparent;color:var(--muted);cursor:pointer}
 #wsp .modes button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
-#wsp[data-tryb=drogi] .m-miejsce,#wsp[data-tryb=miejsce] .m-drogi{display:none!important}
+#wsp:not([data-tryb=drogi]) .m-drogi,#wsp:not([data-tryb=miejsce]) .m-miejsce,#wsp:not([data-tryb=wezly]) .m-wezly{display:none!important}
+#wsp .modes{grid-template-columns:1fr 1fr 1fr}
+#wsp .wz-row{display:grid;grid-template-columns:22px 1fr auto auto;gap:6px;align-items:center;padding:6px 0;border-top:1px dashed var(--line);font-size:14px}
+#wsp .wz-row.del{opacity:.45;text-decoration:line-through}#wsp .wz-row.new b{color:#1b5e20}
+#wsp .wz-row .ar{font-size:18px;font-weight:800;color:var(--green);text-align:center}
+#wsp .wz-row button,#wsp .wz-btn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 9px;cursor:pointer}
+#wsp .wz-btn.main{background:var(--green);color:#fff;border-color:var(--green)}
+#wsp .rt{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:800;color:#fff;margin-right:2px;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+#wsp .rt.off{opacity:.25}
+#wsp .wz-prev svg{width:100%;height:auto;display:block;margin:6px 0}
+#wsp .wz-new{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;margin-top:6px}
+#wsp .wz-new .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0}
+#wsp .wz-own{background:#fff4d6;border-radius:8px;padding:6px 8px;font-size:13px;margin-top:6px}
+.wzm{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--node);font:700 11.5px Inter,sans-serif;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35);cursor:pointer}
+.wzm.sel{outline:3px solid #1d4ed8;outline-offset:1px}.wzm.zm{box-shadow:0 0 0 3px #f08c00}
+.wzm.moj{background:#fff;color:#8a5300;border:2px dashed #f08c00}
+.far .wzm{width:14px;height:14px;font-size:0;border-width:1.5px}
+@font-face{font-family:'Fira Sans Condensed';font-weight:600;src:url(lib/fonts/FiraSansCondensed-SemiBold.ttf) format('truetype')}
 #wsp .typy{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 10px}
 #wsp .typy .tg{grid-column:1/-1;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-top:6px}
 #wsp .typy label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer;font-size:13.5px;background:#fff}
@@ -205,6 +222,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <div class="modes" role="tablist">
       <button type="button" data-t="drogi" class="on">Oceń drogi</button>
       <button type="button" data-t="miejsce">Dodaj miejsce</button>
+      <button type="button" data-t="wezly">Tabliczki</button>
     </div>
     <div class="m-drogi">
     <h2>Jak to działa</h2>
@@ -230,6 +248,23 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <button type="button" class="gps" id="gps">📍 Moja lokalizacja</button>
     <div class="box"><b id="pkt">Nie wskazano miejsca</b><div class="muted" id="pkthint">Kliknij na mapie.</div></div>
     </div>
+    <div class="m-wezly">
+    <h2>Jak to działa</h2>
+    <p class="how">Kliknij numer węzła na mapie, żeby zobaczyć jego tabliczki i zaproponować zmianę: dodać brakujący kierunek albo usunąć zbędny. Kliknij w puste miejsce, żeby zaproponować <b>nowy węzeł</b>. Odległość, strzałka i kółka tras liczą się same – możesz je poprawić.</p>
+    <div class="box" id="wz-info"><b>Nie wybrano węzła</b><div class="muted">Kliknij numer na mapie albo puste miejsce.</div></div>
+    <div id="wz-edit" hidden>
+      <div id="wz-slupek" class="r" hidden style="margin-top:8px"><b>Słupek:</b>
+        <label><input type="radio" name="slupek" value="istniejacy"> jest (np. z nazwą ulicy)</label>
+        <label><input type="radio" name="slupek" value="nowy"> trzeba postawić</label></div>
+      <h2>Kierunki na tabliczkach</h2>
+      <div id="wz-lista"></div>
+      <h2>Dodaj kierunek</h2>
+      <input type="text" id="wz-cel" list="wz-cele" placeholder="np. Boronów, Koszęcin, Kościół św. Krzyża" autocomplete="off"><datalist id="wz-cele"></datalist>
+      <div id="wz-nowy"></div>
+      <h2>Podgląd tabliczek po zmianie</h2>
+      <div id="wz-podglad" class="wz-prev"></div>
+    </div>
+    </div>
     <div class="layers"><b>Pokaż:</b><label><input type="checkbox" id="w-odp" checked> odpoczynek</label><label><input type="checkbox" id="w-serwis" checked> rower i udogodnienia</label><label><input type="checkbox" id="w-ciek" checked> ciekawe, jedzenie, nocleg</label></div>
 
     <h2>Twoje zgłoszenie</h2>
@@ -249,6 +284,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       </div>
       <label class="f m-drogi"><span>Komentarz</span><textarea name="komentarz" maxlength="1000" placeholder="np. piach po deszczu, dziury przy przejeździe, powalone drzewo"></textarea></label>
       <label class="f m-drogi"><span>Data przejazdu</span><input type="date" name="data"></label>
+      <label class="f m-wezly"><span>Uwagi</span><textarea name="uwagi" maxlength="1000" placeholder="np. tabliczka zasłonięta przez drzewo, lepiej postawić słupek po drugiej stronie"></textarea></label>
       <label class="f"><span>Imię lub nick *</span><input type="text" name="nick" maxlength="60" required placeholder="widoczny przy zgłoszeniu"></label>
       <label class="f"><span>E-mail lub telefon (nieobowiązkowo)</span><input type="text" name="kontakt" maxlength="120" placeholder="widzi go tylko administrator strony">
         <small>Tylko po to, żeby dopytać o szczegóły. Nie publikujemy go.</small></label>
@@ -327,6 +363,9 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <script src="data.js"></script>
 <script src="lib/ikony.js"></script>
 <script src="lib/miejsca.js"></script>
+<script src="lib/tabliczka-dane.js"></script>
+<script src="lib/tabliczka.js"></script>
+<script src="lib/trasowanie.js"></script>
 <script>
 // dwie mapy na jednej stronie: jeden palec / kółko przewija stronę, mapę przesuwa się dwoma palcami / z Ctrl
 const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text:{touch:"Przesuń mapę dwoma palcami", scroll:"Przytrzymaj Ctrl i przewiń, aby powiększyć mapę", scrollMac:"Przytrzymaj ⌘ i przewiń, aby powiększyć mapę"}}};
@@ -462,7 +501,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     const order = ['brak', 'osm', 'dobra', 'srednia', 'trudna', 'nieprzejezdna'];
     const groups = {}; for (const id in S) (groups[stanOf(S[id])] ||= []).push(S[id]);
     for (const st of order) for (const s of (groups[st] || [])) {
-      s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); tryb === 'miejsce' ? pinezka(e.latlng) : klik(s); }).addTo(roads));
+      s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); tryb === 'miejsce' ? pinezka(e.latlng) : tryb === 'wezly' ? WZ.nowy(e.latlng) : klik(s); }).addTo(roads));
     }
     const km = {}; for (const id in S) { const st = stanOf(S[id]); km[st] = (km[st] || 0) + S[id].len / 1000; }
     $('sum').textContent = `Ocenione: ${Math.round((km.dobra||0)+(km.srednia||0)+(km.trudna||0)+(km.nieprzejezdna||0))} km z ${Math.round(Object.values(km).reduce((a,b)=>a+b,0))} km dróg`
@@ -506,7 +545,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   F.kontakt.addEventListener('input', () => { $('zgoda').hidden = !F.kontakt.value.trim(); });
   F.data.max = new Date().toISOString().slice(0, 10);
   try { F.nick.value = localStorage.getItem('hub_nick') || ''; } catch (e) {}
-  function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : pin && F.typ.value)); }
+  function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : tryb === 'wezly' ? WZ.gotowe() : pin && F.typ.value)); }
   F.addEventListener('input', walid); F.addEventListener('change', walid);
   function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; }
   F.addEventListener('submit', async e => {
@@ -515,19 +554,154 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     $('send').disabled = true;
     const wsp = {nick:F.nick.value, kontakt:F.kontakt.value, zgoda:F.zgoda.checked, www:F.www.value};
     const body = tryb === 'drogi' ? {...wsp, odcinki:[...sel], stan:F.stan.value, komentarz:F.komentarz.value, data:F.data.value}
+      : tryb === 'wezly' ? {...wsp, ...WZ.dane(), komentarz:F.uwagi.value}
       : {...wsp, typ:F.typ.value, nazwa:F.nazwa.value, opis:F.opis.value, lat:pin.getLatLng().lat, lon:pin.getLatLng().lng};
     try {
-      const r = await fetch(tryb === 'drogi' ? 'api/zglos.php' : 'api/miejsca.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const r = await fetch(tryb === 'drogi' ? 'api/zglos.php' : tryb === 'wezly' ? 'api/wezly.php' : 'api/miejsca.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.ok) throw new Error(j.blad || 'Nie udało się wysłać zgłoszenia.');
       try { localStorage.setItem('hub_nick', F.nick.value.trim()); } catch (e) {}
-      msg(tryb === 'drogi' ? 'Dziękujemy! Zgłoszenie trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.'
+      MOJE.dodaj(tryb, body, j.id);
+      msg(tryb === 'wezly' ? 'Dziękujemy! Propozycja trafiła do sprawdzenia. Widzisz ją na mapie jako „Twoja propozycja”.' : tryb === 'drogi' ? 'Dziękujemy! Zgłoszenie trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.'
                            : 'Dziękujemy! Miejsce trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.', true);
       if (tryb === 'drogi') { sel.clear(); rysujSel(); F.komentarz.value = ''; F.stan.forEach(x => x.checked = false); API.oczekuje++; rysuj(); }
+      else if (tryb === 'wezly') { F.uwagi.value = ''; WZ.wyczysc(); }
       else { pin.remove(); pin = null; F.nazwa.value = ''; F.opis.value = ''; F.typ.forEach(x => x.checked = false); pkt(); }
     } catch (err) { msg(err.message); }
     walid();
   });
+
+  const MJ = window.MIEJSCA;
+  // ===== Twoje propozycje: widoczne od razu na Twojej mapie (zapamiętane w tej przeglądarce), dopóki ich nie zatwierdzimy =====
+  const MOJE = (() => {
+    const K = 'hub_moje'; let lista = [];
+    try { lista = JSON.parse(localStorage.getItem(K) || '[]'); } catch (e) {}
+    const warstwa = L.layerGroup().addTo(map);
+    function rysuj_() {
+      warstwa.clearLayers();
+      for (const m of lista) {
+        const b = m.body, opis = `<b>Twoja propozycja</b> · czeka na sprawdzenie<br><span class="muted">${esc(m.data)}</span>`;
+        if (m.typ === 'drogi') for (const id of b.odcinki || []) { if (S[id]) L.polyline(S[id].ll, {color: KOL[b.stan] || '#111', weight: 5, dashArray: '2 7', opacity: .9, renderer: rnd, interactive: false}).addTo(warstwa); }
+        if (m.typ === 'miejsce') L.marker([b.lat, b.lon], {icon: MJ.icon({typ: b.typ}), opacity: .6}).bindPopup(opis + MJ.popup({typ: b.typ, nazwa: b.nazwa, opis: b.opis})).addTo(warstwa);
+        if (m.typ === 'wezly' && b.wezel == null) L.marker([b.lat, b.lon], {icon: L.divIcon({className: '', html: '<div class="wzm moj">?</div>', iconSize: [26, 26], iconAnchor: [13, 13]})})
+          .bindPopup(opis + '<br>Nowy węzeł: ' + esc((b.zmiany.dodaj || []).map(c => c.n).join(', '))).addTo(warstwa);
+      }
+    }
+    function dodaj(typ, body, id) {
+      lista.push({typ, id, data: new Date().toISOString().slice(0, 10), body: JSON.parse(JSON.stringify({...body, kontakt: undefined, www: undefined}))});
+      lista = lista.slice(-50); try { localStorage.setItem(K, JSON.stringify(lista)); } catch (e) {}
+      rysuj_();
+    }
+    const dlaWezla = nr => lista.filter(m => m.typ === 'wezly' && m.body.wezel === nr);
+    setTimeout(rysuj_, 0);
+    return {dodaj, dlaWezla};
+  })();
+
+  // ===== Edytor węzłów i tabliczek =====
+  const WZ = (() => {
+    const H = window.HUB, TR = window.TRASOWANIE, TB = window.TABLICZKA;
+    const CELE = H.cele || []; const cel = n => CELE.find(c => c.n === n);
+    $('wz-cele').innerHTML = CELE.map(c => `<option value="${esc(c.n)}">`).join('');
+    const KOLT = window.TABD.KOL;
+    let on = false, wyb = null, nowyPin = null, lista = [], prop = null, sciezka = null, odP = null, zatw = [];
+    const wL = L.layerGroup(), pathL = L.layerGroup().addTo(map);
+    fetch('api/wezly.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => { zatw = j?.wezly || []; markery(); }).catch(() => {});
+    function markery() {
+      wL.clearLayers();
+      for (const p of H.posts) {
+        const zm = zatw.some(z => z.wezel === p.nr) || MOJE.dlaWezla(p.nr).length;
+        L.marker([p.lat, p.lon], {icon: L.divIcon({className: '', html: `<div class="wzm${wyb && wyb.nr === p.nr ? ' sel' : ''}${zm ? ' zm' : ''}">${p.nr}</div>`, iconSize: [26, 26], iconAnchor: [13, 13]}),
+          zIndexOffset: 800, title: 'Węzeł ' + p.nr}).on('click', e => { L.DomEvent.stop(e); wybierz(p); }).addTo(wL);
+      }
+      for (const z of zatw.filter(z => z.wezel == null))
+        L.marker([z.lat, z.lon], {icon: L.divIcon({className: '', html: '<div class="wzm zm">+</div>', iconSize: [26, 26], iconAnchor: [13, 13]})})
+          .bindPopup(`<b>Nowy węzeł (zatwierdzony, czeka na wdrożenie)</b><br>${esc((z.zmiany.dodaj || []).map(c => c.n + ' ' + c.km).join(', '))}<br><span class="muted">${esc(z.nick)}, ${esc(z.data)}</span>`).addTo(wL);
+    }
+    function tryb(t) {
+      on = t; if (on) { wL.addTo(map); if (!TR._g) { TR.graf((id, pom) => { const s = S[id]; return s ? stanOf(s) : (pom || 'brak'); }); TR._g = 1; } markery(); }
+      else { wL.remove(); pathL.clearLayers(); }
+    }
+    const kmTxt = m => (m / 1000).toFixed(1).replace('.', ',') + ' km';
+    function wybierz(p) {
+      wyczysc(true); wyb = p; odP = null;
+      lista = [];
+      for (const t of p.tab) t.e.forEach(([n, km, ico, rts]) => lista.push({n, km, kmv: parseFloat(km.replace(',', '.')), ico: ico || '', rts: rts || [], d: t.d, cat: t.cat, stan: 'jest'}));
+      $('wz-slupek').hidden = true; pokaz(); markery();
+    }
+    function nowy(ll) {
+      if (wyb && !wyb.nowy && !confirmZmiana()) return;
+      wyczysc(true);
+      wyb = {nr: null, nowy: true, lat: ll.lat, lon: ll.lng, loc: ''}; lista = []; odP = null;
+      nowyPin = L.marker(ll, {draggable: true, zIndexOffset: 1000, icon: L.divIcon({className: '', html: '<div class="wzm moj">+</div>', iconSize: [26, 26], iconAnchor: [13, 13]})}).addTo(map);
+      nowyPin.on('dragend', () => { const q = nowyPin.getLatLng(); wyb.lat = q.lat; wyb.lon = q.lng; odP = null; lista.filter(c => c.stan === 'nowy').forEach(przelicz); pokaz(); });
+      $('wz-slupek').hidden = false; pokaz();
+    }
+    const confirmZmiana = () => !lista.some(c => c.stan !== 'jest') || window.confirm('Porzucić niewysłane zmiany w tym węźle?');
+    function trasa(c) { if (!odP) odP = TR.od([wyb.lat, wyb.lon]); const k = cel(c.n); return k ? odP([k.lat, k.lon]) : null; }
+    function przelicz(c) {
+      const r = trasa(c); if (!r) { c.km = '?'; return; }
+      c.km = kmTxt(r.m); c.kmv = r.m / 1000; c.d = TR.strzalka(TR.azymut(r.ll)); c.rts = TR.trasy(r.ll, H.routes); c.ll = r.ll;
+    }
+    function dodaj(n) {
+      const k = cel(n); if (!k) return;
+      if (lista.some(c => c.n === n && c.stan !== 'usun')) { msg('Ten kierunek już jest na tym węźle.'); return; }
+      if (prop && prop.n === n) return;
+      const c = {n, cat: k.cat, ico: k.ico || '', stan: 'nowy'}; przelicz(c);
+      prop = c; $('wz-cel').value = ''; pokaz();
+    }
+    function pokaz() {
+      const p = wyb; $('wz-edit').hidden = !p;
+      if (!p) { $('wz-info').innerHTML = '<b>Nie wybrano węzła</b><div class="muted">Kliknij numer na mapie albo puste miejsce.</div>'; return; }
+      const z = zatw.filter(x => x.wezel === p.nr && p.nr != null), moje = p.nr != null ? MOJE.dlaWezla(p.nr) : [];
+      $('wz-info').innerHTML = (p.nowy ? '<b>Nowy węzeł</b><div class="muted">Przeciągnij znacznik „+”, żeby poprawić miejsce.</div>'
+        : `<b>Węzeł ${p.nr}</b><div class="muted">${esc(p.loc || '')}</div>`) +
+        z.map(x => `<div class="wz-own" style="background:#e5f3e8">Zatwierdzona zmiana (${esc(x.data)}), czeka na wdrożenie: ${opisZm(x.zmiany)}</div>`).join('') +
+        moje.map(x => `<div class="wz-own">Twoja propozycja (${esc(x.data)}) czeka na sprawdzenie: ${opisZm(x.body.zmiany)}</div>`).join('');
+      const kropki = rts => rts.map(r => `<span class="rt" style="background:${(KOLT[r] || ['#555'])[0]};color:${(KOLT[r] || ['', '#fff'])[1]}">${r}</span>`).join('');
+      $('wz-lista').innerHTML = lista.length ? lista.map((c, i) => `<div class="wz-row ${c.stan === 'usun' ? 'del' : c.stan === 'nowy' ? 'new' : ''}">
+        <span class="ar">${c.d === 'left' ? '←' : '→'}</span><span><b>${esc(c.n)}</b> ${esc(c.km)} ${kropki(c.rts)}</span><span></span>
+        <button type="button" data-i="${i}">${c.stan === 'usun' ? 'przywróć' : c.stan === 'nowy' ? 'cofnij' : 'usuń'}</button></div>`).join('')
+        : '<div class="muted">Brak kierunków – dodaj pierwszy poniżej.</div>';
+      $('wz-lista').querySelectorAll('button').forEach(b => b.onclick = () => {
+        const c = lista[+b.dataset.i];
+        if (c.stan === 'nowy') lista.splice(+b.dataset.i, 1); else c.stan = c.stan === 'usun' ? 'jest' : 'usun';
+        pokaz(); walid();
+      });
+      // nowy kierunek: wynik trasowania do poprawienia
+      if (prop) {
+        const c = prop;
+        $('wz-nowy').innerHTML = `<div class="wz-new"><div class="r"><b>${esc(c.n)}</b> <span>${esc(c.km)}</span>
+          <button type="button" class="wz-btn" id="wz-d">strzałka ${c.d === 'left' ? '←' : '→'} (zmień)</button></div>
+          <div class="r"><span class="muted">Kółka tras:</span> ${H.routes.filter(r => !r.alt).map(r => `<span class="rt${c.rts.includes(r.id) ? '' : ' off'}" data-r="${r.id}" style="cursor:pointer;background:${r.col};color:${r.txt}">${r.id}</span>`).join('')}</div>
+          <div class="r"><button type="button" class="wz-btn main" id="wz-ok">Dodaj do węzła</button><button type="button" class="wz-btn" id="wz-x">Anuluj</button></div>
+          <div class="muted">Odległość policzona po drogach z mapy wspólnej. Linia na mapie pokazuje drogę.</div></div>`;
+        $('wz-d').onclick = () => { c.d = c.d === 'left' ? 'right' : 'left'; pokaz(); };
+        $('wz-nowy').querySelectorAll('[data-r]').forEach(s => s.onclick = () => { const r = s.dataset.r; c.rts = c.rts.includes(r) ? c.rts.filter(x => x !== r) : [...c.rts, r].sort().slice(0, 4); pokaz(); });
+        $('wz-ok').onclick = () => { lista.push(c); prop = null; $('wz-cel').value = ''; pokaz(); walid(); };
+        $('wz-x').onclick = () => { prop = null; $('wz-cel').value = ''; pokaz(); };
+        pathL.clearLayers(); if (c.ll) L.polyline(c.ll, {color: '#1d4ed8', weight: 5, dashArray: '8 6', opacity: .8}).addTo(pathL);
+      } else { $('wz-nowy').innerHTML = ''; pathL.clearLayers(); }
+      // podgląd tabliczek
+      const po = lista.filter(c => c.stan !== 'usun');
+      $('wz-podglad').innerHTML = po.length ? TB.tabliczki(po).map(t => { const r = TB.svg(t.d, 800, t.cat, t.e); return r.svg + (r.uwaga ? `<div class="muted">⚠ ${r.uwaga}</div>` : ''); }).join('')
+        : '<div class="muted">Brak tabliczek.</div>';
+      walid();
+    }
+    const opisZm = z => [...(z.usun || []).map(n => '− ' + esc(n)), ...(z.dodaj || []).map(c => '+ ' + esc(c.n) + ' ' + esc(c.km))].join(', ') || 'uwagi';
+    $('wz-cel').addEventListener('change', e => dodaj(e.target.value.trim()));
+    $('wz-cel').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); dodaj(e.target.value.trim()); } });
+    function wyczysc(cicho) {
+      if (nowyPin) { nowyPin.remove(); nowyPin = null; }
+      wyb = null; lista = []; prop = null; pathL.clearLayers(); $('wz-cel').value = '';
+      document.querySelectorAll('#wz-slupek input').forEach(x => x.checked = false);
+      if (!cicho) { pokaz(); markery(); }
+    }
+    const zmiany = () => ({usun: lista.filter(c => c.stan === 'usun').map(c => c.n),
+                           dodaj: lista.filter(c => c.stan === 'nowy').map(c => ({n: c.n, km: c.km, d: c.d, cat: c.cat, ico: c.ico, rts: c.rts}))});
+    const gotowe = () => { if (!wyb) return false; const z = zmiany(); return z.usun.length + z.dodaj.length > 0 || F.uwagi.value.trim().length > 3; };
+    const dane = () => ({wezel: wyb.nr, lat: wyb.lat, lon: wyb.lon, slupek: (document.querySelector('#wz-slupek input:checked') || {}).value || '', zmiany: zmiany()});
+    return {tryb, nowy, wyczysc: () => { wyczysc(false); }, gotowe, dane, wybrany: () => !!wyb};
+  })();
 
   // tryb: ocena dróg / dodawanie miejsca
   let tryb = 'drogi', pin = null;
@@ -535,10 +709,9 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   document.querySelectorAll('#wsp .modes button').forEach(b => b.onclick = () => {
     tryb = b.dataset.t; $('wsp').dataset.tryb = tryb;
     document.querySelectorAll('#wsp .modes button').forEach(x => x.classList.toggle('on', x === b));
-    $('mapw').classList.toggle('pick', tryb === 'miejsce'); $('msg').className = 'msg'; walid();
+    $('mapw').classList.toggle('pick', tryb !== 'drogi'); $('msg').className = 'msg'; WZ.tryb(tryb === 'wezly'); walid();
     if (tryb === 'miejsce') selL.remove(); else selL.addTo(map);
   });
-  const MJ = window.MIEJSCA;
   $('typy').innerHTML = MJ.GRUPY.map(([g, ts]) => `<div class="tg">${g}</div>` + ts.map(t =>
     `<label><input type="radio" name="typ" value="${t}"><i style="background:${MJ.TYP[t].c}">${MJ.svg(t)}</i>${MJ.TYP[t].n}</label>`).join('')).join('');
   function pkt() {
@@ -550,7 +723,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     else pin.setLatLng(ll);
     pkt();
   }
-  map.on('click', e => { if (tryb === 'miejsce') pinezka(e.latlng); });
+  map.on('click', e => { if (tryb === 'miejsce') pinezka(e.latlng); else if (tryb === 'wezly') WZ.nowy(e.latlng); });
   $('gps').onclick = () => {
     if (!navigator.geolocation) return msg('Ta przeglądarka nie udostępnia lokalizacji.');
     $('gps').textContent = '📍 Szukam…';
@@ -571,11 +744,12 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   if (window.matchMedia('(max-width:900px)').matches) $('wsp').insertBefore(document.querySelector('#wsp .modes'), $('mapw'));
   // telefon: po zaznaczeniu przycisk „Dalej” przewija do formularza pod mapą
   const Dalej = L.Control.extend({onAdd() { const d = L.DomUtil.create('button', 'dalej'); d.type = 'button'; d.hidden = true;
-    L.DomEvent.disableClickPropagation(d); d.onclick = () => $('form').scrollIntoView({behavior:'smooth', block:'start'}); return d; }});
+    L.DomEvent.disableClickPropagation(d); d.onclick = () => ((tryb === 'wezly' && !WZ.gotowe()) ? $('wz-edit') : $('form')).scrollIntoView({behavior:'smooth', block:'start'}); return d; }});
   const dalej = new Dalej({position:'bottomleft'}).addTo(map).getContainer();
-  setInterval(() => { const n = tryb === 'drogi' ? sel.size : (pin ? 1 : 0);
+  setInterval(() => { const n = tryb === 'drogi' ? sel.size : tryb === 'wezly' ? (WZ.gotowe() ? 1 : 0) : (pin ? 1 : 0);
     dalej.hidden = !(n && window.innerWidth <= 900);
-    dalej.textContent = tryb === 'drogi' ? `Dalej: oceń zaznaczone (${n}) ↓` : 'Dalej: opisz miejsce ↓'; }, 400);
+    dalej.textContent = tryb === 'drogi' ? `Dalej: oceń zaznaczone (${n}) ↓` : tryb === 'wezly' ? 'Dalej: wyślij propozycję ↓' : 'Dalej: opisz miejsce ↓';
+    if (tryb === 'wezly' && !n && WZ.wybrany()) { dalej.hidden = !(window.innerWidth <= 900); dalej.textContent = 'Dalej: tabliczki węzła ↓'; } }, 400);
 
   // start
   const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar && S[id].pomiar !== 'osm') S[id].ll.forEach(p => b.extend(p));

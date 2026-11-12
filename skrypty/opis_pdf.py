@@ -110,9 +110,10 @@ st.append(bt); st.append(Spacer(1, 8))
 st.append(Paragraph("Strzebiń jest ze wszystkich stron otoczony szlakami rowerowymi – od południa Leśno Rajza, od północy Liswarciański Szlak Rowerowy – "
                     "i w naturalny sposób stał się miejscem, w którym te trasy się spotykają. Proponuję ten HUB oznakować prostymi tabliczkami "
                     "kierunkowymi dla rowerzystów: nazwa miejscowości lub miejsca, odległość i strzałka.", LEAD))
-plates = ["S17_T1_lewo_800.png", "S17_T4_lewo_800.png", "S27_T4_prawo_800.png", "S09_T4_prawo_800.png", "S21_T4_lewo_800.png"]
+import glob as _gb
+plates = ["S17_T1", "S17_T4", "S27_T4", "S09_T4", "S21_T4"]   # przykłady (strzałka i długość z bieżącej przebudowy)
 pw = (W - 6 * mm) / 2
-imgs = [Image(f"{O}/tabliczki/png/{p}", width=pw, height=pw / 4) for p in plates]
+imgs = [Image(sorted(_gb.glob(f"{O}/tabliczki/png/{p}_*.png"))[0], width=pw, height=pw / 4) for p in plates]
 grid = Table([[imgs[0], imgs[1]], [imgs[2], imgs[3]], [imgs[4], Paragraph("Przykładowe tabliczki 800 × 200 mm (wzór „HUB Strzebiń”): "
               "niebieskie – miejscowości, zielone – szlaki, brązowe – historia i kultura, grafitowe – infrastruktura, pomarańczowe – sport, czerwone – gastronomia.", SMALL)]],
              colWidths=[pw + 3 * mm, pw + 3 * mm])

@@ -75,6 +75,8 @@ Na serwerze, **obok** katalogu `public_html` (nie w nim), utwórz plik `hub_conf
 ];
 ```
 
+Trzeci tryb – **Tabliczki** (edytor węzłów): klik w węzeł → jego kierunki, usuń/dodaj kierunek (odległość, strzałka i kółka tras liczone w przeglądarce: `skrypty/www/lib/trasowanie.js`), podgląd tabliczek tym samym układem co `plates.py` (`skrypty/www/lib/tabliczka.js`); klik w puste miejsce → propozycja nowego węzła. Zatwierdzone zmiany: panel `/admin/` → „eksport węzłów” (JSON) – do wdrożenia w projekcie.
+
 Baza SQLite i kopie dobowe (JSON, ostatnie 60) zapisują się w `hub_dane/` obok `public_html` – wdrożenie ich nie nadpisuje. Kontakty są kasowane po roku, skróty IP po 30 dniach.
 
 ## Licencje

@@ -62,6 +62,13 @@ try { $db = hub_db(); } catch (Throwable $e) {
     exit;
 }
 
+if (isset($_GET['eksport'])) {   // zatwierdzone zmiany węzłów – do wdrożenia w projekcie (dane/wezly_zatwierdzone.json w repozytorium)
+    header('Content-Type: application/json; charset=utf-8');
+    header('Content-Disposition: attachment; filename="wezly_zatwierdzone_' . date('Y-m-d') . '.json"');
+    $r = $db->query("SELECT id, utworzono, moderowano, wezel, lat, lon, slupek, zmiany, komentarz, nick FROM wezly WHERE moderacja = 'zatwierdzone' ORDER BY id")->fetchAll();
+    foreach ($r as &$w) { $w['zmiany'] = json_decode($w['zmiany'], true); $w['wezel'] = $w['wezel'] === null ? null : (int)$w['wezel']; }
+    echo json_encode($r, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); exit;
+}
 if (isset($_GET['kopia'])) {
     header('Content-Type: application/json; charset=utf-8');
     header('Content-Disposition: attachment; filename="stan_drog_' . date('Y-m-d') . '.json"');
@@ -73,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nowy = ['zatwierdz' => 'zatwierdzone', 'odrzuc' => 'odrzucone', 'wycofaj' => 'wycofane', 'przywroc' => 'oczekuje'][$_POST['akcja'] ?? ''] ?? null;
     $ids = array_filter(array_map('intval', (array)($_POST['id'] ?? [])));
     if ($nowy && $ids) {
-        $tab = ($_POST['t'] ?? '') === 'miejsca' ? 'miejsca' : 'zgloszenia';
+        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly'][$_POST['t'] ?? ''] ?? 'zgloszenia';
         $u = $db->prepare("UPDATE $tab SET moderacja = ?, moderowano = ? WHERE id = ?");
         foreach ($ids as $i) $u->execute([$nowy, hub_teraz(), $i]);
     }
@@ -81,11 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $k = in_array($_GET['k'] ?? '', ['oczekuje', 'zatwierdzone', 'odrzucone', 'wycofane'], true) ? $_GET['k'] : 'oczekuje';
-$tryb = ($_GET['t'] ?? '') === 'miejsca' ? 'miejsca' : 'drogi';
-$tab = $tryb === 'miejsca' ? 'miejsca' : 'zgloszenia';
+$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly'], true) ? $_GET['t'] : 'drogi';
+$tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly'][$tryb] ?? 'zgloszenia';
 $licz = []; $czeka = [];
 foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja") as $r) $licz[$r['moderacja']] = (int)$r['n'];
-foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
+foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
 $q = $db->prepare("SELECT * FROM $tab WHERE moderacja = ? ORDER BY utworzono " . ($k === 'oczekuje' ? 'ASC' : 'DESC') . ' LIMIT 200');
 $q->execute([$k]); $lista = $q->fetchAll();
 $odc = [];
@@ -129,11 +136,14 @@ button{font:inherit;font-size:13px;padding:5px 11px;border-radius:7px;border:1px
 button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{background:#fff;color:#b00020;border-color:#e2b4ba}
 .empty{color:var(--muted);padding:20px 4px}
 @media (max-width:800px){main{grid-template-columns:1fr;height:auto}#map{height:50vh;order:-1}.list{border-right:0}}
+.wzp svg{width:100%;height:auto;display:block;margin:4px 0}.wzp .m{margin-top:6px}
+@font-face{font-family:'Fira Sans Condensed';font-weight:600;src:url(../lib/fonts/FiraSansCondensed-SemiBold.ttf) format('truetype')}
+.wzm{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;background:#00838F;font:700 10px system-ui;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 </style></head><body>
 <header>
   <h1>Panel</h1>
   <nav class="tabs tryb">
-    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca'] as $tt => $t): ?>
+    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki'] as $tt => $t): ?>
       <a href="?t=<?= $tt ?>" class="<?= $tryb === $tt ? 'on' : '' ?>"><?= $t ?><?= $czeka[$tt] ? '<i>' . $czeka[$tt] . '</i>' : '' ?></a>
     <?php endforeach ?>
   </nav>
@@ -142,13 +152,21 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       <a href="?t=<?= $tryb ?>&k=<?= $kk ?>" class="<?= $k === $kk ? 'on' : '' ?>"><?= $t ?> (<?= $licz[$kk] ?? 0 ?>)</a>
     <?php endforeach ?>
   </nav>
-  <span style="margin-left:auto"><a href="../#wspolna" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?wyloguj=1">wyloguj</a></span>
+  <span style="margin-left:auto"><a href="../#wspolna" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?eksport=wezly" title="zatwierdzone zmiany węzłów do wdrożenia w projekcie">eksport węzłów</a> · <a href="?wyloguj=1">wyloguj</a></span>
 </header>
 <main>
   <div class="list">
     <?php if (!$lista): ?><div class="empty">Brak zgłoszeń w tej zakładce.</div><?php endif ?>
     <?php foreach ($lista as $r): ?>
-      <?php if ($tryb === 'miejsca'): ?>
+      <?php if ($tryb === 'wezly'): $zm = json_decode($r['zmiany'], true) ?: []; ?>
+      <div class="z" data-id="<?= (int)$r['id'] ?>" data-lat="<?= (float)$r['lat'] ?>" data-lon="<?= (float)$r['lon'] ?>" data-wezel="<?= $r['wezel'] === null ? '' : (int)$r['wezel'] ?>" data-zm="<?= $h($r['zmiany']) ?>">
+        <div><span class="chip" style="background:#00838F"><?= $r['wezel'] === null ? 'nowy węzeł' . ($r['slupek'] ? ' · słupek: ' . ($r['slupek'] === 'nowy' ? 'do postawienia' : 'jest') : '') : 'węzeł ' . (int)$r['wezel'] ?></span> <b><?= $h($r['nick']) ?></b></div>
+        <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <p><?php foreach ($zm['usun'] ?? [] as $n): ?><span style="color:#b00020">− <?= $h($n) ?></span><br><?php endforeach ?>
+           <?php foreach ($zm['dodaj'] ?? [] as $c): ?><span style="color:#1b5e20">+ <?= $h($c['n']) ?> <?= $h($c['km']) ?> <?= $c['d'] === 'left' ? '←' : '→' ?><?= $c['rts'] ? ' (trasy ' . $h(implode(', ', $c['rts'])) . ')' : '' ?></span><br><?php endforeach ?></p>
+        <?php if ((string)$r['komentarz'] !== ''): ?><p><?= $h($r['komentarz']) ?></p><?php endif ?>
+        <div class="wzp"></div>
+      <?php elseif ($tryb === 'miejsca'): ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-typ="<?= $h($r['typ']) ?>" data-lat="<?= (float)$r['lat'] ?>" data-lon="<?= (float)$r['lon'] ?>">
         <div><span class="chip" style="background:#237647"><?= $h($TYPY[$r['typ']] ?? $r['typ']) ?></span> <b><?= $h($r['nick']) ?></b></div>
         <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
@@ -177,6 +195,8 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <script src="../data.js"></script>
 <script src="../lib/ikony.js"></script>
 <script src="../lib/miejsca.js"></script>
+<script src="../lib/tabliczka-dane.js"></script>
+<script src="../lib/tabliczka.js"></script>
 <script>
 const ODC_Z = <?= json_encode($odc, JSON_UNESCAPED_UNICODE) ?>;
 const KOL = {dobra:'#2b9348', srednia:'#e0a800', trudna:'#d62828', nieprzejezdna:'#111'};
@@ -202,13 +222,25 @@ function pokaz(id, stan, fit) {
 document.querySelectorAll('.z').forEach(el => el.addEventListener('click', e => {
   if (e.target.closest('form')) return;
   document.querySelectorAll('.z.on').forEach(x => x.classList.remove('on')); el.classList.add('on');
-  if (el.dataset.typ) {
+  if (el.dataset.zm) {
+    sel.clearLayers(); const ll = [+el.dataset.lat, +el.dataset.lon];
+    L.circle(ll, {radius: 30, color: '#1d4ed8', weight: 3, fill: false}).addTo(sel); map.setView(ll, 16);
+  } else if (el.dataset.typ) {
     sel.clearLayers(); const ll = [+el.dataset.lat, +el.dataset.lon];
     L.marker(ll, {icon: MIEJSCA.icon({typ: el.dataset.typ})}).addTo(sel);
     L.circle(ll, {radius: 25, color: '#1d4ed8', weight: 2, fill: false}).addTo(sel);
     map.setView(ll, 17);
   } else pokaz(el.dataset.id, el.dataset.stan, true);
 }));
+// węzły na mapie i podgląd tabliczek „po zmianie” (ten sam rysunek co na stronie)
+if (window.HUB) for (const p of HUB.posts) L.marker([p.lat, p.lon], {icon: L.divIcon({className: '', html: `<div class="wzm">${p.nr}</div>`, iconSize: [22, 22], iconAnchor: [11, 11]}), interactive: false}).addTo(map);
+document.querySelectorAll('.z[data-zm]').forEach(el => {
+  const zm = JSON.parse(el.dataset.zm || '{}'), p = el.dataset.wezel ? HUB.posts.find(q => q.nr === +el.dataset.wezel) : null;
+  const cele = [];
+  if (p) for (const t of p.tab) t.e.forEach(([n, km, ico, rts]) => { if (!(zm.usun || []).includes(n)) cele.push({n, km, kmv: parseFloat(km.replace(',', '.')), ico, rts, d: t.d, cat: t.cat}); });
+  (zm.dodaj || []).forEach(c => cele.push({...c, kmv: parseFloat(String(c.km).replace(',', '.'))}));
+  el.querySelector('.wzp').innerHTML = '<div class="m">Tabliczki po zmianie:</div>' + TABLICZKA.tabliczki(cele).map(t => { const r = TABLICZKA.svg(t.d, 800, t.cat, t.e); return r.svg + (r.uwaga ? '<div class="m">⚠ ' + r.uwaga + '</div>' : ''); }).join('');
+});
 const pierwszy = document.querySelector('.z');
 map.setView([50.62, 18.88], 12);
 if (pierwszy) pierwszy.click();

@@ -32,8 +32,9 @@ for p in D["posts"]:
         fn = os.path.basename(e["png"]).replace(".png", ".webp")
         Image.open(e["png"]).convert("RGBA").resize((600, 150), Image.LANCZOS).save(f"{S}/tabliczki/{fn}", "WEBP", quality=88)
         imgs.append(fn)
+    tab = [dict(d=e["dir"], cat=e["cat"], W=e["W"], e=e.get("ent", [])) for e in MF.get(str(p["nr"]), [])]   # treść tabliczek (edytor węzłów)
     posts.append(dict(nr=p["nr"], lat=round(p["lat"], 6), lon=round(p["lon"], 6), loc=p.get("loc", ""), pole=p["pole"], agree=p.get("agree", []),
-                      routes=sorted(set(onr.get(p["nr"], [])), key=int), imgs=imgs))
+                      routes=sorted(set(onr.get(p["nr"], [])), key=int), imgs=imgs, tab=tab))
 pois = [dict(name=q["name"], lat=q["lat"], lon=q["lon"], cat=q["cat"], icon=q.get("icon", "")) for q in D.get("pois", []) if q.get("icon") not in ("wc", "service")]
 # miejsca odpoczynku i serwisu: planowane stacje napraw + lista ręczna (dane/miejsca.geojson) + OSM (wiaty, piknik, widoki, ławki)
 from shapely.geometry import MultiPoint, Point
@@ -84,7 +85,25 @@ IK.update(pavilion='<path d="M3 21h7v-3a2 2 0 0 1 4 0v3h7"/><path d="M6 21l0 -9"
           bike='<path d="M5 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M19 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M12 19l0 -4l-3 -3l5 -4l2 3l3 0"/><path d="M17 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>')
 os.makedirs(f"{S}/lib", exist_ok=True)
 open(f"{S}/lib/ikony.js", "w").write("window.IKONY = " + json.dumps(IK, ensure_ascii=False) + ";")
-open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places), ensure_ascii=False, separators=(",", ":")) + ";")
+# cele do edytora tabliczek: miejscowości z tabliczek + ciekawe miejsca (z kategorią i piktogramem jak na tabliczkach)
+_vill = sorted({pl["name"] for p in D["posts"] for pl in p["plates"] if not pl.get("lr") and not pl.get("poi") and pl["name"] in D["places"]})
+cele = [dict(n=v, lat=round(D["places"][v][1], 6), lon=round(D["places"][v][0], 6), cat="blue") for v in _vill]
+cele += [dict(n=q["name"], lat=round(q["lat"], 6), lon=round(q["lon"], 6), cat=q["cat"], ico=q.get("icon", "")) for q in D.get("pois", [])
+         if not any(c["n"] == q["name"] for c in cele)]
+# dane generatora V22 dla podglądu tabliczek w przeglądarce (lib/tabliczka.js): kolory, piktogramy, rower, szerokości liter
+_h = open("../generator/generator_drogowskazow.html", encoding="utf-8").read()
+from fontTools.ttLib import TTFont as _TT
+_f = _TT("../fonts/FiraSansCondensed-SemiBold.ttf"); _cm, _hm, _upm = _f.getBestCmap(), _f["hmtx"], _f["head"].unitsPerEm
+TABD = dict(PALETTE=dict(_re.findall(r"(\w+):'(#[0-9A-Fa-f]{6})'", _re.search(r"const PALETTE=\{(.*?)\};", _h).group(1))),
+            LENGTHS={k: int(v) for k, v in _re.findall(r"(\w):(\d+)", _re.search(r"const LENGTHS=\{(.*?)\};", _h).group(1))},
+            ICONS=json.loads(_re.search(r"const ICONS=(\{.*?\});", _h, _re.S).group(1)),
+            BIKE=_re.search(r"g\.innerHTML=`(<circle.*?)`;", _h, _re.S).group(1),
+            ADV={chr(c): round(_hm[g][0] / _upm, 4) for c, g in _cm.items() if c < 0x2000},
+            ASC=_f["hhea"].ascent / _upm, DESC=-_f["hhea"].descent / _upm,
+            KOL={k: v[:2] for k, v in KOLORY.items()})
+open(f"{S}/lib/tabliczka-dane.js", "w").write("window.TABD = " + json.dumps(TABD, ensure_ascii=False, separators=(",", ":")) + ";")
+os.makedirs(f"{S}/lib/fonts", exist_ok=True); shutil.copy("../fonts/FiraSansCondensed-SemiBold.ttf", f"{S}/lib/fonts/")
+open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places, cele=cele), ensure_ascii=False, separators=(",", ":")) + ";")
 print("miejsca:", len(places))
 M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
 PDFS = [("Projekt – komplet (opis, kosztorys, mapy, katalog)", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy.pdf")]),
