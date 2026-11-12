@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="description" content="Sołectwo Strzebiń jako HUB rowerowy – propozycja tras rowerowych i oznakowania kierunkowego w gminie Koszęcin.">
+<meta name="description" content="HUB rowerowy Strzebiń – lokalny system informacji kierunkowej dla rowerzystów: drogowskazy, trasy pokazowe i wspólna mapa dróg w gminie Koszęcin.">
 <!-- podgląd linku (Facebook, Messenger, WhatsApp itd.) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="HUB rowerowy Strzebiń">
@@ -40,6 +40,14 @@ header.top{padding:34px 0 22px}
 .eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
 h1{font-size:clamp(30px,4.4vw,48px);line-height:1.08;margin:0 0 12px;font-weight:800;letter-spacing:-.02em}
 .lead{max-width:760px;color:var(--muted);font-size:17px;margin:0}
+.idea{margin:22px 0 4px;background:var(--card);border:1px solid var(--line);border-left:5px solid #0759A7;border-radius:12px;padding:16px 18px;max-width:980px}
+.idea h2{font-size:19px;margin:0 0 6px;color:#0759A7}
+.idea>p{margin:0 0 12px;color:var(--ink);font-size:15.5px}
+.idea ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.idea li{font-size:14px;color:var(--muted)}.idea li b{display:block;color:var(--ink);font-size:15px;margin-bottom:2px}
+.idea .uw{margin:12px 0 0;font-size:13px;color:var(--muted)}
+@media (max-width:900px){.idea ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.idea ul{grid-template-columns:1fr}}
 .stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:22px}
 .stat b{display:block;font-size:30px;line-height:1;color:var(--green);font-weight:800}
 .stat span{font-size:13px;color:var(--muted)}
@@ -272,6 +280,17 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <p class="eyebrow">Sołectwo Strzebiń · gmina Koszęcin</p>
   <h1>HUB rowerowy Strzebiń</h1>
   <p class="lead">Strzebiń leży między Leśną Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
+  <div class="idea">
+    <h2>Lokalny system informacji kierunkowej dla rowerzystów</h2>
+    <p>Drogowskazy informacyjne w punktach rozjazdów i skrzyżowań – pokazują, dokąd można dojechać do pobliskich miejscowości, obiektów i atrakcji i ile to kilometrów. System <b>uzupełnia</b> istniejącą infrastrukturę turystyczną i rowerową: nie zastępuje znaków drogowych ani oficjalnych szlaków turystycznych i nie tworzy nowych szlaków.</p>
+    <ul>
+      <li><b>Węzły</b>Tabliczki stoją tam, gdzie trzeba wybrać kierunek jazdy.</li>
+      <li><b>Kierunki i odległości</b>Dokąd można dojechać – niezależnie od przebiegu konkretnych tras.</li>
+      <li><b>{{NROUTES}} tras pokazowych</b>Propozycje przejazdu istniejącymi drogami, a nie nowe oficjalne szlaki.</li>
+      <li><b>Własny wygląd</b>Spójne kolory i oznaczenia, wyraźnie inne niż znaki drogowe i szlaki PTTK.</li>
+    </ul>
+    <p class="uw">Lokalizację każdej tabliczki uzgadniamy z zarządcą drogi, a w lesie z Nadleśnictwem Koszęcin.</p>
+  </div>
   <nav class="jump" aria-label="Na stronie">
     <a class="main" href="#wspolna"><span class="num">1</span>Mapa wspólna – oceń drogę, dodaj miejsce, wyznacz trasę</a>
     <a href="#trasy"><span class="num">2</span>Proponowane trasy i drogowskazy</a>
@@ -448,7 +467,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <div class="card"><h3>Kółka i paski to naklejki</h3><p>Numery tras na tabliczkach i paski na słupkach są naklejane. Nową trasę można dodać albo zmienić bez wymiany tabliczek.</p></div>
     <div class="card"><h3>Wymiary i materiał</h3><p>Tabliczka 800 × 200 mm, płyta kompozytowa (dibond) 3 mm cięta po obrysie, druk z obu stron na folii odpornej na słońce. Mocowanie obejmami do słupka Ø 60 mm – także do istniejących słupków z nazwami ulic.</p></div>
   </div>
-  <p class="tag" style="margin-top:12px">To nie są znaki drogowe ani znaki szlaków turystycznych, tylko tablice informacyjne. Przy drogach publicznych potrzebna jest zgoda zarządcy drogi, a w lesie – Nadleśnictwa Koszęcin.</p>
+  <p class="tag" style="margin-top:12px">To lokalny system informacji kierunkowej: tabliczki nie są znakami drogowymi ani znakami szlaków turystycznych i ich nie zastępują – uzupełniają je. Przy drogach publicznych potrzebna jest zgoda zarządcy drogi, a w lesie – Nadleśnictwa Koszęcin.</p>
 </section>
 
 <section id="dlaczego" class="msec">

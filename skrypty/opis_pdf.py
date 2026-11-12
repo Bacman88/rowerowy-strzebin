@@ -119,7 +119,21 @@ grid = Table([[imgs[0], imgs[1]], [imgs[2], imgs[3]], [imgs[4], Paragraph("Przyk
              colWidths=[pw + 3 * mm, pw + 3 * mm])
 grid.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0), ("BOTTOMPADDING", (0, 0), (-1, -1), 3)]))
 st.append(grid)
-st.append(Paragraph("Nie są to znaki szlaków rowerowych ani znaki drogowe, tylko tabliczki informacyjne. Przy drogach publicznych i w lasach wymagają zgody zarządcy.", SMALL))
+st.append(Paragraph("Tabliczki nie są znakami drogowymi ani znakami szlaków turystycznych i ich nie zastępują. Sama nazwa „system informacji kierunkowej” "
+                    "nie zwalnia z uzgodnień: lokalizację każdej tabliczki trzeba uzgodnić z zarządcą drogi, a w lesie z Nadleśnictwem Koszęcin.", SMALL))
+# 12.11.2026: definicja projektu – lokalny system informacji kierunkowej (nie nowe szlaki, nie znaki drogowe)
+st.append(Paragraph("Czym jest projekt", H2))
+st.append(Paragraph("<b>HUB rowerowy Strzebiń to lokalny system informacji kierunkowej dla rowerzystów</b> – drogowskazy informacyjne w punktach "
+                    "rozjazdów i skrzyżowań, które pokazują, dokąd można dojechać do pobliskich miejscowości, obiektów i atrakcji i ile to kilometrów. "
+                    "System <b>uzupełnia</b> istniejącą infrastrukturę turystyczną i rowerową – nie zastępuje oznakowania drogowego "
+                    "ani oficjalnych szlaków turystycznych.", P))
+for t_ in [f"<b>Węzły</b> – tabliczki stoją tam, gdzie rowerzysta musi wybrać kierunek jazdy ({NPOST} słupków z numerami).",
+           "<b>Kierunki i odległości</b> – informują, dokąd można dojechać, niezależnie od przebiegu konkretnych tras.",
+           f"<b>{len(TR)} tras pokazowych</b> – to propozycje przejazdu istniejącymi drogami, a nie nowe oficjalne szlaki.",
+           "<b>Własna identyfikacja wizualna</b> – spójny wygląd, kolory i oznaczenia, wyraźnie inne niż znaki drogowe i szlaki PTTK."]:
+    st.append(Paragraph(t_, BUL, bulletText="•"))
+st.append(Paragraph("Nie prosimy więc gminy o utworzenie nowych szlaków. Proponujemy uporządkowany, lokalny system drogowskazów, który pomaga "
+                    "mieszkańcom i turystom poruszać się po istniejących drogach – do formalnego uzgodnienia z zarządcami dróg i Nadleśnictwem Koszęcin.", P))
 
 # 12.11.2026: warunek – współpraca Gminy Koszęcin i Nadleśnictwa Koszęcin (udział lasów w sieci tras i w słupkach)
 import json as _js
