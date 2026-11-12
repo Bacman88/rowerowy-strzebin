@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stan dróg – HUB rowerowy Strzebiń</title>
+<title>Mapa wspólna – HUB rowerowy Strzebiń</title>
 <meta name="description" content="Wspólna mapa stanu dróg rowerowych wokół Strzebinia – zaznacz odcinki i oceń, jak się nimi jedzie.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,6 +57,19 @@ textarea{min-height:70px;resize:vertical}
 .rodo{font-size:11.5px;color:var(--muted);margin-top:10px}
 .pm{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--node);font:700 9.5px Inter,sans-serif;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.3)}
 .leaflet-container{font-family:Inter,sans-serif}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#efe9da;padding:4px;border-radius:10px;margin-bottom:6px}
+.modes button{font:inherit;font-weight:700;font-size:14px;border:0;border-radius:7px;padding:8px;background:transparent;color:var(--muted);cursor:pointer}
+.modes button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+body[data-tryb=drogi] .m-miejsce,body[data-tryb=miejsce] .m-drogi{display:none!important}
+.typy{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 10px}
+.typy label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer;font-size:13.5px;background:#fff}
+.typy label:has(input:checked){border-color:var(--green);box-shadow:0 0 0 2px rgba(29,59,48,.18)}
+.typy input{position:absolute;opacity:0;pointer-events:none}
+.typy i{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;flex-shrink:0}
+.gps{font:inherit;font-size:13.5px;font-weight:600;border:1px solid var(--green);color:var(--green);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;margin-top:6px}
+.layers{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13.5px;margin-top:8px}
+.layers label{display:flex;align-items:center;gap:6px;cursor:pointer}
+#map.pick{cursor:crosshair}
 @media (max-width:860px){
   .app{grid-template-columns:1fr;height:auto}
   #map{height:62vh;order:-1}
@@ -67,11 +80,16 @@ textarea{min-height:70px;resize:vertical}
 </head>
 <body>
 <header class="top">
-  <h1>Stan dróg – mapa wspólna</h1>
+  <h1>Mapa wspólna</h1>
   <a href="./">← HUB rowerowy Strzebiń</a>
 </header>
 <div class="app">
   <aside class="side">
+    <div class="modes" role="tablist">
+      <button type="button" data-t="drogi" class="on">Oceń drogi</button>
+      <button type="button" data-t="miejsce">Dodaj miejsce</button>
+    </div>
+    <div class="m-drogi">
     <h2>Jak to działa</h2>
     <p class="how">Klikaj odcinki dróg na mapie – możesz zaznaczyć kilka naraz. Wybierz, jak się nimi jedzie rowerem, i wyślij. Zgłoszenie pojawi się na mapie po sprawdzeniu przez administratora strony.</p>
 
@@ -88,21 +106,32 @@ textarea{min-height:70px;resize:vertical}
     <div class="muted" id="sum" style="margin-top:6px"></div>
 
     <div id="info" class="box info" hidden></div>
+    </div>
+    <div class="m-miejsce">
+    <h2>Jak to działa</h2>
+    <p class="how">Ławka w lesie, wiata, miejsce na ognisko, punkt widokowy albo serwis rowerowy, którego nie ma na mapie? Kliknij na mapie, gdzie jest – albo użyj swojej lokalizacji, jeśli stoisz obok. Pinezkę możesz przesunąć.</p>
+    <button type="button" class="gps" id="gps">📍 Moja lokalizacja</button>
+    <div class="box"><b id="pkt">Nie wskazano miejsca</b><div class="muted" id="pkthint">Kliknij na mapie.</div></div>
+    </div>
+    <div class="layers"><label><input type="checkbox" id="w-serwis" checked> serwis rowerowy</label><label><input type="checkbox" id="w-odp" checked> miejsca odpoczynku</label></div>
 
     <h2>Twoje zgłoszenie</h2>
-    <div class="box">
+    <div class="box m-drogi">
       <div class="selbar"><b id="selc">Nic nie zaznaczono</b><button class="lnk" id="clear" hidden>wyczyść</button></div>
       <div class="muted" id="selhint">Kliknij drogę na mapie, żeby ją zaznaczyć.</div>
     </div>
     <form id="form" autocomplete="on" novalidate>
-      <div class="stany">
+      <div class="typy m-miejsce" id="typy"></div>
+      <label class="f m-miejsce"><span>Nazwa (nieobowiązkowo)</span><input type="text" name="nazwa" maxlength="80" placeholder="np. Wiata przy Leśno Rajzie"></label>
+      <label class="f m-miejsce"><span>Opis</span><textarea name="opis" maxlength="1000" placeholder="np. dwie ławki i stół, zadaszenie, kosz na śmieci"></textarea></label>
+      <div class="stany m-drogi">
         <label><input type="radio" name="stan" value="dobra"> <span class="chip c-dobra">dobra</span></label>
         <label><input type="radio" name="stan" value="srednia"> <span class="chip c-srednia">średnia</span></label>
         <label><input type="radio" name="stan" value="trudna"> <span class="chip c-trudna">trudna</span></label>
         <label><input type="radio" name="stan" value="nieprzejezdna"> <span class="chip c-nieprzejezdna">nieprzejezdna</span></label>
       </div>
-      <label class="f"><span>Komentarz</span><textarea name="komentarz" maxlength="1000" placeholder="np. piach po deszczu, dziury przy przejeździe, powalone drzewo"></textarea></label>
-      <label class="f"><span>Data przejazdu</span><input type="date" name="data"></label>
+      <label class="f m-drogi"><span>Komentarz</span><textarea name="komentarz" maxlength="1000" placeholder="np. piach po deszczu, dziury przy przejeździe, powalone drzewo"></textarea></label>
+      <label class="f m-drogi"><span>Data przejazdu</span><input type="date" name="data"></label>
       <label class="f"><span>Imię lub nick *</span><input type="text" name="nick" maxlength="60" required placeholder="widoczny przy zgłoszeniu"></label>
       <label class="f"><span>E-mail lub telefon (nieobowiązkowo)</span><input type="text" name="kontakt" maxlength="120" placeholder="widzi go tylko administrator strony">
         <small>Tylko po to, żeby dopytać o szczegóły. Nie publikujemy go.</small></label>
@@ -118,6 +147,7 @@ textarea{min-height:70px;resize:vertical}
 <script src="lib/leaflet.js"></script>
 <script src="stan/odcinki.js"></script>
 <script src="data.js"></script>
+<script src="lib/miejsca.js"></script>
 <script>
 (() => {
   const NAZWA = {osm:'przejezdna (utwardzona wg OSM)', dobra:'dobra', srednia:'średnia', trudna:'trudna', nieprzejezdna:'nieprzejezdna', brak:'brak oceny'};
@@ -153,7 +183,7 @@ textarea{min-height:70px;resize:vertical}
     const order = ['brak', 'osm', 'dobra', 'srednia', 'trudna', 'nieprzejezdna'];
     const groups = {}; for (const id in S) (groups[stanOf(S[id])] ||= []).push(S[id]);
     for (const st of order) for (const s of (groups[st] || [])) {
-      s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); klik(s); }).addTo(roads));
+      s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); tryb === 'miejsce' ? pinezka(e.latlng) : klik(s); }).addTo(roads));
     }
     const km = {}; for (const id in S) { const st = stanOf(S[id]); km[st] = (km[st] || 0) + S[id].len / 1000; }
     $('sum').textContent = `Ocenione: ${Math.round((km.dobra||0)+(km.srednia||0)+(km.trudna||0)+(km.nieprzejezdna||0))} km z ${Math.round(Object.values(km).reduce((a,b)=>a+b,0))} km dróg`
@@ -197,26 +227,66 @@ textarea{min-height:70px;resize:vertical}
   F.kontakt.addEventListener('input', () => { $('zgoda').hidden = !F.kontakt.value.trim(); });
   F.data.max = new Date().toISOString().slice(0, 10);
   try { F.nick.value = localStorage.getItem('hub_nick') || ''; } catch (e) {}
-  function walid() { $('send').disabled = !(apiOk && sel.size && F.stan.value && F.nick.value.trim().length >= 2); }
+  function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : pin && F.typ.value)); }
   F.addEventListener('input', walid); F.addEventListener('change', walid);
   function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; }
   F.addEventListener('submit', async e => {
     e.preventDefault(); if ($('send').disabled) return;
     if (F.kontakt.value.trim() && !F.zgoda.checked) return msg('Zaznacz zgodę na kontakt albo zostaw pole kontaktu puste.');
     $('send').disabled = true;
-    const body = {odcinki:[...sel], stan:F.stan.value, komentarz:F.komentarz.value, data:F.data.value, nick:F.nick.value,
-                  kontakt:F.kontakt.value, zgoda:F.zgoda.checked, www:F.www.value};
+    const wsp = {nick:F.nick.value, kontakt:F.kontakt.value, zgoda:F.zgoda.checked, www:F.www.value};
+    const body = tryb === 'drogi' ? {...wsp, odcinki:[...sel], stan:F.stan.value, komentarz:F.komentarz.value, data:F.data.value}
+      : {...wsp, typ:F.typ.value, nazwa:F.nazwa.value, opis:F.opis.value, lat:pin.getLatLng().lat, lon:pin.getLatLng().lng};
     try {
-      const r = await fetch('api/zglos.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const r = await fetch(tryb === 'drogi' ? 'api/zglos.php' : 'api/miejsca.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.ok) throw new Error(j.blad || 'Nie udało się wysłać zgłoszenia.');
       try { localStorage.setItem('hub_nick', F.nick.value.trim()); } catch (e) {}
-      msg('Dziękujemy! Zgłoszenie trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.', true);
-      sel.clear(); rysujSel(); F.komentarz.value = ''; F.stan.forEach(x => x.checked = false);
-      API.oczekuje++; rysuj();
+      msg(tryb === 'drogi' ? 'Dziękujemy! Zgłoszenie trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.'
+                           : 'Dziękujemy! Miejsce trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.', true);
+      if (tryb === 'drogi') { sel.clear(); rysujSel(); F.komentarz.value = ''; F.stan.forEach(x => x.checked = false); API.oczekuje++; rysuj(); }
+      else { pin.remove(); pin = null; F.nazwa.value = ''; F.opis.value = ''; F.typ.forEach(x => x.checked = false); pkt(); }
     } catch (err) { msg(err.message); }
     walid();
   });
+
+  // tryb: ocena dróg / dodawanie miejsca
+  let tryb = 'drogi', pin = null;
+  document.body.dataset.tryb = tryb;
+  document.querySelectorAll('.modes button').forEach(b => b.onclick = () => {
+    tryb = b.dataset.t; document.body.dataset.tryb = tryb;
+    document.querySelectorAll('.modes button').forEach(x => x.classList.toggle('on', x === b));
+    $('map').classList.toggle('pick', tryb === 'miejsce'); $('msg').className = 'msg'; walid();
+    if (tryb === 'miejsce') selL.remove(); else selL.addTo(map);
+  });
+  const MJ = window.MIEJSCA;
+  $('typy').innerHTML = ['lawka', 'wiata', 'piknik', 'widok', 'ciekawe', 'serwis'].map(t =>
+    `<label><input type="radio" name="typ" value="${t}"><i style="background:${MJ.TYP[t].c}">${MJ.svg(t)}</i>${MJ.TYP[t].n.replace(' / ognisko', '/ognisko')}</label>`).join('');
+  function pkt() {
+    $('pkt').textContent = pin ? 'Miejsce wskazane' : 'Nie wskazano miejsca';
+    $('pkthint').textContent = pin ? 'Przeciągnij pinezkę, żeby poprawić położenie.' : 'Kliknij na mapie albo użyj lokalizacji.'; walid();
+  }
+  function pinezka(ll) {
+    if (!pin) { pin = L.marker(ll, {draggable:true, zIndexOffset:1000}).addTo(map); }
+    else pin.setLatLng(ll);
+    pkt();
+  }
+  map.on('click', e => { if (tryb === 'miejsce') pinezka(e.latlng); });
+  $('gps').onclick = () => {
+    if (!navigator.geolocation) return msg('Ta przeglądarka nie udostępnia lokalizacji.');
+    $('gps').textContent = '📍 Szukam…';
+    navigator.geolocation.getCurrentPosition(p => {
+      $('gps').textContent = '📍 Moja lokalizacja';
+      const ll = L.latLng(p.coords.latitude, p.coords.longitude); pinezka(ll); map.setView(ll, 17);
+    }, () => { $('gps').textContent = '📍 Moja lokalizacja'; msg('Nie udało się pobrać lokalizacji – kliknij miejsce na mapie.'); },
+    {enableHighAccuracy:true, timeout:15000});
+  };
+  // warstwy miejsc
+  const ML = MJ.warstwy(map, (window.HUB && HUB.places) || []);
+  ML.serwis.addTo(map); ML.odpoczynek.addTo(map);
+  $('w-serwis').onchange = e => e.target.checked ? ML.serwis.addTo(map) : ML.serwis.remove();
+  $('w-odp').onchange = e => e.target.checked ? ML.odpoczynek.addTo(map) : ML.odpoczynek.remove();
+  map.on('zoomend', () => map.getContainer().classList.toggle('far', map.getZoom() < 13));
 
   // start
   const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar && S[id].pomiar !== 'osm') S[id].ll.forEach(p => b.extend(p));

@@ -53,7 +53,10 @@ bash skrypty/publikuj_strone.sh
 - tekst opisu i kosztorys: `skrypty/opis_pdf.py`
 - strona: `skrypty/strona_template.html`
 
-## Mapa stanu dróg (stan.html) – zgłoszenia mieszkańców
+## Mapa wspólna (stan.html) – stan dróg i miejsca od mieszkańców
+
+Dwa tryby: **Oceń drogi** i **Dodaj miejsce** (ławka, wiata, piknik/ognisko, punkt widokowy, ciekawe miejsce, serwis rowerowy – kliknięciem na mapie albo z lokalizacji telefonu). Miejsca: stałe w `dane/miejsca.geojson` + planowane stacje napraw + wiaty/widoki z OSM + zatwierdzone zgłoszenia; warstwy „serwis rowerowy” i „miejsca odpoczynku” na mapie głównej (`skrypty/www/lib/miejsca.js`).
+
 
 Każdy może zaznaczyć odcinki dróg i ocenić ich stan (dobra / średnia / trudna / nieprzejezdna). Zgłoszenia trafiają do moderacji, na mapie pojawiają się po zatwierdzeniu w panelu `/admin/`.
 

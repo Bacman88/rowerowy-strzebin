@@ -73,22 +73,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nowy = ['zatwierdz' => 'zatwierdzone', 'odrzuc' => 'odrzucone', 'wycofaj' => 'wycofane', 'przywroc' => 'oczekuje'][$_POST['akcja'] ?? ''] ?? null;
     $ids = array_filter(array_map('intval', (array)($_POST['id'] ?? [])));
     if ($nowy && $ids) {
-        $u = $db->prepare('UPDATE zgloszenia SET moderacja = ?, moderowano = ? WHERE id = ?');
+        $tab = ($_POST['t'] ?? '') === 'miejsca' ? 'miejsca' : 'zgloszenia';
+        $u = $db->prepare("UPDATE $tab SET moderacja = ?, moderowano = ? WHERE id = ?");
         foreach ($ids as $i) $u->execute([$nowy, hub_teraz(), $i]);
     }
-    header('Location: ./?k=' . urlencode($_POST['k'] ?? 'oczekuje')); exit;
+    header('Location: ./?t=' . urlencode($_POST['t'] ?? 'drogi') . '&k=' . urlencode($_POST['k'] ?? 'oczekuje')); exit;
 }
 
 $k = in_array($_GET['k'] ?? '', ['oczekuje', 'zatwierdzone', 'odrzucone', 'wycofane'], true) ? $_GET['k'] : 'oczekuje';
-$licz = [];
-foreach ($db->query('SELECT moderacja, COUNT(*) n FROM zgloszenia GROUP BY moderacja') as $r) $licz[$r['moderacja']] = (int)$r['n'];
-$q = $db->prepare('SELECT * FROM zgloszenia WHERE moderacja = ? ORDER BY utworzono ' . ($k === 'oczekuje' ? 'ASC' : 'DESC') . ' LIMIT 200');
+$tryb = ($_GET['t'] ?? '') === 'miejsca' ? 'miejsca' : 'drogi';
+$tab = $tryb === 'miejsca' ? 'miejsca' : 'zgloszenia';
+$licz = []; $czeka = [];
+foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja") as $r) $licz[$r['moderacja']] = (int)$r['n'];
+foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
+$q = $db->prepare("SELECT * FROM $tab WHERE moderacja = ? ORDER BY utworzono " . ($k === 'oczekuje' ? 'ASC' : 'DESC') . ' LIMIT 200');
 $q->execute([$k]); $lista = $q->fetchAll();
 $odc = [];
-if ($lista) {
+if ($lista && $tryb === 'drogi') {
     $in = implode(',', array_map(fn($r) => (int)$r['id'], $lista));
     foreach ($db->query("SELECT zgloszenie, odcinek FROM zgloszenia_odcinki WHERE zgloszenie IN ($in)") as $r) $odc[$r['zgloszenie']][] = $r['odcinek'];
 }
+$TYPY = ['lawka' => 'ławka', 'wiata' => 'wiata', 'piknik' => 'piknik / ognisko', 'widok' => 'punkt widokowy', 'ciekawe' => 'ciekawe miejsce', 'serwis' => 'serwis rowerowy'];
 $NAZWY = ['dobra' => 'dobra', 'srednia' => 'średnia', 'trudna' => 'trudna', 'nieprzejezdna' => 'nieprzejezdna'];
 $AKCJE = ['oczekuje' => [['zatwierdz', 'Zatwierdź', 'ok'], ['odrzuc', 'Odrzuć', 'no']],
           'zatwierdzone' => [['wycofaj', 'Wycofaj z mapy', 'no']],
@@ -97,7 +102,7 @@ $AKCJE = ['oczekuje' => [['zatwierdz', 'Zatwierdź', 'ok'], ['odrzuc', 'Odrzuć'
 $csrf = $h($_SESSION['csrf']);
 ?><!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Panel – stan dróg</title>
+<title>Panel – mapa wspólna</title>
 <link rel="stylesheet" href="../lib/leaflet.css">
 <style>
 :root{--bg:#f7f4ec;--card:#fffdf8;--ink:#1d2a23;--muted:#56665c;--line:#e3dccb;--green:#1d3b30}
@@ -106,6 +111,7 @@ header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px
 header h1{font-size:18px;margin:0}header a{color:var(--green)}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs a{padding:5px 10px;border-radius:8px;text-decoration:none;border:1px solid var(--line);color:var(--ink)}
 .tabs a.on{background:var(--green);color:#fff;border-color:var(--green)}
+.tryb a{font-weight:700}.tryb i{font-style:normal;background:#d62828;color:#fff;border-radius:9px;padding:0 6px;font-size:12px;margin-left:4px}
 main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;height:calc(100vh - 58px)}
 .list{overflow:auto;padding:12px;border-right:1px solid var(--line)}
 #map{height:100%}
@@ -122,10 +128,15 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 @media (max-width:800px){main{grid-template-columns:1fr;height:auto}#map{height:50vh;order:-1}.list{border-right:0}}
 </style></head><body>
 <header>
-  <h1>Stan dróg – zgłoszenia</h1>
+  <h1>Panel</h1>
+  <nav class="tabs tryb">
+    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca'] as $tt => $t): ?>
+      <a href="?t=<?= $tt ?>" class="<?= $tryb === $tt ? 'on' : '' ?>"><?= $t ?><?= $czeka[$tt] ? '<i>' . $czeka[$tt] . '</i>' : '' ?></a>
+    <?php endforeach ?>
+  </nav>
   <nav class="tabs">
     <?php foreach (['oczekuje' => 'Oczekujące', 'zatwierdzone' => 'Zatwierdzone', 'odrzucone' => 'Odrzucone', 'wycofane' => 'Wycofane'] as $kk => $t): ?>
-      <a href="?k=<?= $kk ?>" class="<?= $k === $kk ? 'on' : '' ?>"><?= $t ?> (<?= $licz[$kk] ?? 0 ?>)</a>
+      <a href="?t=<?= $tryb ?>&k=<?= $kk ?>" class="<?= $k === $kk ? 'on' : '' ?>"><?= $t ?> (<?= $licz[$kk] ?? 0 ?>)</a>
     <?php endforeach ?>
   </nav>
   <span style="margin-left:auto"><a href="../stan.html" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?wyloguj=1">wyloguj</a></span>
@@ -133,14 +144,22 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <main>
   <div class="list">
     <?php if (!$lista): ?><div class="empty">Brak zgłoszeń w tej zakładce.</div><?php endif ?>
-    <?php foreach ($lista as $r): $n = count($odc[$r['id']] ?? []); ?>
+    <?php foreach ($lista as $r): ?>
+      <?php if ($tryb === 'miejsca'): ?>
+      <div class="z" data-id="<?= (int)$r['id'] ?>" data-typ="<?= $h($r['typ']) ?>" data-lat="<?= (float)$r['lat'] ?>" data-lon="<?= (float)$r['lon'] ?>">
+        <div><span class="chip" style="background:#237647"><?= $h($TYPY[$r['typ']] ?? $r['typ']) ?></span> <b><?= $h($r['nick']) ?></b></div>
+        <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <?php if ($r['nazwa'] !== ''): ?><p><b><?= $h($r['nazwa']) ?></b></p><?php endif ?>
+        <?php if ((string)$r['opis'] !== ''): ?><p><?= $h($r['opis']) ?></p><?php endif ?>
+      <?php else: $n = count($odc[$r['id']] ?? []); ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-stan="<?= $h($r['stan']) ?>">
         <div><span class="chip c-<?= $h($r['stan']) ?>"><?= $h($NAZWY[$r['stan']] ?? $r['stan']) ?></span>
           <b><?= $h($r['nick']) ?></b> · <?= $n ?> odc.</div>
         <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['data_przejazdu'] ? ' · przejazd ' . $h($r['data_przejazdu']) : '' ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
         <?php if ($r['komentarz'] !== '' && $r['komentarz'] !== null): ?><p><?= $h($r['komentarz']) ?></p><?php endif ?>
+      <?php endif ?>
         <?php if ($r['kontakt'] !== ''): ?><div class="priv">kontakt (tylko dla Ciebie): <?= $h($r['kontakt']) ?></div><?php endif ?>
-        <form class="a" method="post"><input type="hidden" name="csrf" value="<?= $csrf ?>"><input type="hidden" name="k" value="<?= $k ?>">
+        <form class="a" method="post"><input type="hidden" name="csrf" value="<?= $csrf ?>"><input type="hidden" name="k" value="<?= $k ?>"><input type="hidden" name="t" value="<?= $tryb ?>">
           <input type="hidden" name="id[]" value="<?= (int)$r['id'] ?>">
           <?php foreach ($AKCJE[$k] as [$a, $t, $cl]): ?><button name="akcja" value="<?= $a ?>" class="<?= $cl ?>"><?= $t ?></button><?php endforeach ?>
         </form>
@@ -151,6 +170,9 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 </main>
 <script src="../lib/leaflet.js"></script>
 <script src="../stan/odcinki.js"></script>
+<script>window.HUB_BASE = "../";</script>
+<script src="../data.js"></script>
+<script src="../lib/miejsca.js"></script>
 <script>
 const ODC_Z = <?= json_encode($odc, JSON_UNESCAPED_UNICODE) ?>;
 const KOL = {dobra:'#2b9348', srednia:'#e0a800', trudna:'#d62828', nieprzejezdna:'#111'};
@@ -161,6 +183,8 @@ for (const s of window.ODC) { const c = s[7], ll = []; for (let i = 0; i < c.len
 const tlo = L.layerGroup().addTo(map);
 for (const id in geo) L.polyline(geo[id], {color:'#8a9399', weight:2, opacity:.45, interactive:false}).addTo(tlo);
 const sel = L.layerGroup().addTo(map);
+// istniejące miejsca – żeby od razu widzieć duplikaty
+const ML = MIEJSCA.warstwy(map, (window.HUB && HUB.places) || []); ML.serwis.addTo(map); ML.odpoczynek.addTo(map);
 let first = true;
 function pokaz(id, stan, fit) {
   sel.clearLayers(); const b = [];
@@ -174,7 +198,12 @@ function pokaz(id, stan, fit) {
 document.querySelectorAll('.z').forEach(el => el.addEventListener('click', e => {
   if (e.target.closest('form')) return;
   document.querySelectorAll('.z.on').forEach(x => x.classList.remove('on')); el.classList.add('on');
-  pokaz(el.dataset.id, el.dataset.stan, true);
+  if (el.dataset.typ) {
+    sel.clearLayers(); const ll = [+el.dataset.lat, +el.dataset.lon];
+    L.marker(ll, {icon: MIEJSCA.icon({typ: el.dataset.typ})}).addTo(sel);
+    L.circle(ll, {radius: 25, color: '#1d4ed8', weight: 2, fill: false}).addTo(sel);
+    map.setView(ll, 17);
+  } else pokaz(el.dataset.id, el.dataset.stan, true);
 }));
 const pierwszy = document.querySelector('.z');
 map.setView([50.62, 18.88], 12);

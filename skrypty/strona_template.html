@@ -112,7 +112,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <div class="stat"><b>{{NPOSTS}}</b><span>słupków (węzłów)</span></div>
     <div class="stat"><b>{{NPLATES}}</b><span>tabliczek kierunkowych</span></div>
   </div>
-  <a class="cta" href="stan.html"><b>Stan dróg – mapa wspólna</b><span>Jeździsz tutaj rowerem? Zaznacz odcinki i oceń, jak się nimi jedzie →</span></a>
+  <a class="cta" href="stan.html"><b>Mapa wspólna</b><span>Jeździsz tutaj rowerem? Oceń stan dróg albo dodaj ławkę, wiatę czy serwis →</span></a>
 </header>
 
 <div class="app">
@@ -123,11 +123,15 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <div class="toggles">
       <label><input type="checkbox" id="t-opt" checked> słupki poza trasami</label>
       <label><input type="checkbox" id="t-poi" checked> ciekawe miejsca i gastronomia</label>
+      <label><input type="checkbox" id="t-serwis" checked> serwis rowerowy</label>
+      <label><input type="checkbox" id="t-odp" checked> miejsca odpoczynku</label>
     </div>
     <div class="key">
       <div><span class="dot" style="background:var(--node)">7</span> słupek na trasie – kliknij, by zobaczyć tabliczki</div>
       <div><span class="dot" style="background:var(--grey)">7</span> pozostałe słupki (część opcjonalna)</div>
       <div><span class="star" style="color:#81552F">★</span> historia i kultura · <span class="star" style="color:#902B38">★</span> gastronomia (przykładowo)</div>
+      <div id="key-mj"></div>
+      <div><a href="stan.html">Brakuje ławki, wiaty albo serwisu? Dodaj miejsce →</a></div>
     </div>
   </aside>
   <div id="map" role="region" aria-label="Mapa tras rowerowych"></div>
@@ -166,6 +170,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 
 <script src="lib/leaflet.js"></script>
 <script src="data.js"></script>
+<script src="lib/miejsca.js"></script>
 <script>
 (function(){
   const H = window.HUB;
@@ -198,10 +203,15 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   const colP = {brown:'#81552F', red:'#902B38', orange:'#B96516', gray:'#505C66', green:'#237647', blue:'#0759A7'};
   const poiL = L.layerGroup().addTo(map);
   H.pois.forEach(q => {
-    const ic = q.icon === 'service' ? '🔧' : '★';
+    const ic = '★';
     L.marker([q.lat, q.lon], {icon:L.divIcon({className:'', html:`<div class="star" style="color:${colP[q.cat]||'#902B38'}">${ic}</div>`, iconSize:[20,20], iconAnchor:[10,10]}), title:q.name})
       .bindPopup(`<b>${q.name}</b>`).addTo(poiL);
   });
+  const ML = MIEJSCA.warstwy(map, H.places || []); ML.serwis.addTo(map); ML.odpoczynek.addTo(map);
+  document.getElementById('t-serwis').onchange = e => e.target.checked ? ML.serwis.addTo(map) : map.removeLayer(ML.serwis);
+  document.getElementById('t-odp').onchange = e => e.target.checked ? ML.odpoczynek.addTo(map) : map.removeLayer(ML.odpoczynek);
+  document.getElementById('key-mj').innerHTML = ['serwis', 'lawka', 'wiata', 'piknik', 'widok'].map(t =>
+    `<span style="display:inline-flex;align-items:center;gap:5px;margin:2px 10px 2px 0"><i style="display:grid;place-items:center;width:18px;height:18px;border-radius:5px;background:${MIEJSCA.TYP[t].c}">${MIEJSCA.svg(t, '#fff', 12)}</i>${MIEJSCA.TYP[t].n.toLowerCase()}</span>`).join('');
   document.getElementById('t-opt').onchange = e => e.target.checked ? offL.addTo(map) : map.removeLayer(offL);
   document.getElementById('t-poi').onchange = e => e.target.checked ? poiL.addTo(map) : map.removeLayer(poiL);
   // list

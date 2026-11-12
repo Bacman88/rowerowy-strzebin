@@ -5,6 +5,7 @@ declare(strict_types=1);
 date_default_timezone_set('Europe/Warsaw');
 
 const STANY = ['dobra', 'srednia', 'trudna', 'nieprzejezdna'];
+const TYPY_MIEJSC = ['lawka', 'wiata', 'piknik', 'widok', 'ciekawe', 'serwis'];
 
 function hub_cfg(): array {
     static $c = null;
@@ -38,6 +39,10 @@ function hub_db(): PDO {
         moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
     $db->exec("CREATE TABLE IF NOT EXISTS zgloszenia_odcinki (
         zgloszenie INT NOT NULL, odcinek VARCHAR(12) NOT NULL, PRIMARY KEY (zgloszenie, odcinek))");
+    $db->exec("CREATE TABLE IF NOT EXISTS miejsca (
+        id $ai, utworzono VARCHAR(19) NOT NULL, typ VARCHAR(12) NOT NULL, nazwa VARCHAR(80) NOT NULL DEFAULT '', opis TEXT,
+        lat DOUBLE PRECISION NOT NULL, lon DOUBLE PRECISION NOT NULL, nick VARCHAR(60) NOT NULL, kontakt VARCHAR(120) NOT NULL DEFAULT '',
+        moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
     if (!$my) $db->exec('PRAGMA busy_timeout=3000');
     return $db;
 }
@@ -59,6 +64,7 @@ function hub_zrzut(): array {
         'utworzono' => hub_teraz(),
         'zgloszenia' => $db->query('SELECT * FROM zgloszenia ORDER BY id')->fetchAll(),
         'zgloszenia_odcinki' => $db->query('SELECT * FROM zgloszenia_odcinki ORDER BY zgloszenie, odcinek')->fetchAll(),
+        'miejsca' => $db->query('SELECT * FROM miejsca ORDER BY id')->fetchAll(),
     ];
 }
 
@@ -72,14 +78,38 @@ function hub_dobowo(): void {
     @touch($znacznik);
     try {
         $db = hub_db();
-        $db->prepare("UPDATE zgloszenia SET kontakt = '' WHERE kontakt <> '' AND utworzono < ?")
-           ->execute([date('Y-m-d H:i:s', strtotime('-1 year'))]);
-        $db->prepare("UPDATE zgloszenia SET ip = '' WHERE ip <> '' AND utworzono < ?")
-           ->execute([date('Y-m-d H:i:s', strtotime('-30 days'))]);
+        foreach (['zgloszenia', 'miejsca'] as $t) {
+            $db->prepare("UPDATE $t SET kontakt = '' WHERE kontakt <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-1 year'))]);
+            $db->prepare("UPDATE $t SET ip = '' WHERE ip <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-30 days'))]);
+        }
         file_put_contents($dir . '/stan_drog_' . date('Y-m-d_His') . '.json',
             json_encode(hub_zrzut(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX);
         $pliki = glob($dir . '/stan_drog_*.json') ?: [];
         sort($pliki);
         foreach (array_slice($pliki, 0, max(0, count($pliki) - 60)) as $p) @unlink($p);
     } catch (Throwable $e) { error_log('hub_dobowo: ' . $e->getMessage()); }
+}
+
+// Wspólne dla zgłoszeń: odczyt JSON, czyszczenie tekstu, limit zgłoszeń z jednego adresu.
+function hub_wejscie(): array {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') hub_json(['blad' => 'Tylko POST'], 405);
+    $in = json_decode(file_get_contents('php://input') ?: '', true);
+    if (!is_array($in)) hub_json(['blad' => 'Nieprawidłowe dane'], 400);
+    if (trim((string)($in['www'] ?? '')) !== '') hub_json(['ok' => true]);   // pułapka na boty
+    return $in;
+}
+function hub_txt(array $in, string $k, int $max): string {
+    return mb_substr(trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', (string)($in[$k] ?? ''))), 0, $max);
+}
+function hub_ip_limit(PDO $db): string {
+    $ip = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . hub_cfg()['sol']);
+    $od = date('Y-m-d H:i:s', time() - 3600); $n = 0;
+    foreach (['zgloszenia', 'miejsca'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE ip = ? AND utworzono > ?"); $q->execute([$ip, $od]); $n += (int)$q->fetchColumn(); }
+    if ($n >= 20) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);
+    return $ip;
+}
+function hub_powiadom(string $temat, string $tresc): void {
+    $mail = hub_cfg()['powiadom'];
+    if ($mail) @mail($mail, '=?UTF-8?B?' . base64_encode($temat) . '?=',
+        $tresc . "\n\nPanel: https://" . ($_SERVER['HTTP_HOST'] ?? '') . "/admin/", "Content-Type: text/plain; charset=utf-8");
 }

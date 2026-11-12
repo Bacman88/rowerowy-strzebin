@@ -34,8 +34,24 @@ for p in D["posts"]:
         imgs.append(fn)
     posts.append(dict(nr=p["nr"], lat=round(p["lat"], 6), lon=round(p["lon"], 6), loc=p.get("loc", ""), pole=p["pole"], agree=p.get("agree", []),
                       routes=sorted(set(onr.get(p["nr"], [])), key=int), imgs=imgs))
-pois = [dict(name=q["name"], lat=q["lat"], lon=q["lon"], cat=q["cat"], icon=q.get("icon", "")) for q in D.get("pois", []) if q.get("icon") != "wc"]
-open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois), ensure_ascii=False, separators=(",", ":")) + ";")
+pois = [dict(name=q["name"], lat=q["lat"], lon=q["lon"], cat=q["cat"], icon=q.get("icon", "")) for q in D.get("pois", []) if q.get("icon") not in ("wc", "service")]
+# miejsca odpoczynku i serwisu: planowane stacje napraw + lista ręczna (dane/miejsca.geojson) + OSM (wiaty, piknik, widoki, ławki)
+from shapely.geometry import MultiPoint, Point
+hull = MultiPoint([(p["lon"], p["lat"]) for p in D["posts"]]).convex_hull.buffer(0.04)
+places = [dict(typ="stacja", nazwa="Stacja napraw rowerów", opis="planowana – fundusz sołecki 2027", lat=q["lat"], lon=q["lon"], plan=1)
+          for q in D.get("pois", []) if q.get("icon") == "service"]
+for f in json.load(open("../dane/miejsca.geojson"))["features"]:
+    x, y = f["geometry"]["coordinates"]; places.append(dict(f["properties"], lat=y, lon=x))
+for f in json.load(open("../dane/osm2_clean.geojson"))["features"]:
+    q = f["properties"]; g = f["geometry"]
+    if g["type"] != "Point": continue
+    typ = ("wiata" if q.get("amenity") == "shelter" and q.get("shelter_type") in (None, "picnic_shelter", "weather_shelter", "lean_to", "basic_hut") else
+           "piknik" if q.get("tourism") == "picnic_site" or q.get("leisure") in ("picnic_table", "firepit") else
+           "widok" if q.get("tourism") == "viewpoint" else "lawka" if q.get("amenity") == "bench" else None)
+    if typ and hull.contains(Point(g["coordinates"])):
+        places.append(dict(typ=typ, nazwa=q.get("name", ""), opis="", lat=g["coordinates"][1], lon=g["coordinates"][0], osm=1))
+open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places), ensure_ascii=False, separators=(",", ":")) + ";")
+print("miejsca:", len(places))
 M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
 PDFS = [("Projekt – komplet (opis, kosztorys, mapy, katalog)", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy.pdf")]),
         ("Opis projektu i kosztorys", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy_opis_i_kosztorys.pdf")]),
