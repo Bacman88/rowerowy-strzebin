@@ -64,7 +64,7 @@ ol.key b{{color:#1d2a23}}
 <li><b>Tabliczki</b> po obu stronach słupka: ze strzałką w lewo – po lewej, w prawo – po prawej; każda ustawiona wzdłuż swojej drogi.</li>
 <li><b>Materiał</b>: płyta kompozytowa (dibond) 3 mm cięta po obrysie, druk z obu stron na folii odpornej na UV.</li>
 <li><b>Naklejka węzła</b> z numerem słupka i <b>paski tras</b> (te same kolory i numery co kółka) na wysokości ok. 1,7 m.</li>
-<li><b>Wysokości</b> oszacowane ze zdjęć istniejących słupków (rura ok. 3 m, nazwy ulic ok. 750 × 250 mm na szczycie rury, ich dolna krawędź ok. 2,7 m) – do zmierzenia w terenie. Pod nazwami ulic mieszczą się dwa rzędy drogowskazów, dolna krawędź ok. 2,2 m; wymagana wysokość do uzgodnienia z zarządcą drogi.</li>
+<li><b>Wysokości</b> oszacowane ze zdjęć istniejących słupków (rura ok. 3 m, nazwy ulic na szczycie rury, mniej więcej tej samej wielkości co drogowskazy, ich dolna krawędź ok. 2,8 m) – do zmierzenia w terenie. Pod nazwami ulic mieszczą się dwa rzędy drogowskazów, dolna krawędź ok. 2,3 m; wymagana wysokość do uzgodnienia z zarządcą drogi.</li>
 <li>Stan techniczny, nośność i własność każdego słupka – do potwierdzenia przed montażem.</li>
 </ul></div>
 </div>
@@ -99,20 +99,20 @@ document.fonts.load("600 40px 'Fira Sans Condensed'").then(() => {{
   const ulice = ['ul. Wojska Polskiego', 'ul. Kościuszki'];
   // jak w Strzebiniu: białe tabliczki z niebieską obwódką i napisem, strzałka na zewnętrznym końcu, herb gminy przy słupku;
   // na szczycie rury, po obu stronach (jak ul. Lubliniecka / Sienkiewicza)
-  ulice.forEach((u, i) => {{ const top = y(2.98), w = 750 * S_, h = 250 * S_, x = i ? X + 1.2 : X - 1.2 - w, lewa = !i;
+  ulice.forEach((u, i) => {{ const top = y(2.98), w = 800 * S_, h = 200 * S_, x = i ? X + 1.2 : X - 1.2 - w, lewa = !i;
     el('rect', {{x, y: top, width: w, height: h, rx: .3, fill: '#fff', stroke: '#1f4fa0', 'stroke-width': .35}});
-    el('path', {{d: lewa ? `M ${{x + 1}} ${{top + h / 2}} l 2.2 -1.7 v 3.4 z` : `M ${{x + w - 1}} ${{top + h / 2}} l -2.2 -1.7 v 3.4 z`, fill: '#1f4fa0'}});
-    const hx = lewa ? x + w - 3.6 : x + 1;
-    el('path', {{d: `M ${{hx}} ${{top + 2}} h 2.6 v 2.6 q 0 2 -1.3 2.8 q -1.3 -.8 -1.3 -2.8 z`, fill: '#1f4fa0'}});
-    const tx = el('text', {{x: x + w / 2 + (lewa ? -.8 : .8), y: top + 6, 'text-anchor': 'middle', fill: '#1f4fa0', 'font-size': 3, 'font-family': 'Arial', 'font-weight': 700}}, u);
+    el('path', {{d: lewa ? `M ${{x + 1}} ${{top + h / 2}} l 1.8 -1.4 v 2.8 z` : `M ${{x + w - 1}} ${{top + h / 2}} l -1.8 -1.4 v 2.8 z`, fill: '#1f4fa0'}});
+    const hx = lewa ? x + w - 3.2 : x + 1;
+    el('path', {{d: `M ${{hx}} ${{top + 1.6}} h 2.2 v 2.2 q 0 1.7 -1.1 2.4 q -1.1 -.7 -1.1 -2.4 z`, fill: '#1f4fa0'}});
+    const tx = el('text', {{x: x + w / 2 + (lewa ? -.8 : .8), y: top + 5.1, 'text-anchor': 'middle', fill: '#1f4fa0', 'font-size': 2.8, 'font-family': 'Arial', 'font-weight': 700}}, u);
     if (tx.getComputedTextLength() > w - 10) {{ tx.setAttribute('textLength', w - 10); tx.setAttribute('lengthAdjust', 'spacingAndGlyphs'); }}
-    el('rect', {{x: X - 1.9, y: top + 4.4, width: 3.8, height: 1.4, rx: .3, fill: '#3b4448'}}); }});
+    el('rect', {{x: X - 1.9, y: top + 3.3, width: 3.8, height: 1.4, rx: .3, fill: '#3b4448'}}); }});
   el('text', {{x: X, y: y(2.98) - 2, 'text-anchor': 'middle', fill: '#4b5d53', 'font-size': 2.5, 'font-family': 'Arial'}}, 'istniejące nazwy ulic');
   // tabliczki: pary lewa/prawa na tych samych wysokościach
   const L_ = TAB.filter(t => t.d === 'left'), R_ = TAB.filter(t => t.d === 'right'), rows = Math.max(L_.length, R_.length);
   const pw = 800 * S_, ph = 200 * S_;
   for (let r = 0; r < rows; r++) {{
-    const top = y(2.68 - r * 0.23);
+    const top = y(2.73 - r * 0.23);
     for (const [t, side] of [[L_[r], 'l'], [R_[r], 'r']]) {{
       if (!t) continue;
       const g = el('g', {{}}); const x = side === 'l' ? X - 1.2 - pw : X + 1.2;
@@ -128,7 +128,7 @@ document.fonts.load("600 40px 'Fira Sans Condensed'").then(() => {{
     el('rect', {{x: X - 1.2, y: yb, width: 2.4, height: 1.2, fill: k[0]}}); el('text', {{x: X, y: yb + .95, 'text-anchor': 'middle', fill: k[1], 'font-size': 1, 'font-family': 'Arial', 'font-weight': 700}}, r); }});
   // wymiary (orientacyjne)
   const dim = (m, t) => {{ el('line', {{x1: 96, x2: 101, y1: y(m), y2: y(m), stroke: '#a0700f', 'stroke-width': .25}}); el('text', {{x: 102, y: y(m) + 1.2, fill: '#a0700f', 'font-size': 3, 'font-family': 'Arial'}}, t); }};
-  dim(3.0, '≈ 3,0 m'); dim(2.73, '≈ 2,7 m'); dim(2.23, '≈ 2,2 m'); dim(1.72, '≈ 1,7 m'); dim(0, '0');
+  dim(3.0, '≈ 3,0 m'); dim(2.78, '≈ 2,8 m'); dim(2.28, '≈ 2,3 m'); dim(1.72, '≈ 1,7 m'); dim(0, '0');
   el('text', {{x: 6, y: G - 3, fill: '#4b5d53', 'font-size': 3, 'font-family': 'Arial'}}, 'skala ok. 1:25 · tabliczki 800 × 200 mm');
   el('text', {{x: X - 3, y: y(2.08), 'text-anchor': 'end', fill: '#4b5d53', 'font-size': 2.7, 'font-family': 'Arial'}}, '← strzałka w lewo: po lewej');
   el('text', {{x: X + 3, y: y(2.08), 'text-anchor': 'start', fill: '#4b5d53', 'font-size': 2.7, 'font-family': 'Arial'}}, 'po prawej: strzałka w prawo →');
