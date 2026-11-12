@@ -451,7 +451,7 @@ with PdfPages(OUT + "_katalog.pdf") as pdf:
         a.text(70, yy, "\n".join(lines_), fontsize=7.6, va="top", linespacing=1.3)
         a.text(152, yy, pl_ + ("\n(istn.)" if p.get("slup_jest") else ""), fontsize=7.4, va="top", color=pc, linespacing=1.3)
         a.text(165, yy, str(len(MANIFEST[str(p["nr"])]) if MANIFEST else len(p["groups"])), fontsize=7.6, va="top")
-        a.text(175, yy, " + ".join(x.replace("Nadleśnictwo", "Nadl.").replace("Gmina Koszęcin", "Gmina") for x in p["agree"]) or "—", fontsize=7.6, va="top")
+        a.text(175, yy, " + ".join(x.replace("Nadleśnictwo", "Nadl.").replace("Gmina Koszęcin", "Gmina") for x in p["agree"]) + (f"\n(gm. {p['gmina']})" if p.get("gmina", "Koszęcin") != "Koszęcin" else "") or "—", fontsize=7.6, va="top", linespacing=1.3)
         yy -= hrow
         a.plot([15, 196], [yy + 1.2, yy + 1.2], color="#ddd", lw=0.4)
     a.text(15, 14, "Odległości liczone po drogach z OpenStreetMap do centrum miejscowości. Zwrot ← / → wstępny (wschód = →, zachód = ←),\n"
@@ -505,6 +505,7 @@ with PdfPages(OUT + "_katalog.pdf") as pdf:
                bbox=dict(boxstyle="circle,pad=0.35", fc=c, ec="none"))
         a.text(28, top - 2.5, p["loc"], fontsize=13, weight="bold", color="#1d3b30", va="center")
         a.text(28, top - 8.5, f"{p['lat']:.5f}, {p['lon']:.5f} · {p['status']} · uzgodnienie: {', '.join(p['agree']) or 'brak'}"
+               + (f" (teren gm. {p['gmina']})" if p.get("gmina", "Koszęcin") != "Koszęcin" else "")
                + (f" · tabliczek w pliku: {p['n_plates']}" if p["n_plates"] else ""), fontsize=7.5, color="#5b6b62", va="center")
         if MANIFEST:
             for k, item in enumerate(MANIFEST[str(p["nr"])]):

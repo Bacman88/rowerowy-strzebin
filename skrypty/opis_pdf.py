@@ -132,12 +132,20 @@ _las = _tr(_tf, _uu([_sh(f["geometry"]).buffer(0) for f in _js.load(open(f"{S}/d
 _siec = _uu([_tr(_tf, _sh(f["geometry"])) for f in _js.load(open(f"{O}/drogowskazy_trasy.geojson"))["features"] if str(f["properties"].get("alt")) != "True"])
 KM_SIEC, KM_LAS = _siec.length / 1000, _siec.intersection(_las).length / 1000
 N_LAS = sum(1 for p in DP["posts"] if p["who"] == "nadl_K")
+import collections as _co
+_poza = _co.Counter(p.get("gmina", "Koszęcin") for p in DP["posts"] if p.get("gmina", "Koszęcin") != "Koszęcin")
+_n = sum(_poza.values())
+_ile = f"{_n} słupek leśny stoi" if _n == 1 else (f"{_n} słupki leśne stoją" if 2 <= _n % 10 <= 4 and not 12 <= _n % 100 <= 14 else f"{_n} słupków leśnych stoi")
+_gd = [("Kalet" if g == "Kalety" else f"gminy {g}") + f" ({n})" for g, n in _poza.most_common()]
+POZA = (f" Lasy nadleśnictwa sięgają poza gminę Koszęcin: {_ile} na terenie " + (", ".join(_gd[:-1]) + " i " + _gd[-1] if len(_gd) > 1 else _gd[0])
+        + ". W lesie o zgodzie decyduje Nadleśnictwo Koszęcin, niezależnie od granic gmin – sąsiednie gminy warto jednak poinformować, "
+          "bo trasy prowadzą do Kalet, Sośnicy, Piasku i Boronowa.") if _poza else ""
 wsp_box = Table([[[Paragraph("WARUNEK: WSPÓŁPRACA GMINY I NADLEŚNICTWA", BOXH), Paragraph(
     f"Około {KM_LAS / KM_SIEC * 100:.0f}% sieci tras pokazowych ({km(KM_LAS)} z {km(KM_SIEC)} km) biegnie przez lasy, a {N_LAS} z {NPOST} słupków stoi w lasach "
     "Nadleśnictwa Koszęcin. Ulice, chodniki i drogi gminne są w gestii Gminy Koszęcin, drogi leśne – Nadleśnictwa Koszęcin. "
     "Projekt da się zrealizować w całości tylko wspólnie: gmina jako organizator i właściciel tabliczek, nadleśnictwo jako zarządca dróg leśnych "
     "(zgody na słupki, wskazanie dróg do jazdy rowerem, ewentualnie współfinansowanie etapu 2). Obie instytucje mają siedziby w Koszęcinie, "
-    "co ułatwia wspólne ustalenia.", ParagraphStyle("boxp", parent=BOX, leftIndent=0))]]], colWidths=[W])
+    "co ułatwia wspólne ustalenia." + POZA, ParagraphStyle("boxp", parent=BOX, leftIndent=0))]]], colWidths=[W])
 wsp_box.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#2f6b3a")), ("LEFTPADDING", (0, 0), (-1, -1), 12),
     ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
 st.append(Spacer(1, 6)); st.append(wsp_box)

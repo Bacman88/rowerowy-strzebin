@@ -88,6 +88,34 @@ section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 .dl .dl-f a{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 10px;border-radius:8px;min-width:54px}
 .dl-f b{font-size:14px}.dl-f span{font-size:11px;color:var(--muted)}
 .bands{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+/* ===== Słupki i tabliczki – jak je czytać ===== */
+#tabliczki h3.sub{font-size:19px;margin:30px 0 4px}
+#tabliczki p.sub{margin:0 0 12px;color:var(--muted);max-width:760px}
+.anat{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:22px;align-items:center}
+.anat-plate{position:relative}
+.anat-plate svg,.kol svg,.slupek svg{width:100%;height:auto;display:block}
+.callout{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:#e9b949;color:#1d2a23;font:800 13px/22px Inter,sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.anat-key{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.anat-key li{display:grid;grid-template-columns:26px 1fr;gap:10px;font-size:14.5px;color:var(--muted)}
+.anat-key li b{color:var(--ink)}
+.anat-key .callout{position:static;transform:none;display:inline-block}
+.kolory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.kol{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.kol h4{margin:10px 0 2px;font-size:16px;display:flex;align-items:center;gap:8px}
+.kol h4 i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.kol p{margin:0;color:var(--muted);font-size:14px}
+.slupek-box{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px;align-items:center}
+.slupek{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);row-gap:8px;padding:6px 0}
+.slupek .pl{display:flex}.slupek .pl.l{grid-column:1;justify-content:flex-end}.slupek .pl.r{grid-column:3}
+.slupek .pl > div{width:100%;max-width:330px}
+.slupek .rura{grid-column:2;grid-row:1 / -1;background:linear-gradient(90deg,#7f888d,#c7ced2 35%,#6f787d);border-radius:2px;position:relative;margin:-10px 0 0}
+.slupek .rura .n{position:absolute;bottom:62px;left:-7px;right:-7px;height:34px;background:#fff;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(0,0,0,.1)}
+.slupek .rura .n i{width:26px;height:26px;border-radius:50%;background:var(--node);color:#fff;font:700 11.5px/26px Inter;text-align:center;font-style:normal}
+.slupek .rura .b{position:absolute;left:0;right:0;height:11px;font:700 8.5px/11px Inter;text-align:center}
+.slupek .stopka{grid-column:1 / -1;height:110px}
+.reg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:900px){.anat,.slupek-box{grid-template-columns:1fr}.kolory{grid-template-columns:repeat(2,minmax(0,1fr))}.reg{grid-template-columns:1fr}}
+@media (max-width:560px){.kolory{grid-template-columns:1fr}.callout{width:22px;height:22px;font-size:11.5px;line-height:18px}}
 .pole{width:34px;height:150px;background:linear-gradient(90deg,#7f888d,#c7ced2 35%,#6f787d);border-radius:2px;position:relative}
 .pole .n{position:absolute;top:22px;left:0;right:0;height:38px;background:#fff;display:grid;place-items:center}
 .pole .n i{width:28px;height:28px;border-radius:50%;background:var(--node);color:#fff;font:700 12px/28px Inter;text-align:center;font-style:normal}
@@ -231,6 +259,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <nav class="jump" aria-label="Na stronie">
     <a class="main" href="#wspolna"><span class="num">1</span>Mapa wspólna – oceń drogę, dodaj miejsce, wyznacz trasę</a>
     <a href="#trasy"><span class="num">2</span>Proponowane trasy i drogowskazy</a>
+    <a href="#tabliczki"><span class="num">3</span>Słupki i tabliczki – jak je czytać</a>
     <a href="#dlaczego">Dlaczego to robimy</a>
     <a href="#pobierz">Do pobrania</a>
   </nav>
@@ -365,6 +394,47 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 </div>
 </section>
 
+<section id="tabliczki" class="msec">
+  <h2><span class="num">3</span>Słupki i tabliczki – jak je czytać</h2>
+  <p class="lead2">Sercem projektu są <b>słupki z tabliczkami kierunkowymi</b>. Na każdym skrzyżowaniu rowerzysta widzi, dokąd prowadzi każda droga, ile ma do celu i którą trasą jedzie – bez telefonu i bez znajomości okolicy.</p>
+
+  <div class="card anat">
+    <div class="anat-plate" id="tb-anat" role="img" aria-label="Przykładowa tabliczka z opisanymi elementami"></div>
+    <ol class="anat-key">
+      <li><span class="callout">1</span><span><b>Strzałka</b> – w którą stronę skręcić. Tabliczka sama jest strzałką: grot wskazuje drogę.</span></li>
+      <li><span class="callout">2</span><span><b>Rower</b> – oznakowanie dla rowerzystów, inne niż drogowe i turystyczne.</span></li>
+      <li><span class="callout">3</span><span><b>Cel</b> – miejscowość albo miejsce, do którego prowadzi ta droga.</span></li>
+      <li><span class="callout">4</span><span><b>Kółka tras</b> – w tę stronę jadą trasy pokazowe o tych numerach (kolory jak na mapie).</span></li>
+      <li><span class="callout">5</span><span><b>Odległość po drogach</b> – rzeczywista długość dojazdu rowerem, a nie w linii prostej.</span></li>
+      <li><span class="callout">6</span><span><b>Drugi cel</b> w tym samym kierunku – zawsze dalszy, pod bliższym.</span></li>
+    </ol>
+  </div>
+
+  <h3 class="sub">Kolor mówi, dokąd prowadzi tabliczka</h3>
+  <p class="sub">Sześć kolorów tła, a przy celach innych niż miejscowości – piktogram (kościół, sztućce, klucz, piłka…), żeby dało się je rozpoznać z daleka.</p>
+  <div class="kolory" id="tb-kolory"></div>
+
+  <h3 class="sub">Cały słupek – przykład węzła 25</h3>
+  <div class="card slupek-box">
+    <div class="slupek" id="tb-slupek" role="img" aria-label="Słupek nr 25 z tabliczkami, numerem węzła i paskami tras"></div>
+    <div>
+      <p style="margin:0 0 10px;color:var(--muted);font-size:14.5px">Tabliczki ze strzałką w lewo mocujemy po lewej stronie słupka, ze strzałką w prawo – po prawej, jedna pod drugą. Niżej <b>naklejka z numerem węzła</b> (ten sam numer na mapie i w pliku GPX) i <b>kolorowe paski tras</b>, które przez ten węzeł przechodzą.</p>
+      <p style="margin:0;color:var(--muted);font-size:14.5px">Rowerzysta jadący czerwoną trasą 1 szuka na każdym słupku czerwonego paska z „1”, a na tabliczkach – czerwonego kółka. Przy zmianie przebiegu trasy wystarczy wymienić pasek i nakleić albo zakleić kółko – same tabliczki zostają.</p>
+    </div>
+  </div>
+
+  <h3 class="sub">Zasady</h3>
+  <div class="reg">
+    <div class="card"><h3>Odległość po drodze</h3><p>Liczona po drogach wygodnych dla roweru (asfalt i dobre drogi leśne mają pierwszeństwo przed piachem), zaokrąglona do 0,1 km. Do miejscowości – do jej centrum, do miejsc – do samego miejsca.</p></div>
+    <div class="card"><h3>Najwyżej dwa cele</h3><p>Na jednej tabliczce dwa cele w tym samym kierunku i w tym samym kolorze, bliższy u góry. Cel w innym kolorze albo w innym kierunku dostaje osobną tabliczkę.</p></div>
+    <div class="card"><h3>Ciągłość</h3><p>Cel pokazany na słupku powtarza się na kolejnych słupkach aż do celu – raz obrany kierunek da się utrzymać. Nie pokazujemy miejscowości, w której właśnie jesteś.</p></div>
+    <div class="card"><h3>Numer węzła</h3><p>Każdy słupek ma numer – ten sam w terenie, na mapie i w GPX. Trasę łatwo opisać („od 25 przez 3 do 11”), a w razie kłopotu łatwo powiedzieć, gdzie się jest.</p></div>
+    <div class="card"><h3>Kółka i paski to naklejki</h3><p>Numery tras na tabliczkach i paski na słupkach są naklejane. Nową trasę można dodać albo zmienić bez wymiany tabliczek.</p></div>
+    <div class="card"><h3>Wymiary i materiał</h3><p>Tabliczka 800 × 200 mm, płyta kompozytowa (dibond) 3 mm cięta po obrysie, druk z obu stron na folii odpornej na słońce. Mocowanie obejmami do słupka Ø 60 mm – także do istniejących słupków z nazwami ulic.</p></div>
+  </div>
+  <p class="tag" style="margin-top:12px">To nie są znaki drogowe ani znaki szlaków turystycznych, tylko tablice informacyjne. Przy drogach publicznych potrzebna jest zgoda zarządcy drogi, a w lesie – Nadleśnictwa Koszęcin.</p>
+</section>
+
 <section id="dlaczego">
   <h2>Dlaczego to robimy</h2>
   <div class="grid3 why">
@@ -383,14 +453,6 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <div class="card"><h3>Mapa wspólna</h3><p>Każdy może ocenić drogę, dodać ławkę, wiatę czy serwis (ze zdjęciem), zaproponować zmianę tabliczki albo wyznaczyć własną trasę – pobrać ją jako GPX lub zaproponować na mapę. Zgłoszenie pojawia się na mapie po sprawdzeniu przez administratora; e-mail ani telefon nie są publikowane.</p></div>
     <div class="card"><h3>Tabliczki kierunkowe</h3><p>Proste tablice informacyjne: nazwa miejscowości lub miejsca, odległość liczona po drodze i strzałka. Kolor tła mówi, czy to miejscowość, szlak, zabytek czy gastronomia.</p></div>
     <div class="card"><h3>Węzły, paski i kółka tras</h3><p>Każdy słupek ma numer – ten sam na mapie i w terenie. Pod numerem kolorowe paski tras, które przez niego przebiegają, a na tabliczkach przy nazwie celu kółka z numerami tras: „Łazy ①④⑥” znaczy, że w tę stronę jadą trasy 1, 4 i 6.</p></div>
-  </div>
-  <div class="card" style="margin-top:16px">
-    <div class="bands">
-      <div class="pole"><div class="n"><i>25</i></div>
-        <div class="b" style="top:66px;background:#d62828;color:#fff">1</div><div class="b" style="top:82px;background:#15803d;color:#fff">3</div>
-        <div class="b" style="top:98px;background:#7e22ce;color:#fff">4</div><div class="b" style="top:114px;background:#14b8d4;color:#000">6</div></div>
-      <p style="margin:0;max-width:640px;color:var(--muted);font-size:14.5px">Przykład: słupek 25 w Strzebiniu. Rowerzysta jadący czerwoną trasą 1 widzi na każdym słupku swój czerwony pasek z „1”. Przy zmianie przebiegu trasy wystarczy wymienić pasek i dokleić albo zakleić kółko na tabliczce – same tabliczki zostają.</p>
-    </div>
   </div>
 </section>
 
@@ -457,7 +519,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     const imgs = p.imgs.map(f => `<img src="tabliczki/${f}" alt="tabliczka" loading="lazy">`).join('');
     const st = {'istniejący':'istniejący słupek','nowy':'nowy słupek','opcjonalny':'słupek opcjonalny'}[p.pole] || p.pole;
     m.bindPopup(`<div class="pp"><h3>Węzeł ${p.nr}</h3><div class="loc">${p.loc || ''}</div>${chips ? '<div>' + chips + '</div>' : ''}${imgs}
-      <div class="tag">${st}${p.agree.length ? ' · uzgodnienie: ' + p.agree.join(', ') : ''}</div></div>`, {maxWidth:300});
+      <div class="tag">${st}${p.agree.length ? ' · uzgodnienie: ' + p.agree.join(', ') : ''}${p.gmina && p.gmina !== 'Koszęcin' ? ' (teren gm. ' + p.gmina + ')' : ''}</div></div>`, {maxWidth:300});
     (on ? onL : offL).addLayer(m);
   });
   const colP = {brown:'#81552F', red:'#902B38', orange:'#B96516', gray:'#505C66', green:'#237647', blue:'#0759A7'};
@@ -996,7 +1058,10 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar && S[id].pomiar !== 'osm') S[id].ll.forEach(p => b.extend(p));
   for (const p of (window.HUB?.posts || [])) b.extend([p.lat, p.lon]);
   const calosc = () => map.fitBounds(b.isValid() ? b : [[50.55, 18.8], [50.7, 19.0]], {padding:[20, 20]});
-  calosc(); const NAV = NAWIGACJA(map, $('wsp'), calosc);
+  // start: przybliżenie, przy którym widać numery węzłów (13), środek na słupkach; „⌂” pokazuje całość
+  const wb = L.latLngBounds((window.HUB?.posts || []).map(p => [p.lat, p.lon]));
+  if (wb.isValid()) map.setView(wb.getCenter(), Math.max(13, Math.min(14, map.getBoundsZoom(wb, false, L.point(40, 40))))); else calosc();
+  const NAV = NAWIGACJA(map, $('wsp'), calosc);
   if (window.HUB?.gmina) L.polyline(HUB.gmina, {color:'#8a5300', weight:2, dashArray:'7 6', opacity:.65, interactive:false, renderer: rnd}).addTo(map);
   KLIK.dodaj(NAV);
   rysuj(); rysujSel();
@@ -1015,6 +1080,54 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   }).catch(() => {
     msg('Zapisywanie zgłoszeń jest teraz niedostępne – mapa pokazuje tylko dotychczasowe pomiary.');
   });
+})();
+</script>
+<script>
+// ===== Słupki i tabliczki – przykłady rysowane tym samym kodem co tabliczki w projekcie (lib/tabliczka.js) =====
+(() => {
+  const TB = window.TABLICZKA, T = window.TABD, H = window.HUB || {posts: []};
+  if (!TB || !T) return;
+  const post = n => H.posts.find(p => p.nr === n);
+  const KOLR = (window.HUB && HUB.routes) || [];
+  // 1. budowa tabliczki: dwa cele w prawo, oba z kółkami tras (najlepiej słupek 3)
+  let ex = null;
+  for (const n of [3, 25, 2]) { const p = post(n); const t = p && p.tab.find(t => t.d === 'right' && t.cat === 'blue' && t.e.length === 2 && t.e.some(e => (e[3] || []).length)); if (t) { ex = t; break; } }
+  if (!ex) ex = {d: 'right', cat: 'blue', e: [['Bukowiec', '4,0 km', null, ['1', '4', '6']], ['Kalety', '6,9 km', null, ['3']]]};
+  const W = 800, lay = TB.bestLayout(ex.d, W, ex.e), box = document.getElementById('tb-anat');
+  box.innerHTML = TB.svg(ex.d, W, ex.cat, ex.e).svg;
+  if (lay) {
+    const sz = lay.size, nameX = ex.d === 'left' ? 154 + 12 + 128 + 24 : 54 + 12 + 128 + 24, fw = W - 208;
+    const kmR = (ex.d === 'left' ? 154 : 54) + fw - 12 - 16, bikeX = (ex.d === 'left' ? 154 : 54) + 12 + 64;
+    const it = lay.items, top0 = it[0].lines[0][1] - sz * .72;
+    const pts = [[ex.d === 'left' ? 100 : W - 100, 34, 1], [bikeX, 18, 2], [nameX + 6, top0 - 12, 3]];
+    const dIt = it.find(x => x.dots); if (dIt) pts.push([dIt.dots[0] + dIt.dots[2] / 2, dIt.dots[1] - 13, 4]);
+    pts.push([kmR - 40, top0 - 12, 5]);
+    if (it[1]) pts.push([nameX + 6, it[1].lines[0][1] + 16, 6]);
+    for (const [x, y, n] of pts) { const c = document.createElement('span'); c.className = 'callout'; c.textContent = n; c.style.left = (x + 2) / (W + 4) * 100 + '%'; c.style.top = (y + 2) / 204 * 100 + '%'; box.appendChild(c); }
+  }
+  // 2. kolory – przykłady z projektu (cel i odległość z prawdziwego słupka)
+  const znajdz = (cat, pref) => { for (const p of H.posts) for (const t of p.tab) if (t.cat === cat && (!pref || t.e.some(e => e[0] === pref))) return t; return null; };
+  const KOLORY = [
+    ['blue', 'Strzebiń', 'Miejscowości', 'Sąsiednie wsie i miasta – najwięcej tabliczek. Kółka przy nazwie pokazują trasy pokazowe.'],
+    ['green', 'Leśno Rajza', 'Szlaki i przyroda', 'Dojazd do szlaków rowerowych – Leśno Rajzy i Liswarciańskiego Szlaku Rowerowego.'],
+    ['brown', 'Kościół św. Krzyża', 'Zabytki, historia i kultura', 'Kościoły, kapliczki, pomniki i miejsca spotkań, np. Piekarniok.'],
+    ['red', 'Zagroda u Czesi', 'Gastronomia', 'Lokale przy trasach. Mogą współfinansować oznakowanie – na tych samych zasadach dla wszystkich.'],
+    ['gray', 'WC', 'Infrastruktura dla rowerzystów', 'Stacje naprawy rowerów, WC, woda, parkingi.'],
+    ['orange', 'GOSiR Koszęcin', 'Sport i rekreacja', 'Boiska, basen, place zabaw.']];
+  document.getElementById('tb-kolory').innerHTML = KOLORY.map(([cat, pref, tyt, opis]) => {
+    const t = znajdz(cat, pref) || znajdz(cat); if (!t) return '';
+    return `<div class="kol">${TB.svg(t.d, 800, t.cat, t.e).svg}<h4><i style="background:${T.PALETTE[cat]}"></i>${tyt}</h4><p>${opis}</p></div>`;
+  }).join('');
+  // 3. cały słupek 25
+  const p = post(25) || H.posts.find(p => p.tab.length >= 4);
+  if (p) {
+    const el = document.getElementById('tb-slupek'), rows = p.tab.length;
+    let h = p.tab.map((t, i) => `<div class="pl ${t.d === 'left' ? 'l' : 'r'}" style="grid-row:${i + 1}"><div>${TB.svg(t.d, 800, t.cat, t.e).svg}</div></div>`).join('');
+    const rr = (p.routes || []).map((r, i) => { const R = KOLR.find(x => String(x.id) === String(r)) || {}; return `<div class="b" style="bottom:${46 - i * 12}px;background:${R.col || '#555'};color:${R.txt || '#fff'}">${r}</div>`; }).join('');
+    h += `<div class="stopka" style="grid-row:${rows + 1}"></div><div class="rura" style="grid-row:1 / ${rows + 2}"><div class="n"><i>${p.nr}</i></div>${rr}</div>`;
+    el.innerHTML = h;
+    el.closest('.slupek-box').previousElementSibling.textContent = `Cały słupek – przykład węzła ${p.nr}`;
+  }
 })();
 </script>
 </body>

@@ -139,6 +139,15 @@ SLUP_JEST = {46, 47}
 MOVE = {}
 FORCE_WHO = {**{n: "nadl_K" for n in range(36, 42)}, **{n: "gmina" for n in range(42, 48)}, 48: "nadl_K", 49: "gmina", 50: "nadl_K", 51: "nadl_K", 52: "nadl_K", 53: "nadl_K", 54: "nadl_K", 55: "nadl_K", 56: "nadl_K", 57: "nadl_K"}   # 6.11: wg Bartosza   # 6.11: leśne propozycje Bartosza – do ustalenia   # słupki w lesie: zakładamy brak (nowy)
 out = []
+# 12.11.2026: w której gminie stoi słupek (część słupków leśnych N-ctwa Koszęcin stoi w Kaletach, gm. Woźniki i gm. Boronów)
+import os as _os
+_GM = []
+if _os.path.exists("../dane/osm_gmina.geojson"):
+    _GM = [((f["properties"].get("name") or "").replace("gmina ", ""), shape(f["geometry"])) for f in json.load(open("../dane/osm_gmina.geojson"))["features"]
+           if f["properties"].get("boundary") == "administrative" and f["properties"].get("admin_level") == "7" and f["geometry"]["type"] in ("Polygon", "MultiPolygon")]
+def gmina_of(lon, lat):
+    pt = Point(lon, lat)
+    return next((n for n, g in _GM if g.contains(pt)), "Koszęcin")
 for i, f in enumerate([f for f in posts if f["geometry"]["type"] == "Point"], 1):
     p = f["properties"]; lon, lat = f["geometry"]["coordinates"]
     if i in MOVE: lon, lat = MOVE[i]   # przesunięte na istniejący słup (wg Bartosza)
@@ -180,7 +189,7 @@ for i, f in enumerate([f for f in posts if f["geometry"]["type"] == "Point"], 1)
     who = nadl or ("gmina" if gm else "—")
     agree = [x for x in [{"nadl_K": "Nadleśnictwo Koszęcin"}.get(nadl), "Gmina Koszęcin" if gm else None] if x]
     # pole: 6.11 – wszystko w lasach opcjonalnie, we współpracy z Nadleśnictwem Koszęcin
-    out.append(dict(nr=i, lon=lon, lat=lat, loc=p.get("Lokalizacja") or "(bez opisu lokalizacji)", n_plates=p.get("Liczba tabliczek"),
+    out.append(dict(nr=i, gmina=gmina_of(lon, lat), lon=lon, lat=lat, loc=p.get("Lokalizacja") or "(bez opisu lokalizacji)", n_plates=p.get("Liczba tabliczek"),
                     status=st, pole=("opcjonalny" if nadl else POLE.get(i, "do sprawdzenia")), slup_jest=i in SLUP_JEST, uwagi=uw, who=who, agree=agree, in_forest=bool(in_forest), plates=plates, notes=notes, snap_m=round(off)))
 # ---- example local destinations (POI) -> plate on the nearest post only within 3 km ----
 POIS = [
