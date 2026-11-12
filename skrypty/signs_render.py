@@ -52,7 +52,7 @@ def group_plates(p):
 for p in posts: p["groups"] = group_plates(p)
 MM = 1 / 25.4; lw = lambda mm: mm / 25.4 * 72
 BLUE, NAVY = "#1f5fb4", "#16325c"
-WHO = {"nadl_K": ("#2f6b3a", "uzgodnić z Nadleśnictwem Koszęcin"), "nadl_B": ("#1d8a7a", "uzgodnić z Nadleśnictwem Boronów"),
+WHO = {"nadl_K": ("#2f6b3a", "uzgodnić z Nadleśnictwem Koszęcin"),
        "gmina": ("#e07b16", "uzgodnić z Gminą Koszęcin"), "—": (BLUE, "bez dodatkowych uzgodnień")}
 DIR8 = ["płn.", "płn.-wsch.", "wsch.", "płd.-wsch.", "płd.", "płd.-zach.", "zach.", "płn.-zach."]
 kmfmt = lambda v: f"{v:.1f} km".replace(".", ",")
@@ -185,8 +185,8 @@ for poi in sorted(D.get("pois", []), key=lambda q: q.get("icon") != "service"): 
 
 # posts
 POLEC = {"istniejący": ("#2563a8", "istniejący słupek – podpinamy tabliczki"), "nowy": ("#d9480f", "nowy słupek – do postawienia"),
-         "opcjonalny": ("#7b4fb3", "opcjonalny – do ustalenia (w lasach: z nadleśnictwem)"), "do sprawdzenia": ("#8a8f94", "słupek do sprawdzenia")}
-RING = {"gmina": "white", "nadl_K": "#1f5c2c", "nadl_B": "#3fa34d", "—": "white"}
+         "opcjonalny": ("#7b4fb3", "opcjonalny – do ustalenia (w lasach: z Nadleśnictwem Koszęcin)"), "do sprawdzenia": ("#8a8f94", "słupek do sprawdzenia")}
+RING = {"gmina": "white", "nadl_K": "#1f5c2c", "—": "white"}
 for p, geom in zip(posts, pts.geometry):
     c = POLEC[p.get("pole", "do sprawdzenia")][0]
     ax.text(geom.x, geom.y, str(p["nr"]), ha="center", va="center", fontsize=12 if ZOOM else 10, weight="bold", color="white", zorder=20,
@@ -222,7 +222,7 @@ for k, (c, lab) in POLEC.items():
     pan.text(M + 4, y, "1", ha="center", va="center", fontsize=8, weight="bold", color="white",
              bbox=dict(boxstyle="circle,pad=0.3", fc=c, ec="white", lw=1)); T(M + 12, y, f"{lab} ({pcnt[k]})", fontsize=10, va="center"); y -= 9
 y -= 2; T(M, y, "obwódka = kto uzgadnia:", fontsize=8.5, color="#4b5d53", va="center"); y -= 9
-for k, lab in (("gmina", "Gmina Koszęcin"), ("nadl_K", "Nadleśnictwo Koszęcin"), ("nadl_B", "Nadleśnictwo Boronów")):
+for k, lab in (("gmina", "Gmina Koszęcin"), ("nadl_K", "Nadleśnictwo Koszęcin")):
     if not cnt.get(k): continue
     pan.text(M + 4, y, "1", ha="center", va="center", fontsize=8, weight="bold", color="white",
              bbox=dict(boxstyle="circle,pad=0.3", fc="#8a8f94", ec=RING[k], lw=1 if k == "gmina" else 2.6)); T(M + 12, y, f"{lab} ({cnt[k]})", fontsize=10, va="center"); y -= 9

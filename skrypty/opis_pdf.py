@@ -102,7 +102,7 @@ box = [Paragraph("W SKRÓCIE", BOXH)] + [Paragraph(t, BOX, bulletText="•") for
     f"Po samej wojewódzkiej (poza chodnikiem i drogą rowerową) tylko ok. {T1['dw'] * 1000:.0f} m. To odpowiedź na brak drogi rowerowej "
     "Bukowiec – Strzebiń – Prądy – Koszęcin.",
     f"<b>Etap 1 – Strzebiń i cała obwodnica DW 906: {lo_hi(E1)}</b>. {len(e1)} słupków (w tym {len(c_ex) + len(r1_ex)} już stojących słupków z nazwami ulic), {NE1} tabliczek.",
-    f"<b>Etap 2 – trasy leśne z nadleśnictwami: {lo_hi(E2)}</b>. Słupki w lasach Nadleśnictw Koszęcin i Boronów tworzą trasy do Kalet, Boronowa, Koszęcina i Drutarni.",
+    f"<b>Etap 2 – trasy leśne z Nadleśnictwem Koszęcin: {lo_hi(E2)}</b>. Słupki w lasach Nadleśnictwa Koszęcin tworzą trasy do Kalet, Boronowa, Koszęcina i Drutarni.",
     "<b>Pilotaż dla całej gminy</b> – Strzebiń może przetrzeć szlak: metoda, wzór tabliczek i numeracja węzłów są gotowe do wprowadzenia w kolejnych sołectwach."]]
 bt = Table([[box]], colWidths=[W]); bt.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), GREEN), ("LEFTPADDING", (0, 0), (-1, -1), 12),
     ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 10), ("BOTTOMPADDING", (0, 0), (-1, -1), 8)]))
@@ -146,7 +146,7 @@ st.append(Paragraph("Nawierzchnia według OpenStreetMap: asfalt / kostka – asf
 st.append(Paragraph("* „DW 906” – tylko jazda jezdnią wojewódzkiej (głównie krótki fragment Katowickiej w Bukowcu i przejazdy w poprzek); "
                     "nie obejmuje istniejącej drogi rowerowej (słupki 25–16) ani chodnika (27–25) wzdłuż DW 906. "
                     f"Trasa 1 jest w całości w etapie 1. Trasy {', '.join(r['id'] for r in forest_routes)} prowadzą także przez lasy – "
-                    "do ich pełnego oznakowania potrzebne są słupki z etapu 2, z udziałem nadleśnictw.", SMALL))
+                    "do ich pełnego oznakowania potrzebne są słupki z etapu 2, z udziałem Nadleśnictwa Koszęcin.", SMALL))
 st.append(Spacer(1, 3))
 st.append(Paragraph("<b>Trasa 1 to rowerowa obwodnica DW 906.</b> Zamiast budowy drogi rowerowej wzdłuż wojewódzkiej (Bukowiec – Strzebiń – Prądy, a na początku także DW 908 Sośnica – Piasek) "
                     "rowerzysta jedzie bocznymi ulicami – 1 Maja, Lompy, Wojska Polskiego, Kościuszki, Ligonia – i drogami leśnymi. "
@@ -179,7 +179,7 @@ st.append(Paragraph("Co obejmuje projekt", H2))
 st.append(table([
     ["Element", "Zakres"],
     ["Etap 1 – Strzebiń i obwodnica DW 906", f"{len(e1)} lokalizacji: {len(c_ex) + len(r1_ex)} istniejących słupków z nazwami ulic (podpinamy tabliczki), {len(c_new)} nowych w gminie i {len(r1_las)} w lasach między Sośnicą, Piaskiem i Bukowcem (słupki {r1n(r1_las)}, z Nadl. Koszęcin); {NE1} tabliczek"],
-    ["Etap 2 – trasy leśne i uzupełnienia", f"{NOPT} lokalizacji: {NFOR} w lasach (Nadleśnictwa Koszęcin i Boronów) oraz {len(o_gm)} dodatkowych na terenie gminy; {NPL - NE1} tabliczek"],
+    ["Etap 2 – trasy leśne i uzupełnienia", f"{NOPT} lokalizacji: {NFOR} w lasach Nadleśnictwa Koszęcin oraz {len(o_gm)} dodatkowych na terenie gminy; {NPL - NE1} tabliczek"],
     ["Tabliczki", f"razem {NPL} tabliczek 800 × 200 mm, dibond z drukiem dwustronnym"],
     ["Odległości", "liczone po drogach, z preferencją dróg utwardzonych i odcinków sprawdzonych w terenie; kierunki przejrzane ręcznie słupek po słupku"],
     ["Połączenia ze szlakami", "Prądy → Leśno Rajza (ok. 2,3 km), Łazy → Liswarciański Szlak Rowerowy (ok. 1,8 km)"],
@@ -204,11 +204,10 @@ st.append(table([
     [f"3. Obwodnica DW 906 – lasy Sośnica–Piasek–Bukowiec (słupki {r1n(r1_las)})", f"{len(r1_las)} {nowe(len(r1_las))}", str(KD[0]), *map(rng, KD[2])],
     ["Etap 1 – Strzebiń i obwodnica DW 906", str(len(e1)), str(NE1), *map(rng, E1)],
     ["4. Trasy leśne – Nadleśnictwo Koszęcin", f"{len(o_K)} {nowe(len(o_K))}", str(KK[0]), *map(rng, KK[2])],
-    ["5. Trasy leśne – Nadleśnictwo Boronów", f"{len(o_B)} {nowe(len(o_B))}", str(KB[0]), *map(rng, KB[2])],
-    ["6. Uzupełnienia na terenie gminy", f"{len(o_gm)} {nowe(len(o_gm))}", str(KG[0]), *map(rng, KG[2])],
+    ["5. Uzupełnienia na terenie gminy", f"{len(o_gm)} {nowe(len(o_gm))}", str(KG[0]), *map(rng, KG[2])],
     ["Etap 2 – trasy leśne i uzupełnienia", str(NOPT), str(NPL - NE1), *map(rng, E2)],
     ["Razem etap 1 i 2", f"{NPOST} ({NNEW} {nowe(NNEW)})", str(NPL), *map(rng, ALL)],
-], [52 * mm, 22 * mm, 10 * mm, (W - 84 * mm) / 3, (W - 84 * mm) / 3, (W - 84 * mm) / 3], bold_rows=(4, 8, 9)))
+], [52 * mm, 22 * mm, 10 * mm, (W - 84 * mm) / 3, (W - 84 * mm) / 3, (W - 84 * mm) / 3], bold_rows=(4, 7, 8)))
 st.append(Spacer(1, 3))
 st.append(Paragraph("Założenia: tabliczka z drukiem dwustronnym 70–200 zł zależnie od wariantu; mocowanie (obejmy i śruby nierdzewne) ok. 30 zł na tabliczkę; "
                     f"nowy słupek fi 60 mm z kotwą i montażem ok. 280 zł. Naklejki węzłów ({NPOST} szt.), paski tras (ok. {NPASK} szt.) i zapasowe kółka tras do doklejania – razem ok. 0,5–1 tys. zł dodatkowo. "
@@ -220,7 +219,7 @@ st += bullets([
     "<b>Fundusz sołecki</b> – oznakowanie można ująć we wniosku na 2028 r. (fundusz na 2027 r. już rozdysponowano).",
     "<b>Konkurs marszałkowski „Inicjatywa Sołecka”</b> – kategoria turystyki i krajoznawstwa; wniosek składa gmina (w 2025 r. nabór do 21 lutego).",
     "<b>Budżet gminy</b> – zgodnie ze Strategią Rozwoju Gminy Koszęcin 2025–2035 (słabość: niewystarczająca sieć tras rowerowych; cel II.2: oznakowane szlaki).",
-    "<b>Nadleśnictwa Koszęcin i Boronów</b> – etap 2, słupki i tabliczki na trasach leśnych realizowane wspólnie.",
+    "<b>Nadleśnictwo Koszęcin</b> – etap 2, słupki i tabliczki na trasach leśnych realizowane wspólnie.",
     "<b>Partnerzy lokalni</b> – lokale i sklepy przy trasach mogą współfinansować przedsięwzięcie (np. ok. 2 tys. zł) w zamian za tabliczkę kierunkową do swojego "
     "lokalu na dwóch najbliższych słupkach na czas życia tabliczek; tabliczki pozostają własnością gminy, zasady jednakowe dla wszystkich. "
     "Cztery lokale pokryłyby znaczną część kosztu etapu 1.",
@@ -246,7 +245,7 @@ st.append(Spacer(1, 5))
 st += bullets([
     "omówienie lokalizacji i kierunków – Rada Sołecka, zebranie wiejskie;",
     "objazd dróg omijających DW 906 i uzupełnienie pomiarów;",
-    "rozmowa z Urzędem Gminy (zgody zarządcy dróg, forma współpracy z partnerami) i z nadleśnictwami (trasy leśne);",
+    "rozmowa z Urzędem Gminy (zgody zarządcy dróg, forma współpracy z partnerami) i z Nadleśnictwem Koszęcin (trasy leśne);",
     "zapytanie ofertowe na tabliczki i mocowania; wybór wariantu materiału."])
 st.append(Spacer(1, 8))
 st.append(Paragraph("Przygotował: Bartosz · Strzebiń, listopad 2026 · dane map © autorzy OpenStreetMap (ODbL), piktogramy Tabler Icons (MIT)", SMALL))

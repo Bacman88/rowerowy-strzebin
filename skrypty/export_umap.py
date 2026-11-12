@@ -31,7 +31,7 @@ for p in D['posts']:
     pf.append({"type": "Feature", "geometry": {"type": "Point", "coordinates": [p['lon'], p['lat']]},
                "properties": {"name": f"Słupek {p['nr']}", "Kierunki": ", ".join(names), "Liczba tabliczek": len(M.get(str(p['nr']), [])),
                               "Lokalizacja": p['loc'], "Status": "propozycja",
-                              "Uzgodnienie": {"nadl_K": "Nadleśnictwo Koszęcin", "nadl_B": "Nadleśnictwo Boronów"}.get(p['who'], "Gmina Koszęcin"),
+                              "Uzgodnienie": {"nadl_K": "Nadleśnictwo Koszęcin"}.get(p['who'], "Gmina Koszęcin"),
                               "Słupek": pole + (" (na istniejącym słupku)" if p.get("slup_jest") else ""), "Średnica rury": "", "Data dodania": "2026-11-06",
                               "_umap_options": {"color": PCOL[pole]}}})
 json.dump({"type": "FeatureCollection", "features": pf}, open('../out/umap_slupki_propozycja.geojson', 'w'), ensure_ascii=False, indent=1)

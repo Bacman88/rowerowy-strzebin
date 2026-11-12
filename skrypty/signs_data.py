@@ -137,7 +137,7 @@ POLE = {**{n: "istniejący" for n in (2, 3, 10, 11, 12, 16, 17, 20, 21, 23, 24, 
         **{n: "opcjonalny" for n in (*range(28, 49), *range(50, 58))}}
 SLUP_JEST = {46, 47}
 MOVE = {}
-FORCE_WHO = {**{n: "nadl_K" for n in range(36, 42)}, **{n: "gmina" for n in range(42, 48)}, 48: "nadl_K", 49: "gmina", 50: "nadl_K", 51: "nadl_K", 52: "nadl_K", 53: "nadl_K", 54: "nadl_B", 55: "nadl_B", 56: "nadl_B", 57: "nadl_B"}   # 6.11: wg Bartosza   # 6.11: leśne propozycje Bartosza – do ustalenia   # słupki w lesie: zakładamy brak (nowy)
+FORCE_WHO = {**{n: "nadl_K" for n in range(36, 42)}, **{n: "gmina" for n in range(42, 48)}, 48: "nadl_K", 49: "gmina", 50: "nadl_K", 51: "nadl_K", 52: "nadl_K", 53: "nadl_K", 54: "nadl_K", 55: "nadl_K", 56: "nadl_K", 57: "nadl_K"}   # 6.11: wg Bartosza   # 6.11: leśne propozycje Bartosza – do ustalenia   # słupki w lesie: zakładamy brak (nowy)
 out = []
 for i, f in enumerate([f for f in posts if f["geometry"]["type"] == "Point"], 1):
     p = f["properties"]; lon, lat = f["geometry"]["coordinates"]
@@ -172,13 +172,14 @@ for i, f in enumerate([f for f in posts if f["geometry"]["type"] == "Point"], 1)
     uw = p.get("Uwagi", "")
     in_forest = forest_m.distance(Point(P(lon, lat))) < 25 or "Las" == (p.get("Lokalizacja") or "")
     if i in (26, 27): in_forest = False   # Bartosz: Kosmonautów/Poprzeczna – teren gminy, nie las
-    nadl = ("nadl_B" if lat >= 50.62 else "nadl_K") if (in_forest or "adleśn" in uw) else None
-    if "Boronów" in uw: nadl = "nadl_B"
+    # 12.11.2026: Boronów to leśnictwo w Nadleśnictwie Koszęcin – wszystkie lasy w kręgu projektu należą do N-ctwa Koszęcin
+    uw = uw.replace("Nadleśnictwem Boronów", "Nadleśnictwem Koszęcin (leśnictwo Boronów)")
+    nadl = "nadl_K" if (in_forest or "adleśn" in uw) else None
     if i in FORCE_WHO: nadl = None if FORCE_WHO[i] == "gmina" else FORCE_WHO[i]; in_forest = nadl is not None
     gm = nadl is None   # wszystkie słupki poza lasem uzgadniane z Gminą Koszęcin
     who = nadl or ("gmina" if gm else "—")
-    agree = [x for x in [{"nadl_K": "Nadleśnictwo Koszęcin", "nadl_B": "Nadleśnictwo Boronów"}.get(nadl), "Gmina Koszęcin" if gm else None] if x]
-    # pole: 6.11 – wszystko w lasach opcjonalnie, we współpracy z nadleśnictwami
+    agree = [x for x in [{"nadl_K": "Nadleśnictwo Koszęcin"}.get(nadl), "Gmina Koszęcin" if gm else None] if x]
+    # pole: 6.11 – wszystko w lasach opcjonalnie, we współpracy z Nadleśnictwem Koszęcin
     out.append(dict(nr=i, lon=lon, lat=lat, loc=p.get("Lokalizacja") or "(bez opisu lokalizacji)", n_plates=p.get("Liczba tabliczek"),
                     status=st, pole=("opcjonalny" if nadl else POLE.get(i, "do sprawdzenia")), slup_jest=i in SLUP_JEST, uwagi=uw, who=who, agree=agree, in_forest=bool(in_forest), plates=plates, notes=notes, snap_m=round(off)))
 # ---- example local destinations (POI) -> plate on the nearest post only within 3 km ----

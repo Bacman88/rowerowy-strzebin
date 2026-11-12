@@ -2,7 +2,7 @@
 
 Propozycja oznakowania rowerowego dla **Sołectwa Strzebiń (gmina Koszęcin)**: tabliczki kierunkowe do miejscowości, szlaków i ciekawych miejsc, sieć ponumerowanych węzłów (słupków), dziewięć tras pokazowych – w tym rowerowy objazd drogi wojewódzkiej DW 906 – oraz mapa stanu dróg.
 
-Projekt jest oddolny i ma charakter **propozycji do dyskusji** z sołectwem, gminą i nadleśnictwami. Przebieg tras wymaga potwierdzenia w terenie.
+Projekt jest oddolny i ma charakter **propozycji do dyskusji** z sołectwem, gminą i Nadleśnictwem Koszęcin. Przebieg tras wymaga potwierdzenia w terenie.
 
 **Strona projektu:** https://rowerowy-strzebin.smart-ant.pl – gałąź [`strona`](../../tree/strona), folder `public/`. Hosting (Joton): katalog publikacji pusty, skrypt budowy `cp -r public/. ../../public_html/`, document root `/public_html`.
 
