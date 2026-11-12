@@ -36,7 +36,7 @@ h2:first-child{margin-top:2px}
 .chip{display:inline-block;padding:0 7px;border-radius:6px;font-size:11.5px;font-weight:700;color:#fff;line-height:18px}
 .c-dobra{background:var(--s-dobra)}.c-srednia{background:var(--s-srednia);color:#000}.c-trudna{background:var(--s-trudna)}
 .c-nieprzejezdna{background:repeating-linear-gradient(45deg,#111 0 3px,#fff 3px 6px) left/13px 100% no-repeat,#111;color:#fff;padding-left:17px}
-.c-brak{background:var(--s-brak)}
+.c-brak{background:var(--s-brak)}.c-osm{background:#8fcf9c;color:#1d2a23}
 .selbar{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .lnk{background:none;border:0;color:var(--green);text-decoration:underline;cursor:pointer;font:inherit;font-size:13px;padding:0}
 .stany{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 10px}
@@ -81,6 +81,7 @@ textarea{min-height:70px;resize:vertical}
       <span><i class="sw" style="background:var(--s-srednia)"></i>średnia</span>
       <span><i class="sw" style="background:var(--s-trudna)"></i>trudna</span>
       <span><i class="sw nie"></i>nieprzejezdna</span>
+      <span><i class="sw" style="background:#8fcf9c;height:4px"></i>utwardzona (wg OSM)</span>
       <span><i class="sw" style="background:var(--s-brak);height:3px"></i>brak oceny</span>
       <span><i class="sw" style="background:var(--sel);opacity:.6;height:8px"></i>zaznaczone</span>
     </div>
@@ -119,8 +120,8 @@ textarea{min-height:70px;resize:vertical}
 <script src="data.js"></script>
 <script>
 (() => {
-  const NAZWA = {dobra:'dobra', srednia:'średnia', trudna:'trudna', nieprzejezdna:'nieprzejezdna', brak:'brak oceny'};
-  const KOL = {dobra:'#2b9348', srednia:'#e0a800', trudna:'#d62828', brak:'#9aa3a8'};
+  const NAZWA = {osm:'przejezdna (utwardzona wg OSM)', dobra:'dobra', srednia:'średnia', trudna:'trudna', nieprzejezdna:'nieprzejezdna', brak:'brak oceny'};
+  const KOL = {osm:'#8fcf9c', dobra:'#2b9348', srednia:'#e0a800', trudna:'#d62828', brak:'#9aa3a8'};
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const $ = id => document.getElementById(id);
 
@@ -144,11 +145,12 @@ textarea{min-height:70px;resize:vertical}
     const w = z >= 15 ? 1.5 : z >= 13 ? 1 : .7;
     if (st === 'nieprzejezdna') return [{color:'#111', weight:6 * w, opacity:.95}, {color:'#fff', weight:3.6 * w, dashArray:'5 6', opacity:1}];
     if (st === 'brak') return [{color:KOL.brak, weight:2.6 * w, opacity:.75}];
+    if (st === 'osm') return [{color:KOL.osm, weight:3 * w, opacity:.9}];
     return [{color:KOL[st], weight:4.5 * w, opacity:.95}];
   }
   function rysuj() {
     roads.clearLayers(); const z = map.getZoom();
-    const order = ['brak', 'dobra', 'srednia', 'trudna', 'nieprzejezdna'];
+    const order = ['brak', 'osm', 'dobra', 'srednia', 'trudna', 'nieprzejezdna'];
     const groups = {}; for (const id in S) (groups[stanOf(S[id])] ||= []).push(S[id]);
     for (const st of order) for (const s of (groups[st] || [])) {
       s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); klik(s); }).addTo(roads));
@@ -175,7 +177,7 @@ textarea{min-height:70px;resize:vertical}
     const st = stanOf(s), z = API.stany[s.id];
     let h = `<h3>${esc(s.nazwa || s.typ || 'droga')}</h3><div class="muted">${esc(s.nazwa ? s.typ : '')}${s.naw ? (s.nazwa ? ' · ' : '') + 'nawierzchnia wg OSM: ' + esc(s.naw) : ''} · ${s.len} m</div>`;
     h += `<div style="margin-top:6px">Stan: <span class="chip c-${st}">${NAZWA[st]}</span> `;
-    h += z ? '<span class="muted">wg zgłoszeń</span>' : s.pomiar ? `<span class="muted">wg pomiaru${s.pdata ? ' (' + esc(s.pdata) + ')' : ''}</span>` : '';
+    h += z ? '<span class="muted">wg zgłoszeń</span>' : s.pomiar === 'osm' ? '<span class="muted">nikt jej jeszcze nie ocenił</span>' : s.pomiar ? `<span class="muted">wg pomiaru${s.pdata ? ' (' + esc(s.pdata) + ')' : ''}</span>` : '';
     h += '</div>';
     for (const zid of (API.wpisy[s.id] || [])) {
       const [zst, nick, dz, dp, kom] = API.zgloszenia[zid];
@@ -217,7 +219,7 @@ textarea{min-height:70px;resize:vertical}
   });
 
   // start
-  const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar) S[id].ll.forEach(p => b.extend(p));
+  const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar && S[id].pomiar !== 'osm') S[id].ll.forEach(p => b.extend(p));
   for (const p of (window.HUB?.posts || [])) b.extend([p.lat, p.lon]);
   map.fitBounds(b.isValid() ? b : [[50.55, 18.8], [50.7, 19.0]], {padding:[20, 20]});
   rysuj(); rysujSel();

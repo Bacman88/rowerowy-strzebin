@@ -22,6 +22,15 @@ HW = {"track": "droga leśna/polna", "path": "ścieżka", "footway": "ścieżka 
 SURF = {"asphalt": "asfalt", "paved": "utwardzona", "concrete": "beton", "paving_stones": "kostka", "sett": "kostka kamienna",
         "gravel": "żwir/tłuczeń", "fine_gravel": "drobny żwir", "compacted": "ubita", "dirt": "ziemia", "ground": "ziemia", "earth": "ziemia",
         "sand": "piach", "grass": "trawa", "unpaved": "nieutwardzona", "mud": "błoto", "pebblestone": "otoczaki"}
+PAVED_S = {"asphalt", "paved", "concrete", "paving_stones", "sett", "concrete:plates", "chipseal"}
+PAVED_H = {"primary", "secondary", "tertiary", "tertiary_link", "residential", "living_street", "unclassified"}
+UNPAVED_S = {"gravel", "fine_gravel", "compacted", "dirt", "ground", "earth", "sand", "grass", "unpaved", "mud", "pebblestone", "wood"}
+PAVED_NAMES = {"1 Maja", "Dębowa", "Kosmonautów", "Hugona Kołłątaja"}   # asfalt wg Bartosza
+PAVED_IDS = {"way/976663503", "way/587698466", "way/976663504"}
+def utwardzona(p):
+    s = p.get("surface")
+    return (s in PAVED_S or (s is None and p.get("highway") in PAVED_H and p.get("tracktype") not in {"grade3", "grade4", "grade5"})
+            or p.get("@id") in PAVED_IDS or p.get("name") in PAVED_NAMES) and s not in UNPAVED_S
 BASE = {"bardzo dobra": "dobra", "dobra": "dobra", "średnia": "srednia", "trudna": "trudna"}
 
 osm = json.load(open(OSM))["features"]; D = json.load(open(SIGNS))
@@ -72,6 +81,7 @@ for p, cs in ways:
             near = [(l.distance(mid), pr) for l, buf, pr in sv if l.distance(mid) < 15 and part.intersection(buf).length >= 0.6 * part.length]
             if near:
                 pr = min(near, key=lambda t: t[0])[1]; base = BASE.get(pr.get("Przejezdność ogólna") or "", ""); bdate = pr.get("Data") or ""
+            if not base and utwardzona(p): base = "osm"   # utwardzona wg OSM – uznajemy za przejezdną
             surf = p.get("surface"); hw = p.get("highway")
             segs.append([sid, HW.get(hw, hw), p.get("name", "") or p.get("ref", ""), SURF.get(surf, surf or ""), base, bdate,
                          round(part.length), [v for c in co for v in c]])
@@ -80,5 +90,5 @@ os.makedirs(f"{OUT}/stan", exist_ok=True); os.makedirs(f"{OUT}/api", exist_ok=Tr
 open(f"{OUT}/stan/odcinki.js", "w").write("window.ODC=" + json.dumps(segs, ensure_ascii=False, separators=(",", ":")) + ";")
 json.dump(sorted(ids), open(f"{OUT}/api/_odcinki.json", "w"), separators=(",", ":"))
 km = sum(s[6] for s in segs) / 1000
-print(f"odcinki: {len(segs)} odcinków, {km:.0f} km, z pomiarów {sum(1 for s in segs if s[4])}, "
+print(f"odcinki: {len(segs)} odcinków, {km:.0f} km, z pomiarów {sum(1 for s in segs if s[4] and s[4] != 'osm')}, utwardzone wg OSM {sum(s[6] for s in segs if s[4] == 'osm') / 1000:.0f} km, "
       f"plik {os.path.getsize(f'{OUT}/stan/odcinki.js') / 1e6:.1f} MB")
