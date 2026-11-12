@@ -14,6 +14,7 @@ window.NAWIGACJA = (map, box, calosc) => {
     body.ma-pelna{overflow:hidden}
     @media (max-width:900px){.mapa-pelna{display:flex!important;flex-direction:column}.mapa-pelna>.side{max-height:42vh;overflow:auto;order:2}.mapa-pelna>.leaflet-container,.mapa-pelna>[id^=map]{flex:1;order:1;height:auto!important}}`;
   if (!document.getElementById('nav-css')) { css.id = 'nav-css'; document.head.appendChild(css); }
+  const IK = {"↑": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 19V5M6 11l6-6 6 6\"/></svg>", "↓": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M6 13l6 6 6-6\"/></svg>", "←": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 12H5M11 6l-6 6 6 6\"/></svg>", "→": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg>", "⌂": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 11l8-7 8 7\"/><path d=\"M6 10v10h12V10\"/></svg>", "⛶": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/></svg>", "✕": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/></svg>", "◎": "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3\"/></svg>"};
   const stop = el => { L.DomEvent.disableClickPropagation(el); L.DomEvent.disableScrollPropagation(el); return el; };
   // strzałki: przesunięcie o 1/3 widoku, środek = pokaż całość
   const Strz = L.Control.extend({onAdd() {
@@ -21,7 +22,7 @@ window.NAWIGACJA = (map, box, calosc) => {
     const kroki = [['', ''], ['↑', [0, -1]], ['', ''], ['←', [-1, 0]], ['⌂', 'all'], ['→', [1, 0]], ['', ''], ['↓', [0, 1]], ['', '']];
     for (const [z, v] of kroki) {
       if (!z) { d.appendChild(document.createElement('span')); continue; }
-      const b = L.DomUtil.create('button', '', d); b.type = 'button'; b.textContent = z;
+      const b = L.DomUtil.create('button', '', d); b.type = 'button'; b.innerHTML = IK[z];
       b.title = b.ariaLabel = v === 'all' ? 'Pokaż całą mapę' : 'Przesuń mapę ' + {'↑': 'w górę', '↓': 'w dół', '←': 'w lewo', '→': 'w prawo'}[z];
       b.onclick = () => { if (v === 'all') calosc(); else { const s = map.getSize(); map.panBy([v[0] * s.x / 3, v[1] * s.y / 3]); } };
     }
@@ -31,15 +32,15 @@ window.NAWIGACJA = (map, box, calosc) => {
   let pelny = false, ja = null;
   const Btn = L.Control.extend({onAdd() {
     const d = stop(L.DomUtil.create('div', 'nav-btns'));
-    const fs = L.DomUtil.create('button', '', d); fs.type = 'button'; fs.textContent = '⛶'; fs.title = fs.ariaLabel = 'Pełny ekran';
+    const fs = L.DomUtil.create('button', '', d); fs.type = 'button'; fs.innerHTML = IK['⛶']; fs.title = fs.ariaLabel = 'Pełny ekran';
     fs.onclick = () => {
       pelny = !pelny; box.classList.toggle('mapa-pelna', pelny); document.body.classList.toggle('ma-pelna', pelny);
-      fs.textContent = pelny ? '✕' : '⛶'; fs.title = fs.ariaLabel = pelny ? 'Zamknij pełny ekran' : 'Pełny ekran';
+      fs.innerHTML = IK[pelny ? '✕' : '⛶']; fs.title = fs.ariaLabel = pelny ? 'Zamknij pełny ekran' : 'Pełny ekran';
       if (map.gestureHandling) pelny ? map.gestureHandling.disable() : map.gestureHandling.enable();
       setTimeout(() => map.invalidateSize(), 50);
     };
     if (navigator.geolocation) {
-      const g = L.DomUtil.create('button', '', d); g.type = 'button'; g.textContent = '◎'; g.title = g.ariaLabel = 'Pokaż, gdzie jestem';
+      const g = L.DomUtil.create('button', '', d); g.type = 'button'; g.innerHTML = IK['◎']; g.title = g.ariaLabel = 'Pokaż, gdzie jestem';
       g.onclick = () => navigator.geolocation.getCurrentPosition(p => {
         const ll = [p.coords.latitude, p.coords.longitude];
         if (ja) ja.remove();
