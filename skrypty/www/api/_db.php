@@ -5,7 +5,8 @@ declare(strict_types=1);
 date_default_timezone_set('Europe/Warsaw');
 
 const STANY = ['dobra', 'srednia', 'trudna', 'nieprzejezdna'];
-const TYPY_MIEJSC = ['lawka', 'wiata', 'piknik', 'widok', 'ciekawe', 'serwis'];
+const TYPY_MIEJSC = ['lawka', 'wiata', 'piknik', 'widok', 'zabawa', 'woda', 'serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'apteczka', 'info',
+    'jedzenie', 'kawa', 'bar', 'nocleg', 'ciekawe', 'zabytek', 'kosciol', 'przyroda'];
 
 function hub_cfg(): array {
     static $c = null;

@@ -93,7 +93,10 @@ if ($lista && $tryb === 'drogi') {
     $in = implode(',', array_map(fn($r) => (int)$r['id'], $lista));
     foreach ($db->query("SELECT zgloszenie, odcinek FROM zgloszenia_odcinki WHERE zgloszenie IN ($in)") as $r) $odc[$r['zgloszenie']][] = $r['odcinek'];
 }
-$TYPY = ['lawka' => 'ławka', 'wiata' => 'wiata', 'piknik' => 'piknik / ognisko', 'widok' => 'punkt widokowy', 'ciekawe' => 'ciekawe miejsce', 'serwis' => 'serwis rowerowy'];
+$TYPY = ['lawka' => 'ławka', 'wiata' => 'wiata', 'piknik' => 'piknik / ognisko', 'widok' => 'punkt widokowy', 'zabawa' => 'plac zabaw', 'woda' => 'woda pitna',
+    'serwis' => 'serwis rowerowy', 'stojak' => 'stojak na rowery', 'wypozycz' => 'wypożyczalnia', 'wc' => 'WC', 'parking' => 'parking', 'apteczka' => 'pierwsza pomoc / AED',
+    'info' => 'tablica informacyjna', 'jedzenie' => 'restauracja', 'kawa' => 'kawiarnia', 'bar' => 'bar', 'nocleg' => 'nocleg', 'ciekawe' => 'ciekawe miejsce',
+    'zabytek' => 'zabytek / pomnik', 'kosciol' => 'kościół / kapliczka', 'przyroda' => 'przyroda'];
 $NAZWY = ['dobra' => 'dobra', 'srednia' => 'średnia', 'trudna' => 'trudna', 'nieprzejezdna' => 'nieprzejezdna'];
 $AKCJE = ['oczekuje' => [['zatwierdz', 'Zatwierdź', 'ok'], ['odrzuc', 'Odrzuć', 'no']],
           'zatwierdzone' => [['wycofaj', 'Wycofaj z mapy', 'no']],
@@ -139,7 +142,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       <a href="?t=<?= $tryb ?>&k=<?= $kk ?>" class="<?= $k === $kk ? 'on' : '' ?>"><?= $t ?> (<?= $licz[$kk] ?? 0 ?>)</a>
     <?php endforeach ?>
   </nav>
-  <span style="margin-left:auto"><a href="../stan.html" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?wyloguj=1">wyloguj</a></span>
+  <span style="margin-left:auto"><a href="../#wspolna" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?wyloguj=1">wyloguj</a></span>
 </header>
 <main>
   <div class="list">
@@ -172,6 +175,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <script src="../stan/odcinki.js"></script>
 <script>window.HUB_BASE = "../";</script>
 <script src="../data.js"></script>
+<script src="../lib/ikony.js"></script>
 <script src="../lib/miejsca.js"></script>
 <script>
 const ODC_Z = <?= json_encode($odc, JSON_UNESCAPED_UNICODE) ?>;
@@ -184,7 +188,7 @@ const tlo = L.layerGroup().addTo(map);
 for (const id in geo) L.polyline(geo[id], {color:'#8a9399', weight:2, opacity:.45, interactive:false}).addTo(tlo);
 const sel = L.layerGroup().addTo(map);
 // istniejące miejsca – żeby od razu widzieć duplikaty
-const ML = MIEJSCA.warstwy(map, (window.HUB && HUB.places) || []); ML.serwis.addTo(map); ML.odpoczynek.addTo(map);
+const ML = MIEJSCA.warstwy(map, (window.HUB && HUB.places) || []); Object.values(ML).forEach(l => l.addTo(map));
 let first = true;
 function pokaz(id, stan, fit) {
   sel.clearLayers(); const b = [];

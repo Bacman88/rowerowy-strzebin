@@ -9,10 +9,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="lib/leaflet.css">
+<link rel="stylesheet" href="lib/leaflet-gesture-handling.css">
 <style>
 :root{
   --bg:#f7f4ec; --card:#fffdf8; --ink:#1d2a23; --muted:#56665c; --line:#e3dccb;
   --green:#1d3b30; --accent:#8a5300; --node:#00838F; --grey:#8a9399;
+  --s-dobra:#2b9348; --s-srednia:#e0a800; --s-trudna:#d62828; --s-brak:#9aa3a8; --sel:#1d4ed8;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -90,6 +92,87 @@ section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 .pole .n{position:absolute;top:22px;left:0;right:0;height:38px;background:#fff;display:grid;place-items:center}
 .pole .n i{width:28px;height:28px;border-radius:50%;background:var(--node);color:#fff;font:700 12px/28px Inter;text-align:center;font-style:normal}
 .pole .b{position:absolute;left:0;right:0;height:12px;font:700 9px/12px Inter;text-align:center}
+/* ===== mapa wspólna ===== */
+#wsp.app{display:grid;grid-template-columns:380px 1fr;border:1px solid var(--line);border-radius:14px;overflow:hidden;height:min(86vh,900px);min-height:520px}
+#wsp .side{overflow:auto;padding:14px 16px 24px;border-right:1px solid var(--line);background:var(--card)}
+#wsp #mapw{height:100%;background:#e9e4d6}
+#wsp h2{font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin:16px 0 8px}
+#wsp h2:first-child{margin-top:2px}
+#wsp .how{font-size:14px;color:var(--muted);margin:0}
+#wsp .key{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:13px}
+#wsp .key span{display:flex;align-items:center;gap:7px}
+#wsp .sw{width:26px;height:6px;border-radius:3px;flex-shrink:0}
+#wsp .sw.nie{background:repeating-linear-gradient(90deg,#111 0 5px,#fff 5px 9px);outline:1px solid #111}
+#wsp .box{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;margin-top:8px}
+#wsp .muted{color:var(--muted);font-size:13px}
+#wsp .info h3{margin:0 0 2px;font-size:15px}
+#wsp .wpis{border-top:1px dashed var(--line);padding-top:6px;margin-top:6px;font-size:13px}
+#wsp .wpis p{margin:2px 0 0;white-space:pre-wrap}
+#wsp .chip{display:inline-block;padding:0 7px;border-radius:6px;font-size:11.5px;font-weight:700;color:#fff;line-height:18px}
+#wsp .c-dobra{background:var(--s-dobra)}
+#wsp .c-srednia{background:var(--s-srednia);color:#000}
+#wsp .c-trudna{background:var(--s-trudna)}
+#wsp .c-nieprzejezdna{background:repeating-linear-gradient(45deg,#111 0 3px,#fff 3px 6px) left/13px 100% no-repeat,#111;color:#fff;padding-left:17px}
+#wsp .c-brak{background:var(--s-brak)}
+#wsp .c-osm{background:#8fcf9c;color:#1d2a23}
+#wsp .selbar{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#wsp .lnk{background:none;border:0;color:var(--green);text-decoration:underline;cursor:pointer;font:inherit;font-size:13px;padding:0}
+#wsp .stany{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 10px}
+#wsp .stany label{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;cursor:pointer;font-size:14px;background:#fff}
+#wsp .stany input{accent-color:var(--green)}
+#wsp .stany label:has(input:checked){border-color:var(--green);box-shadow:0 0 0 2px rgba(29,59,48,.18)}
+#wsp .f{display:block;margin:8px 0}
+#wsp .f span{display:block;font-size:13px;font-weight:600;margin-bottom:3px}
+#wsp .f small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+#wsp input[type=text],#wsp input[type=date],#wsp textarea{width:100%;font:inherit;font-size:14px;padding:7px 9px;border:1px solid #cfc6b2;border-radius:8px;background:#fff;color:var(--ink)}
+#wsp textarea{min-height:70px;resize:vertical}
+#wsp .zg{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--muted);margin:6px 0}
+#wsp .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+#wsp .send{width:100%;font:inherit;font-weight:700;padding:10px;border-radius:9px;border:0;background:var(--green);color:#fff;cursor:pointer;margin-top:6px}
+#wsp .send:disabled{opacity:.45;cursor:not-allowed}
+#wsp .msg{font-size:13.5px;margin-top:8px;padding:8px 10px;border-radius:8px;display:none}
+#wsp .msg.ok{display:block;background:#e5f3e8;color:#1b5e20}
+#wsp .msg.err{display:block;background:#fde8e8;color:#8b0000}
+#wsp .rodo{font-size:11.5px;color:var(--muted);margin-top:10px}
+#wsp .pm{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--node);font:700 9.5px Inter,sans-serif;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+#wsp .modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#efe9da;padding:4px;border-radius:10px;margin-bottom:6px}
+#wsp .modes button{font:inherit;font-weight:700;font-size:14px;border:0;border-radius:7px;padding:8px;background:transparent;color:var(--muted);cursor:pointer}
+#wsp .modes button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+#wsp[data-tryb=drogi] .m-miejsce,#wsp[data-tryb=miejsce] .m-drogi{display:none!important}
+#wsp .typy{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 10px}
+#wsp .typy .tg{grid-column:1/-1;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-top:6px}
+#wsp .typy label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer;font-size:13.5px;background:#fff}
+#wsp .typy label:has(input:checked){border-color:var(--green);box-shadow:0 0 0 2px rgba(29,59,48,.18)}
+#wsp .typy input{position:absolute;opacity:0;pointer-events:none}
+#wsp .typy i{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;flex-shrink:0}
+#wsp .gps{font:inherit;font-size:13.5px;font-weight:600;border:1px solid var(--green);color:var(--green);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;margin-top:6px}
+#wsp .layers{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13.5px;margin-top:8px}
+#wsp > .modes{order:-2;margin:10px 10px 6px}
+#wsp .dalej{font:inherit;font-weight:700;font-size:16px;padding:12px 16px;border-radius:10px;border:0;background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);margin:0 0 12px 10px!important}
+#wsp .layers label{display:flex;align-items:center;gap:6px;cursor:pointer}
+#wsp #mapw.pick{cursor:crosshair}
+@media (max-width:900px){
+#wsp.app{grid-template-columns:1fr;height:auto}
+#wsp #mapw{height:62vh;order:-1}
+#wsp .side{border-right:0;border-top:1px solid var(--line)}
+}
+/* ===== układ strony ===== */
+.jump{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.jump a{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--ink);font-weight:700;font-size:16px;min-height:48px}
+.jump a:hover{border-color:var(--green)}
+.jump a.main{background:var(--green);color:#fff;border-color:var(--green)}
+.num{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--green);color:#fff;font-size:18px;font-weight:800;flex-shrink:0}
+.jump a .num{width:28px;height:28px;font-size:15px;background:#fff;color:var(--green)}
+.jump a:not(.main) .num{background:var(--green);color:#fff}
+section.msec{padding-top:34px}
+section.msec h2{display:flex;align-items:center;gap:12px}
+.lead2{max-width:860px;color:var(--muted);font-size:16px;margin:-6px 0 16px}
+.lead2 b{color:var(--ink)}
+@media (max-width:900px){
+  #wsp input[type=text],#wsp input[type=date],#wsp textarea{font-size:16px}
+  .jump a{flex:1 1 100%}
+  section.msec h2{font-size:22px}
+}
 footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 @media (max-width:900px){
   .app{grid-template-columns:1fr;height:auto}
@@ -107,14 +190,82 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <p class="eyebrow">Sołectwo Strzebiń · gmina Koszęcin</p>
   <h1>HUB rowerowy Strzebiń</h1>
   <p class="lead">Strzebiń leży między Leśno Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
-  <div class="stats">
-    <div class="stat"><b>{{NROUTES}}</b><span>tras pokazowych</span></div>
-    <div class="stat"><b>{{NPOSTS}}</b><span>słupków (węzłów)</span></div>
-    <div class="stat"><b>{{NPLATES}}</b><span>tabliczek kierunkowych</span></div>
-  </div>
-  <a class="cta" href="stan.html"><b>Mapa wspólna</b><span>Jeździsz tutaj rowerem? Oceń stan dróg albo dodaj ławkę, wiatę czy serwis →</span></a>
+  <nav class="jump" aria-label="Na stronie">
+    <a class="main" href="#wspolna"><span class="num">1</span>Mapa wspólna – oceń drogę, dodaj miejsce</a>
+    <a href="#trasy"><span class="num">2</span>Proponowane trasy i drogowskazy</a>
+    <a href="#pobierz">Do pobrania</a>
+  </nav>
 </header>
 
+<section id="wspolna" class="msec">
+  <h2><span class="num">1</span>Mapa wspólna</h2>
+  <p class="lead2">Tu wszyscy razem uzupełniamy mapę: <b>jak się jedzie</b> drogami wokół Strzebinia i <b>co jest po drodze</b> – ławki, wiaty, WC, serwis rowerowy. Wybierz u góry „Oceń drogi” albo „Dodaj miejsce”. Każde zgłoszenie przed pokazaniem na mapie sprawdza administrator strony.</p>
+<div class="app wsp" id="wsp" data-tryb="drogi">
+  <aside class="side">
+    <div class="modes" role="tablist">
+      <button type="button" data-t="drogi" class="on">Oceń drogi</button>
+      <button type="button" data-t="miejsce">Dodaj miejsce</button>
+    </div>
+    <div class="m-drogi">
+    <h2>Jak to działa</h2>
+    <p class="how">Klikaj odcinki dróg na mapie – możesz zaznaczyć kilka naraz. Wybierz, jak się nimi jedzie rowerem, i wyślij. Zgłoszenie pojawi się na mapie po sprawdzeniu przez administratora strony.</p>
+
+    <h2>Legenda</h2>
+    <div class="key">
+      <span><i class="sw" style="background:var(--s-dobra)"></i>dobra</span>
+      <span><i class="sw" style="background:var(--s-srednia)"></i>średnia</span>
+      <span><i class="sw" style="background:var(--s-trudna)"></i>trudna</span>
+      <span><i class="sw nie"></i>nieprzejezdna</span>
+      <span><i class="sw" style="background:#8fcf9c;height:4px"></i>utwardzona (wg OSM)</span>
+      <span><i class="sw" style="background:var(--s-brak);height:3px"></i>brak oceny</span>
+      <span><i class="sw" style="background:var(--sel);opacity:.6;height:8px"></i>zaznaczone</span>
+    </div>
+    <div class="muted" id="sum" style="margin-top:6px"></div>
+
+    <div id="info" class="box info" hidden></div>
+    </div>
+    <div class="m-miejsce">
+    <h2>Jak to działa</h2>
+    <p class="how">Ławka w lesie, wiata, WC, woda, serwis rowerowy, nocleg albo ciekawe miejsce, którego nie ma na mapie? Kliknij na mapie, gdzie jest – albo użyj swojej lokalizacji, jeśli stoisz obok. Pinezkę możesz przesunąć.</p>
+    <button type="button" class="gps" id="gps">📍 Moja lokalizacja</button>
+    <div class="box"><b id="pkt">Nie wskazano miejsca</b><div class="muted" id="pkthint">Kliknij na mapie.</div></div>
+    </div>
+    <div class="layers"><b>Pokaż:</b><label><input type="checkbox" id="w-odp" checked> odpoczynek</label><label><input type="checkbox" id="w-serwis" checked> rower i udogodnienia</label><label><input type="checkbox" id="w-ciek" checked> ciekawe, jedzenie, nocleg</label></div>
+
+    <h2>Twoje zgłoszenie</h2>
+    <div class="box m-drogi">
+      <div class="selbar"><b id="selc">Nic nie zaznaczono</b><button class="lnk" id="clear" hidden>wyczyść</button></div>
+      <div class="muted" id="selhint">Kliknij drogę na mapie, żeby ją zaznaczyć.</div>
+    </div>
+    <form id="form" autocomplete="on" novalidate>
+      <div class="typy m-miejsce" id="typy"></div>
+      <label class="f m-miejsce"><span>Nazwa (nieobowiązkowo)</span><input type="text" name="nazwa" maxlength="80" placeholder="np. Wiata przy Leśno Rajzie"></label>
+      <label class="f m-miejsce"><span>Opis</span><textarea name="opis" maxlength="1000" placeholder="np. dwie ławki i stół, zadaszenie, kosz na śmieci"></textarea></label>
+      <div class="stany m-drogi">
+        <label><input type="radio" name="stan" value="dobra"> <span class="chip c-dobra">dobra</span></label>
+        <label><input type="radio" name="stan" value="srednia"> <span class="chip c-srednia">średnia</span></label>
+        <label><input type="radio" name="stan" value="trudna"> <span class="chip c-trudna">trudna</span></label>
+        <label><input type="radio" name="stan" value="nieprzejezdna"> <span class="chip c-nieprzejezdna">nieprzejezdna</span></label>
+      </div>
+      <label class="f m-drogi"><span>Komentarz</span><textarea name="komentarz" maxlength="1000" placeholder="np. piach po deszczu, dziury przy przejeździe, powalone drzewo"></textarea></label>
+      <label class="f m-drogi"><span>Data przejazdu</span><input type="date" name="data"></label>
+      <label class="f"><span>Imię lub nick *</span><input type="text" name="nick" maxlength="60" required placeholder="widoczny przy zgłoszeniu"></label>
+      <label class="f"><span>E-mail lub telefon (nieobowiązkowo)</span><input type="text" name="kontakt" maxlength="120" placeholder="widzi go tylko administrator strony">
+        <small>Tylko po to, żeby dopytać o szczegóły. Nie publikujemy go.</small></label>
+      <label class="zg" id="zgoda" hidden><input type="checkbox" name="zgoda"> <span>Zgadzam się na kontakt w sprawie tego zgłoszenia. Kontakt jest usuwany najpóźniej po roku.</span></label>
+      <div class="hp" aria-hidden="true"><label>Strona www <input type="text" name="www" tabindex="-1" autocomplete="off"></label></div>
+      <button class="send" id="send" disabled>Wyślij zgłoszenie</button>
+      <div class="msg" id="msg"></div>
+      <p class="rodo">Imię lub nick, komentarz i data przejazdu są widoczne publicznie po zatwierdzeniu. Kontakt (jeśli go podasz) widzi wyłącznie administrator strony. Adres IP zapisujemy tylko jako skrót, do ochrony przed spamem, i usuwamy po 30 dniach.</p>
+    </form>
+  </aside>
+  <div id="mapw" role="region" aria-label="Mapa wspólna: stan dróg i miejsca"></div>
+</div>
+</section>
+
+<section id="trasy" class="msec">
+  <h2><span class="num">2</span>Proponowane trasy i drogowskazy</h2>
+  <p class="lead2">Projekt oznakowania: <b>{{NROUTES}} tras pokazowych</b>, <b>{{NPOSTS}} słupków (węzłów)</b> i <b>{{NPLATES}} tabliczek kierunkowych</b>. Kliknij trasę na liście, żeby ją wyróżnić, albo słupek, żeby zobaczyć jego tabliczki. Ta mapa to podgląd projektu – zgłoszenia dodajesz na mapie wspólnej wyżej.</p>
 <div class="app">
   <aside class="side">
     <h2>Trasy</h2>
@@ -123,19 +274,20 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <div class="toggles">
       <label><input type="checkbox" id="t-opt" checked> słupki poza trasami</label>
       <label><input type="checkbox" id="t-poi" checked> ciekawe miejsca i gastronomia</label>
-      <label><input type="checkbox" id="t-serwis" checked> serwis rowerowy</label>
-      <label><input type="checkbox" id="t-odp" checked> miejsca odpoczynku</label>
+      <label><input type="checkbox" id="t-serwis" checked> rower i udogodnienia</label>
+      <label><input type="checkbox" id="t-odp" checked> odpoczynek</label>
     </div>
     <div class="key">
       <div><span class="dot" style="background:var(--node)">7</span> słupek na trasie – kliknij, by zobaczyć tabliczki</div>
       <div><span class="dot" style="background:var(--grey)">7</span> pozostałe słupki (część opcjonalna)</div>
       <div><span class="star" style="color:#81552F">★</span> historia i kultura · <span class="star" style="color:#902B38">★</span> gastronomia (przykładowo)</div>
       <div id="key-mj"></div>
-      <div><a href="stan.html">Brakuje ławki, wiaty albo serwisu? Dodaj miejsce →</a></div>
+      <div><a href="#wspolna">Brakuje ławki, wiaty albo serwisu? Dodaj miejsce na mapie wspólnej ↑</a></div>
     </div>
   </aside>
   <div id="map" role="region" aria-label="Mapa tras rowerowych"></div>
 </div>
+</section>
 
 <section>
   <h2>O projekcie</h2>
@@ -154,7 +306,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   </div>
 </section>
 
-<section>
+<section id="pobierz">
   <h2>Do pobrania</h2>
   <ul class="dl">
 {{DOWNLOADS}}
@@ -170,12 +322,19 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 
 <script src="lib/leaflet.js"></script>
 <script src="lib/leaflet.polylineoffset.js"></script>
+<script src="lib/leaflet-gesture-handling.js"></script>
+<script src="stan/odcinki.js"></script>
 <script src="data.js"></script>
+<script src="lib/ikony.js"></script>
 <script src="lib/miejsca.js"></script>
+<script>
+// dwie mapy na jednej stronie: jeden palec / kółko przewija stronę, mapę przesuwa się dwoma palcami / z Ctrl
+const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text:{touch:"Przesuń mapę dwoma palcami", scroll:"Przytrzymaj Ctrl i przewiń, aby powiększyć mapę", scrollMac:"Przytrzymaj ⌘ i przewiń, aby powiększyć mapę"}}};
+</script>
 <script>
 (function(){
   const H = window.HUB;
-  const map = L.map('map', {zoomControl:true, scrollWheelZoom:true}); window.mapa = map;
+  const map = L.map('map', {zoomControl:true, ...GESTY}); window.mapa = map;
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18,
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
   const byId = {}; const all = L.featureGroup().addTo(map);
@@ -216,13 +375,13 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     L.marker([q.lat, q.lon], {icon:L.divIcon({className:'', html:`<div class="star" style="color:${colP[q.cat]||'#902B38'}">${ic}</div>`, iconSize:[20,20], iconAnchor:[10,10]}), title:q.name})
       .bindPopup(`<b>${q.name}</b>`).addTo(poiL);
   });
-  const ML = MIEJSCA.warstwy(map, H.places || []); ML.serwis.addTo(map); ML.odpoczynek.addTo(map);
+  const ML = MIEJSCA.warstwy(map, H.places || []); Object.values(ML).forEach(l => l.addTo(map));
   document.getElementById('t-serwis').onchange = e => e.target.checked ? ML.serwis.addTo(map) : map.removeLayer(ML.serwis);
   document.getElementById('t-odp').onchange = e => e.target.checked ? ML.odpoczynek.addTo(map) : map.removeLayer(ML.odpoczynek);
-  document.getElementById('key-mj').innerHTML = ['serwis', 'lawka', 'wiata', 'piknik', 'widok'].map(t =>
+  document.getElementById('key-mj').innerHTML = ['lawka', 'wiata', 'wc', 'serwis', 'stacja'].map(t =>
     `<span style="display:inline-flex;align-items:center;gap:5px;margin:2px 10px 2px 0"><i style="display:grid;place-items:center;width:18px;height:18px;border-radius:5px;background:${MIEJSCA.TYP[t].c}">${MIEJSCA.svg(t, '#fff', 12)}</i>${MIEJSCA.TYP[t].n.toLowerCase()}</span>`).join('');
   document.getElementById('t-opt').onchange = e => e.target.checked ? offL.addTo(map) : map.removeLayer(offL);
-  document.getElementById('t-poi').onchange = e => e.target.checked ? poiL.addTo(map) : map.removeLayer(poiL);
+  document.getElementById('t-poi').onchange = e => { const on = e.target.checked; [poiL, ML.ciekawe].forEach(l => on ? l.addTo(map) : map.removeLayer(l)); };
   // list
   const box = document.getElementById('routes');
   main.forEach(r => {
@@ -256,6 +415,168 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   const upd = () => map.getContainer().classList.toggle('far', map.getZoom() < 13);
   map.on('zoomend', upd);
   map.fitBounds(all.getBounds(), {padding:[20,20]}); upd();
+})();
+</script>
+<script>
+(() => {
+  const NAZWA = {osm:'przejezdna (utwardzona wg OSM)', dobra:'dobra', srednia:'średnia', trudna:'trudna', nieprzejezdna:'nieprzejezdna', brak:'brak oceny'};
+  const KOL = {osm:'#8fcf9c', dobra:'#2b9348', srednia:'#e0a800', trudna:'#d62828', brak:'#9aa3a8'};
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const $ = id => document.getElementById(id);
+
+  const map = L.map('mapw', {preferCanvas:true, zoomControl:true, ...GESTY});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19,
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+  const rnd = L.canvas({tolerance: 7}); window.mapaW = map;
+
+  // odcinki: [id, typ, nazwa, nawierzchnia, stan_pomiar, data_pomiaru, dlugosc_m, [lat,lon,...]]
+  const S = {};
+  for (const s of window.ODC) {
+    const c = s[7], ll = [];
+    for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
+    S[s[0]] = {id:s[0], typ:s[1], nazwa:s[2], naw:s[3], pomiar:s[4], pdata:s[5], len:s[6], ll, layers:[]};
+  }
+  let API = {stany:{}, wpisy:{}, zgloszenia:{}, oczekuje:0}, apiOk = false;
+  const stanOf = s => { const z = API.stany[s.id]; return z ? API.zgloszenia[z][0] : (s.pomiar || 'brak'); };
+
+  const roads = L.layerGroup().addTo(map), selL = L.layerGroup().addTo(map);
+  function styl(st, z) {
+    const w = z >= 15 ? 1.5 : z >= 13 ? 1 : .7;
+    if (st === 'nieprzejezdna') return [{color:'#111', weight:6 * w, opacity:.95}, {color:'#fff', weight:3.6 * w, dashArray:'5 6', opacity:1}];
+    if (st === 'brak') return [{color:KOL.brak, weight:2.6 * w, opacity:.75}];
+    if (st === 'osm') return [{color:KOL.osm, weight:3 * w, opacity:.9}];
+    return [{color:KOL[st], weight:4.5 * w, opacity:.95}];
+  }
+  function rysuj() {
+    roads.clearLayers(); const z = map.getZoom();
+    const order = ['brak', 'osm', 'dobra', 'srednia', 'trudna', 'nieprzejezdna'];
+    const groups = {}; for (const id in S) (groups[stanOf(S[id])] ||= []).push(S[id]);
+    for (const st of order) for (const s of (groups[st] || [])) {
+      s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); tryb === 'miejsce' ? pinezka(e.latlng) : klik(s); }).addTo(roads));
+    }
+    const km = {}; for (const id in S) { const st = stanOf(S[id]); km[st] = (km[st] || 0) + S[id].len / 1000; }
+    $('sum').textContent = `Ocenione: ${Math.round((km.dobra||0)+(km.srednia||0)+(km.trudna||0)+(km.nieprzejezdna||0))} km z ${Math.round(Object.values(km).reduce((a,b)=>a+b,0))} km dróg`
+      + (API.oczekuje ? ` · czeka na sprawdzenie: ${API.oczekuje}` : '');
+  }
+
+  // zaznaczanie
+  const sel = new Set();
+  function rysujSel() {
+    selL.clearLayers();
+    for (const id of sel) L.polyline(S[id].ll, {color:'#1d4ed8', weight:11, opacity:.45, renderer:rnd, interactive:false}).addTo(selL);
+    const km = [...sel].reduce((a, id) => a + S[id].len, 0) / 1000;
+    $('selc').textContent = sel.size ? `Zaznaczone: ${sel.size} ${sel.size === 1 ? 'odcinek' : sel.size < 5 ? 'odcinki' : 'odcinków'} · ${km.toFixed(km < 1 ? 2 : 1).replace('.', ',')} km` : 'Nic nie zaznaczono';
+    $('selhint').textContent = sel.size ? 'Kliknij kolejne odcinki, żeby dodać. Kliknięcie zaznaczonego go odznacza.' : 'Kliknij drogę na mapie, żeby ją zaznaczyć.';
+    $('clear').hidden = !sel.size; walid();
+  }
+  function klik(s) { sel.has(s.id) ? sel.delete(s.id) : sel.add(s.id); rysujSel(); info(s); }
+  $('clear').onclick = () => { sel.clear(); rysujSel(); };
+
+  function info(s) {
+    const st = stanOf(s), z = API.stany[s.id];
+    let h = `<h3>${esc(s.nazwa || s.typ || 'droga')}</h3><div class="muted">${esc(s.nazwa ? s.typ : '')}${s.naw ? (s.nazwa ? ' · ' : '') + 'nawierzchnia wg OSM: ' + esc(s.naw) : ''} · ${s.len} m</div>`;
+    h += `<div style="margin-top:6px">Stan: <span class="chip c-${st}">${NAZWA[st]}</span> `;
+    h += z ? '<span class="muted">wg zgłoszeń</span>' : s.pomiar === 'osm' ? '<span class="muted">nikt jej jeszcze nie ocenił</span>' : s.pomiar ? `<span class="muted">wg pomiaru${s.pdata ? ' (' + esc(s.pdata) + ')' : ''}</span>` : '';
+    h += '</div>';
+    for (const zid of (API.wpisy[s.id] || [])) {
+      const [zst, nick, dz, dp, kom] = API.zgloszenia[zid];
+      h += `<div class="wpis"><span class="chip c-${zst}">${NAZWA[zst]}</span> <b>${esc(nick)}</b> <span class="muted">· ${esc(dp || dz)}</span>${kom ? `<p>${esc(kom)}</p>` : ''}</div>`;
+    }
+    $('info').innerHTML = h; $('info').hidden = false;
+  }
+
+  // słupki (węzły) dla orientacji
+  const nodes = L.layerGroup();
+  for (const p of (window.HUB?.posts || []))
+    L.marker([p.lat, p.lon], {icon:L.divIcon({className:'', html:`<div class="pm">${p.nr}</div>`, iconSize:[20,20], iconAnchor:[10,10]}), interactive:false, keyboard:false}).addTo(nodes);
+  map.on('zoomend', () => { rysuj(); map.getZoom() >= 13 ? nodes.addTo(map) : nodes.remove(); });
+
+  // formularz
+  const F = $('form');
+  F.kontakt.addEventListener('input', () => { $('zgoda').hidden = !F.kontakt.value.trim(); });
+  F.data.max = new Date().toISOString().slice(0, 10);
+  try { F.nick.value = localStorage.getItem('hub_nick') || ''; } catch (e) {}
+  function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : pin && F.typ.value)); }
+  F.addEventListener('input', walid); F.addEventListener('change', walid);
+  function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; }
+  F.addEventListener('submit', async e => {
+    e.preventDefault(); if ($('send').disabled) return;
+    if (F.kontakt.value.trim() && !F.zgoda.checked) return msg('Zaznacz zgodę na kontakt albo zostaw pole kontaktu puste.');
+    $('send').disabled = true;
+    const wsp = {nick:F.nick.value, kontakt:F.kontakt.value, zgoda:F.zgoda.checked, www:F.www.value};
+    const body = tryb === 'drogi' ? {...wsp, odcinki:[...sel], stan:F.stan.value, komentarz:F.komentarz.value, data:F.data.value}
+      : {...wsp, typ:F.typ.value, nazwa:F.nazwa.value, opis:F.opis.value, lat:pin.getLatLng().lat, lon:pin.getLatLng().lng};
+    try {
+      const r = await fetch(tryb === 'drogi' ? 'api/zglos.php' : 'api/miejsca.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) throw new Error(j.blad || 'Nie udało się wysłać zgłoszenia.');
+      try { localStorage.setItem('hub_nick', F.nick.value.trim()); } catch (e) {}
+      msg(tryb === 'drogi' ? 'Dziękujemy! Zgłoszenie trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.'
+                           : 'Dziękujemy! Miejsce trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.', true);
+      if (tryb === 'drogi') { sel.clear(); rysujSel(); F.komentarz.value = ''; F.stan.forEach(x => x.checked = false); API.oczekuje++; rysuj(); }
+      else { pin.remove(); pin = null; F.nazwa.value = ''; F.opis.value = ''; F.typ.forEach(x => x.checked = false); pkt(); }
+    } catch (err) { msg(err.message); }
+    walid();
+  });
+
+  // tryb: ocena dróg / dodawanie miejsca
+  let tryb = 'drogi', pin = null;
+  $('wsp').dataset.tryb = tryb;
+  document.querySelectorAll('#wsp .modes button').forEach(b => b.onclick = () => {
+    tryb = b.dataset.t; $('wsp').dataset.tryb = tryb;
+    document.querySelectorAll('#wsp .modes button').forEach(x => x.classList.toggle('on', x === b));
+    $('mapw').classList.toggle('pick', tryb === 'miejsce'); $('msg').className = 'msg'; walid();
+    if (tryb === 'miejsce') selL.remove(); else selL.addTo(map);
+  });
+  const MJ = window.MIEJSCA;
+  $('typy').innerHTML = MJ.GRUPY.map(([g, ts]) => `<div class="tg">${g}</div>` + ts.map(t =>
+    `<label><input type="radio" name="typ" value="${t}"><i style="background:${MJ.TYP[t].c}">${MJ.svg(t)}</i>${MJ.TYP[t].n}</label>`).join('')).join('');
+  function pkt() {
+    $('pkt').textContent = pin ? 'Miejsce wskazane' : 'Nie wskazano miejsca';
+    $('pkthint').textContent = pin ? 'Przeciągnij pinezkę, żeby poprawić położenie.' : 'Kliknij na mapie albo użyj lokalizacji.'; walid();
+  }
+  function pinezka(ll) {
+    if (!pin) { pin = L.marker(ll, {draggable:true, zIndexOffset:1000}).addTo(map); }
+    else pin.setLatLng(ll);
+    pkt();
+  }
+  map.on('click', e => { if (tryb === 'miejsce') pinezka(e.latlng); });
+  $('gps').onclick = () => {
+    if (!navigator.geolocation) return msg('Ta przeglądarka nie udostępnia lokalizacji.');
+    $('gps').textContent = '📍 Szukam…';
+    navigator.geolocation.getCurrentPosition(p => {
+      $('gps').textContent = '📍 Moja lokalizacja';
+      const ll = L.latLng(p.coords.latitude, p.coords.longitude); pinezka(ll); map.setView(ll, 17);
+    }, () => { $('gps').textContent = '📍 Moja lokalizacja'; msg('Nie udało się pobrać lokalizacji – kliknij miejsce na mapie.'); },
+    {enableHighAccuracy:true, timeout:15000});
+  };
+  // warstwy miejsc
+  const ML = MJ.warstwy(map, (window.HUB && HUB.places) || []);
+  for (const [k, el] of [['serwis', 'w-serwis'], ['odpoczynek', 'w-odp'], ['ciekawe', 'w-ciek']]) {
+    ML[k].addTo(map); $(el).onchange = e => e.target.checked ? ML[k].addTo(map) : ML[k].remove();
+  }
+  map.on('zoomend', () => map.getContainer().classList.toggle('far', map.getZoom() < 13));
+
+  // telefon: przełącznik „Oceń drogi / Dodaj miejsce” nad mapą, żeby był od razu widoczny
+  if (window.matchMedia('(max-width:900px)').matches) $('wsp').insertBefore(document.querySelector('#wsp .modes'), $('mapw'));
+  // telefon: po zaznaczeniu przycisk „Dalej” przewija do formularza pod mapą
+  const Dalej = L.Control.extend({onAdd() { const d = L.DomUtil.create('button', 'dalej'); d.type = 'button'; d.hidden = true;
+    L.DomEvent.disableClickPropagation(d); d.onclick = () => $('form').scrollIntoView({behavior:'smooth', block:'start'}); return d; }});
+  const dalej = new Dalej({position:'bottomleft'}).addTo(map).getContainer();
+  setInterval(() => { const n = tryb === 'drogi' ? sel.size : (pin ? 1 : 0);
+    dalej.hidden = !(n && window.innerWidth <= 900);
+    dalej.textContent = tryb === 'drogi' ? `Dalej: oceń zaznaczone (${n}) ↓` : 'Dalej: opisz miejsce ↓'; }, 400);
+
+  // start
+  const b = L.latLngBounds([]); for (const id in S) if (S[id].pomiar && S[id].pomiar !== 'osm') S[id].ll.forEach(p => b.extend(p));
+  for (const p of (window.HUB?.posts || [])) b.extend([p.lat, p.lon]);
+  map.fitBounds(b.isValid() ? b : [[50.55, 18.8], [50.7, 19.0]], {padding:[20, 20]});
+  rysuj(); rysujSel();
+  fetch('api/stan.php', {cache:'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
+    if (j.blad) throw 0; API = j; apiOk = true; rysuj(); walid();
+  }).catch(() => {
+    msg('Zapisywanie zgłoszeń jest teraz niedostępne – mapa pokazuje tylko dotychczasowe pomiary.');
+  });
 })();
 </script>
 </body>

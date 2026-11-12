@@ -49,7 +49,9 @@ for f in json.load(open("../dane/osm2_clean.geojson"))["features"]:
     if g["type"] != "Point": continue
     typ = ("wiata" if q.get("amenity") == "shelter" and q.get("shelter_type") in (None, "picnic_shelter", "weather_shelter", "lean_to", "basic_hut") else
            "piknik" if q.get("tourism") == "picnic_site" or q.get("leisure") in ("picnic_table", "firepit") else
-           "widok" if q.get("tourism") == "viewpoint" else "lawka" if q.get("amenity") == "bench" else None)
+           "widok" if q.get("tourism") == "viewpoint" else "lawka" if q.get("amenity") == "bench" else
+           "wc" if q.get("amenity") == "toilets" else "woda" if q.get("amenity") == "drinking_water" else
+           "zabawa" if q.get("leisure") == "playground" else "stojak" if q.get("amenity") == "bicycle_parking" else None)
     if typ and hull.contains(Point(g["coordinates"])):
         places.append(dict(typ=typ, nazwa=q.get("name", ""), opis="", lat=g["coordinates"][1], lon=g["coordinates"][0], osm=1))
 # wspólne odcinki tras: każda trasa dzielona na kawałki o stałym zestawie tras; na stronie rysowane obok siebie (przesunięcie)
@@ -71,6 +73,16 @@ for r in routes:
         if cs[0] > cs[-1]: cs = cs[::-1]   # ten sam kierunek dla wszystkich tras na wspólnym kawałku
         out.append(dict(c=[list(x) for x in cs], k=k.index(r["id"]), n=len(k)))
     r["parts"] = out; del r["coords"]
+# piktogramy dla stron (te same co na tabliczkach) + kilka dodatkowych z Tabler Icons
+import glob as _gl
+IK = {os.path.basename(f)[:-4]: _re.sub(r"</?svg[^>]*>", "", open(f).read()).strip() for f in _gl.glob("../generator/piktogramy_tabler/*.svg")}
+IK.update(pavilion='<path d="M3 21h7v-3a2 2 0 0 1 4 0v3h7"/><path d="M6 21l0 -9"/><path d="M18 21l0 -9"/><path d="M6 12h12a3 3 0 0 0 3 -3a9 8 0 0 1 -9 -6a9 8 0 0 1 -9 6a3 3 0 0 0 3 3"/>',
+          campfire='<path d="M4 21l16 -4"/><path d="M20 21l-16 -4"/><path d="M12 15a4 4 0 0 0 4 -4c0 -3 -2 -3 -2 -8c-4 2 -6 5 -6 8a4 4 0 0 0 4 4z"/>',
+          star='<path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/>',
+          droplet='<path d="M7.502 19.423c2.602 2.105 6.395 2.105 8.996 0c2.602 -2.105 3.262 -5.708 1.566 -8.546l-4.89 -7.26c-.42 -.625 -1.287 -.803 -1.936 -.397a1.376 1.376 0 0 0 -.41 .397l-4.893 7.26c-1.695 2.838 -1.035 6.441 1.567 8.546z"/>',
+          bike='<path d="M5 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M19 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M12 19l0 -4l-3 -3l5 -4l2 3l3 0"/><path d="M17 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>')
+os.makedirs(f"{S}/lib", exist_ok=True)
+open(f"{S}/lib/ikony.js", "w").write("window.IKONY = " + json.dumps(IK, ensure_ascii=False) + ";")
 open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places), ensure_ascii=False, separators=(",", ":")) + ";")
 print("miejsca:", len(places))
 M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
