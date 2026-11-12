@@ -65,9 +65,7 @@ dl += (f'\n<li class="dl-m"><span class="dl-t">Generator tabliczek (wzór „HUB
        f'<a href="generator.html" target="_blank" rel="noopener"><b>Otwórz</b><span>online</span></a>'
        f'<a href="pobierz/generator_tabliczek_HUB_Strzebin.zip" download><b>ZIP</b><span>{zsz}</span></a></span></li>')
 # mapa stanu dróg ze zgłoszeniami (PHP + baza poza public_html); odcinki dorabia odcinki.py
-ADMIN = "autor projektu (Bartosz ze Strzebinia)"   # administrator danych kontaktowych – do uzupełnienia o kontakt
 shutil.copytree("www", S, dirs_exist_ok=True)
-open(f"{S}/stan.html", "w").write(open("www/stan.html").read().replace("{{ADMIN}}", ADMIN))
 n_posts = len(posts); n_pl = sum(len(p["imgs"]) for p in posts)
 html = open("strona_template.html").read().replace("{{DOWNLOADS}}", dl).replace("{{NPOSTS}}", str(n_posts)).replace("{{NPLATES}}", str(n_pl)).replace(
     "{{NROUTES}}", str(sum(1 for r in routes if not r["alt"])))
