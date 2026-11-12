@@ -9,6 +9,18 @@ session_name('hub_admin');
 session_start();
 
 $cfg = hub_cfg();
+// diagnostyka dla zalogowanego administratora: błąd PHP pokazany zamiast pustej strony
+if ($_SESSION['ok'] ?? false) {
+    ini_set('display_errors', '0');
+    register_shutdown_function(function () {
+        $e = error_get_last();
+        if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true))
+            echo '<pre style="white-space:pre-wrap;padding:16px;background:#fde8e8">Błąd PHP: ' . htmlspecialchars($e['message'] . ' (' . basename($e['file']) . ':' . $e['line'] . ')') . "\nPHP " . PHP_VERSION . '</pre>';
+    });
+    set_exception_handler(function (Throwable $e) {
+        echo '<pre style="white-space:pre-wrap;padding:16px;background:#fde8e8">Wyjątek: ' . htmlspecialchars($e->getMessage() . ' (' . basename($e->getFile()) . ':' . $e->getLine() . ')') . "\nPHP " . PHP_VERSION . '</pre>';
+    });
+}
 $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 $blad = '';
 
