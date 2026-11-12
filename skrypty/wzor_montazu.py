@@ -59,12 +59,12 @@ ol.key b{{color:#1d2a23}}
 <div class="mont">
 <div class="rys"><svg id="rys" viewBox="0 0 118 142" width="118mm" height="142mm"></svg></div>
 <div class="uw"><ul>
-<li><b>Tylko słupki z nazwami ulic</b>, na których nie ma znaków drogowych. Tabliczki zawieszone pod nazwami ulic, ich nie zasłaniają.</li>
-<li><b>Mocowanie</b>: obejmy stalowe na rurę Ø 60 mm, śruby nierdzewne M6/M8 z podkładkami EPDM; 2 otwory Ø 6 mm w strefie mocowania (60 mm od nasady).</li>
+<li><b>Tylko słupki z nazwami ulic</b> (białe tabliczki z niebieskim napisem i herbem gminy), na których nie ma znaków drogowych. Drogowskazy wiszą tuż pod nazwami ulic i ich nie zasłaniają.</li>
+<li><b>Mocowanie</b>: obejmy stalowe dobrane do średnicy rury (do zmierzenia w terenie, typowo Ø 48–60 mm) – tak jak dziś przykręcone są nazwy ulic; śruby nierdzewne M6/M8 z podkładkami EPDM; 2 otwory Ø 6 mm w strefie mocowania (60 mm od nasady).</li>
 <li><b>Tabliczki</b> po obu stronach słupka: ze strzałką w lewo – po lewej, w prawo – po prawej; każda ustawiona wzdłuż swojej drogi.</li>
 <li><b>Materiał</b>: płyta kompozytowa (dibond) 3 mm cięta po obrysie, druk z obu stron na folii odpornej na UV.</li>
-<li><b>Naklejka węzła</b> z numerem słupka i <b>paski tras</b> (te same kolory i numery co kółka) na wysokości ok. 1,6–1,8 m.</li>
-<li><b>Wysokości</b> na rysunku są orientacyjne – do uzgodnienia z zarządcą drogi (proponowana dolna krawędź tabliczek min. 2,2 m nad chodnikiem).</li>
+<li><b>Naklejka węzła</b> z numerem słupka i <b>paski tras</b> (te same kolory i numery co kółka) na wysokości ok. 1,7 m.</li>
+<li><b>Wysokości</b> oszacowane ze zdjęć istniejących słupków (rura ok. 3 m, nazwy ulic ok. 750 × 250 mm na szczycie rury, ich dolna krawędź ok. 2,7 m) – do zmierzenia w terenie. Pod nazwami ulic mieszczą się dwa rzędy drogowskazów, dolna krawędź ok. 2,2 m; wymagana wysokość do uzgodnienia z zarządcą drogi.</li>
 <li>Stan techniczny, nośność i własność każdego słupka – do potwierdzenia przed montażem.</li>
 </ul></div>
 </div>
@@ -94,17 +94,25 @@ document.fonts.load("600 40px 'Fira Sans Condensed'").then(() => {{
   const el = (t, a, txt) => {{ const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; svg.appendChild(e); return e; }};
   el('line', {{x1: 4, x2: 114, y1: G, y2: G, stroke: '#9a9078', 'stroke-width': .5}});
   el('rect', {{x: 4, y: G, width: 110, height: 6, fill: '#e8e1cf'}});
-  el('rect', {{x: X - 1.2, y: y(3.3), width: 2.4, height: G - y(3.3), fill: '#9aa3a8'}});
+  el('rect', {{x: X - 1.2, y: y(3.0), width: 2.4, height: G - y(3.0), fill: '#9aa3a8'}});
   // nazwy ulic (istniejące)
   const ulice = ['ul. Wojska Polskiego', 'ul. Kościuszki'];
-  ulice.forEach((u, i) => {{ const top = y(3.22 - i * 0.24);
-    el('rect', {{x: X - 18, y: top, width: 36, height: 7.6, rx: .8, fill: '#1f4fa0', stroke: '#fff', 'stroke-width': .4}});
-    el('text', {{x: X, y: top + 5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 3.1, 'font-family': 'Arial', 'font-weight': 700}}, u); }});
+  // jak w Strzebiniu: białe tabliczki z niebieską obwódką i napisem, strzałka na zewnętrznym końcu, herb gminy przy słupku;
+  // na szczycie rury, po obu stronach (jak ul. Lubliniecka / Sienkiewicza)
+  ulice.forEach((u, i) => {{ const top = y(2.98), w = 750 * S_, h = 250 * S_, x = i ? X + 1.2 : X - 1.2 - w, lewa = !i;
+    el('rect', {{x, y: top, width: w, height: h, rx: .3, fill: '#fff', stroke: '#1f4fa0', 'stroke-width': .35}});
+    el('path', {{d: lewa ? `M ${{x + 1}} ${{top + h / 2}} l 2.2 -1.7 v 3.4 z` : `M ${{x + w - 1}} ${{top + h / 2}} l -2.2 -1.7 v 3.4 z`, fill: '#1f4fa0'}});
+    const hx = lewa ? x + w - 3.6 : x + 1;
+    el('path', {{d: `M ${{hx}} ${{top + 2}} h 2.6 v 2.6 q 0 2 -1.3 2.8 q -1.3 -.8 -1.3 -2.8 z`, fill: '#1f4fa0'}});
+    const tx = el('text', {{x: x + w / 2 + (lewa ? -.8 : .8), y: top + 6, 'text-anchor': 'middle', fill: '#1f4fa0', 'font-size': 3, 'font-family': 'Arial', 'font-weight': 700}}, u);
+    if (tx.getComputedTextLength() > w - 10) {{ tx.setAttribute('textLength', w - 10); tx.setAttribute('lengthAdjust', 'spacingAndGlyphs'); }}
+    el('rect', {{x: X - 1.9, y: top + 4.4, width: 3.8, height: 1.4, rx: .3, fill: '#3b4448'}}); }});
+  el('text', {{x: X, y: y(2.98) - 2, 'text-anchor': 'middle', fill: '#4b5d53', 'font-size': 2.5, 'font-family': 'Arial'}}, 'istniejące nazwy ulic');
   // tabliczki: pary lewa/prawa na tych samych wysokościach
   const L_ = TAB.filter(t => t.d === 'left'), R_ = TAB.filter(t => t.d === 'right'), rows = Math.max(L_.length, R_.length);
   const pw = 800 * S_, ph = 200 * S_;
   for (let r = 0; r < rows; r++) {{
-    const top = y(2.62 - r * 0.24);
+    const top = y(2.68 - r * 0.23);
     for (const [t, side] of [[L_[r], 'l'], [R_[r], 'r']]) {{
       if (!t) continue;
       const g = el('g', {{}}); const x = side === 'l' ? X - 1.2 - pw : X + 1.2;
@@ -114,16 +122,16 @@ document.fonts.load("600 40px 'Fira Sans Condensed'").then(() => {{
     }}
   }}
   // naklejka węzła i paski tras
-  const yn = y(1.78); el('rect', {{x: X - 2.4, y: yn, width: 4.8, height: 3.2, fill: '#fff', stroke: '#c9c1ad', 'stroke-width': .2}});
+  const yn = y(1.72); el('rect', {{x: X - 2.4, y: yn, width: 4.8, height: 3.2, fill: '#fff', stroke: '#c9c1ad', 'stroke-width': .2}});
   el('circle', {{cx: X, cy: yn + 1.6, r: 1.3, fill: '#00838F'}}); el('text', {{x: X, y: yn + 2.15, 'text-anchor': 'middle', fill: '#fff', 'font-size': 1.5, 'font-family': 'Arial', 'font-weight': 700}}, NR);
   ROUTES.forEach((r, i) => {{ const k = KOL[r] || ['#555', 'white'], yb = yn + 3.4 + i * 1.3;
     el('rect', {{x: X - 1.2, y: yb, width: 2.4, height: 1.2, fill: k[0]}}); el('text', {{x: X, y: yb + .95, 'text-anchor': 'middle', fill: k[1], 'font-size': 1, 'font-family': 'Arial', 'font-weight': 700}}, r); }});
   // wymiary (orientacyjne)
   const dim = (m, t) => {{ el('line', {{x1: 96, x2: 101, y1: y(m), y2: y(m), stroke: '#a0700f', 'stroke-width': .25}}); el('text', {{x: 102, y: y(m) + 1.2, fill: '#a0700f', 'font-size': 3, 'font-family': 'Arial'}}, t); }};
-  dim(3.3, '≈ 3,3 m'); dim(2.62, '≈ 2,6 m'); dim(2.2, '≥ 2,2 m'); dim(1.78, '≈ 1,8 m'); dim(0, '0');
+  dim(3.0, '≈ 3,0 m'); dim(2.73, '≈ 2,7 m'); dim(2.23, '≈ 2,2 m'); dim(1.72, '≈ 1,7 m'); dim(0, '0');
   el('text', {{x: 6, y: G - 3, fill: '#4b5d53', 'font-size': 3, 'font-family': 'Arial'}}, 'skala ok. 1:25 · tabliczki 800 × 200 mm');
-  el('text', {{x: X - 3, y: y(2.02), 'text-anchor': 'end', fill: '#4b5d53', 'font-size': 2.7, 'font-family': 'Arial'}}, '← strzałka w lewo: po lewej');
-  el('text', {{x: X + 3, y: y(2.02), 'text-anchor': 'start', fill: '#4b5d53', 'font-size': 2.7, 'font-family': 'Arial'}}, 'po prawej: strzałka w prawo →');
+  el('text', {{x: X - 3, y: y(2.08), 'text-anchor': 'end', fill: '#4b5d53', 'font-size': 2.7, 'font-family': 'Arial'}}, '← strzałka w lewo: po lewej');
+  el('text', {{x: X + 3, y: y(2.08), 'text-anchor': 'start', fill: '#4b5d53', 'font-size': 2.7, 'font-family': 'Arial'}}, 'po prawej: strzałka w prawo →');
   el('text', {{x: X + 3.5, y: yn + 4.5, fill: '#4b5d53', 'font-size': 2.6, 'font-family': 'Arial'}}, '← węzeł ' + NR + ' i paski tras');
   document.body.dataset.ok = 1;
 }});
