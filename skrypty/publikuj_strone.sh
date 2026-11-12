@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Publikuje zbudowaną stronę (out/strona) na gałąź "strona" – jeden commit, nadpisywany przy każdej publikacji.
+# Publikuje zbudowaną stronę (out/strona) do folderu public/ na gałęzi "strona" – jeden commit, nadpisywany przy każdej publikacji.
 # Opcjonalnie: TRAILER="..." dopisuje linie na końcu opisu commita.
 set -eo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; SRC="$ROOT/out/strona"
 [ -f "$SRC/index.html" ] || { echo "Najpierw: bash skrypty/rebuild.sh"; exit 1; }
-TMP=$(mktemp -d); cp -r "$SRC"/. "$TMP"/
-[ -f "$ROOT/CNAME" ] && cp "$ROOT/CNAME" "$TMP/"
+TMP=$(mktemp -d); mkdir -p "$TMP/public"; cp -r "$SRC"/. "$TMP/public"/   # Joton: katalog publikacji = public
+[ -f "$ROOT/CNAME" ] && cp "$ROOT/CNAME" "$TMP/public/"
 MSG="Strona: $(date +%F)"
 [ -n "$TRAILER" ] && MSG="$MSG
 
