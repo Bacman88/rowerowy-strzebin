@@ -278,7 +278,9 @@ section.msec h2{display:flex;align-items:center;gap:12px}
   .jump a{flex:1 1 100%}
   section.msec h2{font-size:22px}
 }
-.social{margin:16px 0 0}
+.social{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:10px}
+.social .mail{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600;font-size:14.5px;padding:7px 14px 7px 11px;border-radius:999px}
+.social .mail:hover{background:#efe9da}
 .social .fb{display:inline-flex;align-items:center;gap:8px;background:#1877F2;color:#fff;text-decoration:none;font-weight:700;font-size:14.5px;padding:8px 14px 8px 11px;border-radius:999px}
 .social .fb:hover{background:#0f5fd0}
 footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
@@ -298,7 +300,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <p class="eyebrow">Sołectwo Strzebiń · gmina Koszęcin</p>
   <h1>HUB rowerowy Strzebiń</h1>
   <p class="lead">Strzebiń leży między Leśną Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
-  <p class="social"><a class="fb" href="{{FB}}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8v3h2.6V21h2.9z"/></svg>Obserwuj projekt na Facebooku</a></p>
+  <p class="social"><a class="fb" href="{{FB}}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8v3h2.6V21h2.9z"/></svg>Obserwuj projekt na Facebooku</a><a class="mail" href="mailto:{{KONTAKT}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>{{KONTAKT}}</a></p>
   <div class="idea">
     <h2>Lokalny system informacji kierunkowej dla rowerzystów</h2>
     <p>Drogowskazy informacyjne w punktach rozjazdów i skrzyżowań – pokazują, dokąd można dojechać do pobliskich miejscowości, obiektów i atrakcji i ile to kilometrów. System <b>uzupełnia</b> istniejącą infrastrukturę turystyczną i rowerową: nie zastępuje znaków drogowych ani oficjalnych szlaków turystycznych i nie tworzy nowych szlaków.</p>
@@ -523,7 +525,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 
 <footer>
   Projekt oddolny mieszkańców Strzebinia, przygotowany dla Sołectwa Strzebiń i Gminy Koszęcin · propozycja do dyskusji, przebieg tras do potwierdzenia w terenie.<br>
-  <a href="{{FB}}" target="_blank" rel="noopener">HUB rowerowy Strzebiń na Facebooku</a> · Dane mapy © autorzy <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · piktogramy tabliczek: Tabler Icons (MIT).
+  Kontakt: <a href="mailto:{{KONTAKT}}">{{KONTAKT}}</a> · <a href="{{FB}}" target="_blank" rel="noopener">HUB rowerowy Strzebiń na Facebooku</a><br>Dane mapy © autorzy <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · piktogramy tabliczek: Tabler Icons (MIT).
 </footer>
 </div>
 

@@ -42,7 +42,7 @@ try {
     $db->prepare('INSERT INTO trasy (utworzono, nazwa, opis, punkty, geom, km, nick, kontakt, ip) VALUES (?,?,?,?,?,?,?,?,?)')
        ->execute([hub_teraz(), $nazwa, $opis, json_encode($punkty), json_encode($geom), round($m / 1000, 2), $nick, $kontakt, $ip]);
     $id = (int)$db->lastInsertId();
-    hub_powiadom("Nowa trasa do zatwierdzenia #$id", "Od: $nick\n$nazwa (" . number_format($m / 1000, 1, ',', '') . " km)\n$opis");
+    hub_powiadom("Nowa trasa do zatwierdzenia #$id", "Od: $nick\n$nazwa (" . number_format($m / 1000, 1, ',', '') . " km)\n$opis", 'trasy');
     hub_json(['ok' => true, 'id' => $id, 'km' => round($m / 1000, 1)]);
 } catch (Throwable $e) {
     error_log('trasy.php: ' . $e->getMessage());

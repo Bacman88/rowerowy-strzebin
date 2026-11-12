@@ -139,10 +139,18 @@ function hub_ip_limit(PDO $db): string {
     if ($n >= 20) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);
     return $ip;
 }
-function hub_powiadom(string $temat, string $tresc): void {
-    $mail = hub_cfg()['powiadom'];
-    if ($mail) @mail($mail, '=?UTF-8?B?' . base64_encode($temat) . '?=',
-        $tresc . "\n\nPanel: https://" . ($_SERVER['HTTP_HOST'] ?? '') . "/admin/", "Content-Type: text/plain; charset=utf-8");
+// E-mail do administratora przy każdym nowym zgłoszeniu (hub_config.php: 'powiadom' => 'adres', opcjonalnie 'nadawca').
+// Kontaktów zgłaszających nie wysyłamy mailem – są tylko w panelu. Zwraca true, gdy serwer przyjął wiadomość.
+function hub_powiadom(string $temat, string $tresc, string $zakladka = ''): bool {
+    $c = hub_cfg(); $do = trim((string)$c['powiadom']);
+    if ($do === '') return false;
+    $host = preg_replace('/^www\./', '', preg_replace('/[^a-z0-9.\-]/i', '', (string)($_SERVER['HTTP_HOST'] ?? 'rowerowy-strzebin.smart-ant.pl')));
+    $od = trim((string)($c['nadawca'] ?? '')) ?: "info@$host";
+    $link = "https://$host/admin/" . ($zakladka ? "?t=$zakladka" : '');
+    $nag = implode("\r\n", ["From: =?UTF-8?B?" . base64_encode('HUB rowerowy Strzebiń') . "?= <$od>", "Reply-To: $od", 'MIME-Version: 1.0',
+        'Content-Type: text/plain; charset=utf-8', 'Content-Transfer-Encoding: 8bit', 'X-Mailer: HUB rowerowy Strzebin']);
+    return @mail($do, '=?UTF-8?B?' . base64_encode('[HUB rowerowy] ' . $temat) . '?=',
+        $tresc . "\n\nSprawdź i zatwierdź w panelu: $link\n", $nag, '-f' . $od);
 }
 
 // Zdjęcie (JPEG, już zmniejszone w przeglądarce) przesłane jako data URL w polu 'foto'. Zapis poza public_html.

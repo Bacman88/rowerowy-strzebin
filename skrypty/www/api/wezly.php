@@ -34,7 +34,7 @@ try {
     $db->prepare('INSERT INTO wezly (utworzono, wezel, lat, lon, slupek, zmiany, komentarz, nick, kontakt, ip) VALUES (?,?,?,?,?,?,?,?,?,?)')
        ->execute([hub_teraz(), $wezel, round($lat, 6), round($lon, 6), $slupek, json_encode(['usun' => $usun, 'dodaj' => $dodaj], JSON_UNESCAPED_UNICODE), $kom, $nick, $kontakt, $ip]);
     $id = (int)$db->lastInsertId();
-    hub_powiadom("Propozycja zmiany węzła #$id", "Od: $nick\nWęzeł: " . ($wezel ?? 'nowy') . "\nUsuń: " . implode(', ', $usun) . "\nDodaj: " . implode(', ', array_column($dodaj, 'n')) . "\n\n$kom");
+    hub_powiadom("Propozycja zmiany węzła #$id", "Od: $nick\nWęzeł: " . ($wezel ?? 'nowy') . "\nUsuń: " . implode(', ', $usun) . "\nDodaj: " . implode(', ', array_column($dodaj, 'n')) . "\n\n$kom", 'wezly');
     hub_json(['ok' => true, 'id' => $id]);
 } catch (Throwable $e) {
     error_log('wezly.php: ' . $e->getMessage());

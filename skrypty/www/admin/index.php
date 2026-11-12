@@ -89,6 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['akcja'] ?? '') === 'korekt
     } else hub_json(['blad' => 'Nieznana operacja'], 400);
     hub_json(['ok' => true, 'korekty' => hub_korekty($db)]);
 }
+if (isset($_GET['test_maila'])) {   // próbna wiadomość – sprawdzenie, czy powiadomienia dochodzą
+    $ok = hub_powiadom('Test powiadomień', "To jest próbna wiadomość z panelu mapy wspólnej (" . hub_teraz() . ").\nJeśli ją widzisz, powiadomienia o nowych zgłoszeniach działają.");
+    $do = hub_cfg()['powiadom'];
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<p style="font:16px system-ui;margin:30px">' . ($do === '' ? 'Brak adresu: dopisz w hub_config.php <code>\'powiadom\' => \'twój@adres\'</code>.'
+        : ($ok ? 'Wysłano próbną wiadomość na <b>' . htmlspecialchars($do) . '</b>. Sprawdź skrzynkę (także SPAM).' : 'Serwer nie przyjął wiadomości – funkcja mail() jest wyłączona albo źle skonfigurowana na hostingu.'))
+        . '</p><p style="font:16px system-ui;margin:30px"><a href="./">← wróć do panelu</a></p>'; exit;
+}
 if (($_GET['eksport'] ?? '') === 'miejsca') {   // korekty miejsc – do przeniesienia do projektu (cele lokalne na tabliczkach i mapach PDF)
     header('Content-Type: application/json; charset=utf-8');
     header('Content-Disposition: attachment; filename="korekty_miejsc_' . date('Y-m-d') . '.json"');
@@ -201,7 +209,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       <a href="?t=<?= $tryb ?>&k=<?= $kk ?>" class="<?= $k === $kk ? 'on' : '' ?>"><?= $t ?> (<?= $licz[$kk] ?? 0 ?>)</a>
     <?php endforeach ?>
   </nav>
-  <span style="margin-left:auto"><a href="../#wspolna" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?eksport=wezly" title="zatwierdzone zmiany węzłów do wdrożenia w projekcie">eksport węzłów</a> · <a href="?eksport=miejsca" title="poprawki miejsc z mapy">eksport poprawek miejsc</a> · <a href="?wyloguj=1">wyloguj</a></span>
+  <span style="margin-left:auto"><a href="../#wspolna" target="_blank">mapa publiczna</a> · <a href="?kopia=1">pobierz kopię (JSON)</a> · <a href="?eksport=wezly" title="zatwierdzone zmiany węzłów do wdrożenia w projekcie">eksport węzłów</a> · <a href="?eksport=miejsca" title="poprawki miejsc z mapy">eksport poprawek miejsc</a> · <a href="?test_maila=1" title="wyślij próbną wiadomość na adres z hub_config.php">test powiadomień</a> · <a href="?wyloguj=1">wyloguj</a></span>
 </header>
 <main>
   <?php if ($tryb === 'mapa'): ?>

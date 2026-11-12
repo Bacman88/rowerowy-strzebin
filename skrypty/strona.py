@@ -191,7 +191,7 @@ R4 = (f'''<section id="r4" class="msec">
   <ol class="r4-list">{"".join(f"<li><b>{_e(h)}</b>{_e(t)}</li>" for h, t in TX.KOLKA_ZASADY)}</ol>
   <div class="r4-pod" style="margin-top:14px"><h3>W skrócie</h3><p>{_e(TX.KOLKA_PODSUMOWANIE)}</p></div>
 </section>''')
-html = html.replace("{{R4}}", R4).replace("{{FB}}", _e(TX.FB_URL))
+html = html.replace("{{R4}}", R4).replace("{{FB}}", _e(TX.FB_URL)).replace("{{KONTAKT}}", _e(TX.KONTAKT))
 open(f"{S}/index.html", "w").write(html)
 z = zipfile.ZipFile(f"{O}/strona.zip", "w", zipfile.ZIP_DEFLATED)
 for root, _, files in os.walk(S):

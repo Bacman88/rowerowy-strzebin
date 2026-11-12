@@ -69,3 +69,6 @@ PODOBNE = [
     ("Katowice", "własna numeracja tras rowerowych (np. 1, 2, 3, 5, 101, 103, 121) na miejskich mapach",
      "https://katowice.eu/czas-wolny/katowice-na-rowery/trasy"),
 ]
+
+# Kontakt do projektu (przekierowanie na skrzynkę administratora)
+KONTAKT = "info@rowerowy-strzebin.smart-ant.pl"

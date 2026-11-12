@@ -45,8 +45,6 @@ try {
     hub_json(['blad' => 'Nie udało się zapisać – spróbuj później'], 500);
 }
 
-$mail = hub_cfg()['powiadom'];
-if ($mail) @mail($mail, "=?UTF-8?B?" . base64_encode("Nowe zgłoszenie stanu drogi #$id") . "?=",
-    "Od: $nick\nStan: $stan\nOdcinków: " . count($odc) . ($foto ? "\nZe zdjęciem" : '') . "\n\n$kom\n\nPanel: https://" . ($_SERVER['HTTP_HOST'] ?? '') . "/admin/",
-    "Content-Type: text/plain; charset=utf-8");
+hub_powiadom("Nowa ocena drogi #$id", "Od: $nick\nStan: $stan\nOdcinków: " . count($odc) . ($foto ? "\nZe zdjęciem" : '')
+    . ($kontakt !== '' ? "\n(podano kontakt – widoczny w panelu)" : '') . ($kom !== '' ? "\n\n$kom" : ''), 'drogi');
 hub_json(['ok' => true, 'id' => $id]);
