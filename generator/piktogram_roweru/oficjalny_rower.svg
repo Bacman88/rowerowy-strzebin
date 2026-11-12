@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="415" height="317" viewBox="0 0 415 317" role="img" aria-label="Niebieski piktogram roweru">
+  <title>Rower — piktogram wektorowy</title>
+  <g fill="none" stroke="#0C3C70" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Koła -->
+    <circle cx="100" cy="220" r="61"/>
+    <circle cx="302" cy="220" r="61"/>
+    <!-- Kierownica, mostek i przednie widełki (po lewej) -->
+    <path d="M101 214 L140 109 L147 73 Q149 69 154 69 H175"/>
+    <!-- Rama: górna rura, dolna rura i rura podsiodłowa -->
+    <path d="M140 108 H242 L213 218 Z"/>
+    <!-- Siodełko osadzone na rurze podsiodłowej -->
+    <path d="M242 108 V91 M231 91 H259"/>
+    <!-- Widełki tylne i trójkąt tylny -->
+    <path d="M242 108 L303 216 H213"/>
+  </g>
+</svg>

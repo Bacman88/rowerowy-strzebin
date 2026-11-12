@@ -1,0 +1,322 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Generator drogowskazów rowerowych — HUB Strzebiń v21</title><style>
+:root{font-family:system-ui,Arial,sans-serif;color:#1b2a3a;background:#f3f5f8}*{box-sizing:border-box}body{margin:0}main{max-width:1200px;margin:28px auto;padding:0 20px 32px}h1{font-size:26px;margin-bottom:6px}p{line-height:1.5}.panel{background:white;padding:22px;border:1px solid #dce3ea;border-radius:14px;box-shadow:0 4px 20px #00000009}.fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.field{display:flex;flex-direction:column;gap:7px}.field label{font-weight:650;font-size:14px}input,select{width:100%;padding:11px 12px;font-size:16px;border:1px solid #b9c7d3;border-radius:8px;background:white}.iconcolor{display:flex;align-items:center;gap:10px}.iconcolor input[type="color"]{width:56px;min-width:56px;height:43px;padding:3px;cursor:pointer}.iconcolor select{flex:1;min-width:0}.range{display:flex;align-items:center;gap:10px}.range output{min-width:62px;text-align:right;font-weight:750}.range input{padding:0}.hint{font-size:13px;color:#586575}.preview{background:#e8edf1;border-radius:12px;padding:22px;margin:20px 0;overflow:auto}.preview svg{width:100%;height:auto;display:block}.actions{display:flex;gap:10px;flex-wrap:wrap}button{padding:12px 17px;color:white;background:#0759A7;border:0;border-radius:8px;font-size:15px;font-weight:650;cursor:pointer}button:hover{filter:brightness(.88)}button.secondary{background:#505c66}.warn{padding:12px;border-left:4px solid #d59027;background:#fff6df;margin-top:16px;white-space:pre-line}.hidden{display:none}.controls-title{font-weight:750;font-size:17px;margin:18px 0 12px}.note{font-size:13px;color:#586575;margin-top:18px}.subnote{font-size:12px;color:#708090}@media(max-width:800px){.fields{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.fields{grid-template-columns:1fr}main{padding:0 12px}}.mount-title{margin:24px 0 12px;border-top:1px solid #dae2e9;padding-top:17px}.mount-info{font-size:13px;padding:10px 12px;background:#eef4f8;border-radius:8px;margin-top:14px}.technical{background:#f6fbff;color:#184763}.techkey{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#4a6472;margin:6px 0 4px}.techkey i{width:14px;height:14px;display:inline-block;border-radius:2px;vertical-align:middle;margin-right:5px}.fieldnote{font-size:12px;color:#6a7480} </style></head><body>
+<main><h1>Generator drogowskazów rowerowych — HUB Strzebiń</h1><p class="hint">Wersja 20 • niezależna regulacja kolorowego tła i białego pola • symetryczne krawędzie • tryb dla wykonawcy • 34 ikony Tabler (MIT)</p>
+<section class="panel"><div class="fields">
+<div class="field"><label for="dir">Kierunek strzałki</label><select id="dir"><option value="left">W lewo ←</option><option value="right">W prawo →</option></select></div>
+<div class="field"><label for="cat">Typ tabliczki / kolor</label><select id="cat"><option value="blue">Niebieska – miejscowości i dzielnice</option><option value="brown">Brązowa – zabytki i kultura</option><option value="green">Zielona – przyroda i szlaki</option><option value="red">Ciemnoczerwona – gastronomia</option><option value="gray">Grafitowa – infrastruktura i transport</option><option value="orange">Pomarańczowa – sport i rekreacja</option></select></div>
+<div class="field"><label for="uiMode">Tryb interfejsu</label><select id="uiMode"><option value="full" selected>Pełny / projektowy</option><option value="contractor">Uproszczony dla wykonawcy</option></select></div>
+<div class="field"><label for="lengthVar">Długość tabliczki</label><select id="lengthVar"><option value="S" selected>Wariant 1 (S) – 800 × 200 mm</option><option value="M">Wariant 2 (M) – 950 × 200 mm</option><option value="L">Wariant 3 (L) – 1100 × 200 mm</option></select></div>
+<div class="field"><label for="plateType">Rodzaj płyty</label><select id="plateType"><option value="contour" selected>Cięcie po obrysie (jak dotąd)</option><option value="rect">Prostokątna</option><option value="roundrect">Prostokątna z zaokrąglonymi rogami</option></select><span class="fieldnote">Wpływa na fizyczny kształt płyty, nie na układ treści.</span></div>
+<div class="field"><label for="count">Liczba celów</label><select id="count"><option value="1">Jeden</option><option value="2" selected>Dwa</option></select></div>
+<div class="field" id="wrapfield"><label for="wrapname">Układ nazwy jednego celu</label><select id="wrapname"><option value="one">Jedna linia</option><option value="two">Dwie linie</option></select></div>
+<div class="field" id="iconposfield"><label for="iconpos">Położenie piktogramu (nazwa w 2 liniach)</label><select id="iconpos"><option value="first">Za pierwszą linią</option><option value="second" selected>Za drugą linią</option><option value="distance">Przed odległością</option></select></div>
+<div class="field"><label for="showkm">Oznaczenie jednostki</label><select id="showkm"><option value="1" selected>Dodawaj „km”</option><option value="0">Bez „km”</option></select></div>
+<div class="field"><label for="fontSize">Wielkość czcionki</label><div class="range"><input id="fontSize" type="range" min="32" max="60" step="1" value="44"><output id="fontValue">44 mm</output></div></div>
+<div class="field"><label for="iconSize">Wielkość dodatkowych piktogramów</label><div class="range"><input id="iconSize" type="range" min="20" max="52" step="1" value="36"><output id="iconValue">36 mm</output></div></div>
+<div class="field advanced-ui"><label for="bikeSize">Wielkość roweru</label><div class="range"><input id="bikeSize" type="range" min="80" max="130" step="1" value="100"><output id="bikeValue">100 mm</output></div><span class="hint">Rower jest centrowany we własnym boxie.</span></div>
+<div class="field advanced-ui"><label for="textGap">Odsunięcie tekstu od roweru</label><div class="range"><input id="textGap" type="range" min="18" max="90" step="1" value="24"><output id="textGapValue">24 mm</output></div><span class="hint">Minimalny stały odstęp boxów jest zachowany.</span></div>
+
+<div class="field advanced-ui"><label for="bikeBoxWidth">Szerokość sekcji roweru</label><div class="range"><input id="bikeBoxWidth" type="range" min="112" max="190" step="1" value="128"><output id="bikeBoxWidthValue">128 mm</output></div><span class="hint">Rower jest centrowany w tej sekcji.</span></div>
+<div class="field advanced-ui"><label for="nameShift">Przesunięcie sekcji nazw</label><div class="range"><input id="nameShift" type="range" min="-60" max="100" step="1" value="0"><output id="nameShiftValue">0 mm</output></div><span class="hint">W lewo lub w prawo, bez zmiany czcionki.</span></div>
+<div class="field advanced-ui"><label for="distanceInset">Odstęp kilometrówki od prawej ramki</label><div class="range"><input id="distanceInset" type="range" min="12" max="105" step="1" value="28"><output id="distanceInsetValue">28 mm</output></div></div>
+<div class="field advanced-ui"><label for="distanceShift">Ręczne przesunięcie kilometrówki</label><div class="range"><input id="distanceShift" type="range" min="-80" max="80" step="1" value="0"><output id="distanceShiftValue">0 mm</output></div><span class="hint">Wartość dodatnia przesuwa w lewo.</span></div>
+<div class="field advanced-ui"><label for="minGap">Minimalny odstęp między sekcjami</label><div class="range"><input id="minGap" type="range" min="12" max="35" step="1" value="18"><output id="minGapValue">18 mm</output></div><span class="hint">Wartość minimalna obowiązuje także piktogramy.</span></div>
+<div class="field advanced-ui"><label for="showBoxes">Podgląd granic sekcji</label><select id="showBoxes"><option value="0" selected>Ukryj (standardowy wygląd)</option><option value="1">Pokaż boxy pomocnicze</option></select></div>
+<div class="field advanced-ui"><label for="fieldXShift">Przesunięcie białego pola w poziomie</label><div class="range"><input id="fieldXShift" type="range" min="-40" max="40" step="1" value="0"><output id="fieldXShiftValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="fieldYOffset">Przesunięcie białego pola w pionie</label><div class="range"><input id="fieldYOffset" type="range" min="-12" max="12" step="1" value="0"><output id="fieldYOffsetValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="fieldWidthAdjust">Zmiana szerokości białego pola</label><div class="range"><input id="fieldWidthAdjust" type="range" min="-120" max="80" step="1" value="0"><output id="fieldWidthAdjustValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="fieldHeightAdjust">Zmiana wysokości białego pola</label><div class="range"><input id="fieldHeightAdjust" type="range" min="-40" max="20" step="1" value="0"><output id="fieldHeightAdjustValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="arrowXShift">Przesunięcie strzałki w poziomie</label><div class="range"><input id="arrowXShift" type="range" min="-25" max="25" step="1" value="0"><output id="arrowXShiftValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="arrowYShift">Przesunięcie strzałki w pionie</label><div class="range"><input id="arrowYShift" type="range" min="-20" max="20" step="1" value="0"><output id="arrowYShiftValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="arrowLengthAdjust">Zmiana długości białej strzałki</label><div class="range"><input id="arrowLengthAdjust" type="range" min="-25" max="50" step="1" value="0"><output id="arrowLengthAdjustValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="arrowHeightAdjust">Zmiana wysokości białej strzałki</label><div class="range"><input id="arrowHeightAdjust" type="range" min="-40" max="40" step="1" value="0"><output id="arrowHeightAdjustValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="bgInset">Margines kolorowego tła od obrysu</label><div class="range"><input id="bgInset" type="range" min="4" max="16" step="1" value="7"><output id="bgInsetValue">7 mm</output></div><span class="hint">Wpływa na grubość kolorowej belki.</span></div>
+<div class="field advanced-ui"><label for="bgShiftX">Kolorowe tło — przesunięcie poziome</label><div class="range"><input id="bgShiftX" type="range" min="-40" max="40" step="1" value="0"><output id="bgShiftXValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="bgShiftY">Kolorowe tło — przesunięcie pionowe</label><div class="range"><input id="bgShiftY" type="range" min="-25" max="25" step="1" value="0"><output id="bgShiftYValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="bgWidthAdjust">Kolorowe tło — zmiana szerokości</label><div class="range"><input id="bgWidthAdjust" type="range" min="-120" max="100" step="1" value="0"><output id="bgWidthAdjustValue">0 mm</output></div></div>
+<div class="field advanced-ui"><label for="bgHeightAdjust">Kolorowe tło — zmiana wysokości</label><div class="range"><input id="bgHeightAdjust" type="range" min="-60" max="40" step="1" value="0"><output id="bgHeightAdjustValue">0 mm</output></div></div>
+</div>
+<div class="controls-title mount-title">Montaż i płyta Dibond</div>
+<div class="fields">
+ <div class="field"><label for="mountVariant">Wariant mocowania</label><select id="mountVariant"><option value="overlay">Uchwyt zasłania fragment obramowania</option><option value="tongue">Dodatkowy języczek montażowy (+60 mm)</option></select><span class="fieldnote">W wariancie z języczkiem sam znak zachowuje swoje wymiary.</span></div>
+ <div class="field"><label for="mountZone">Głębokość strefy montażowej od nasady</label><div class="range"><input id="mountZone" type="range" min="20" max="120" step="5" value="60"><output id="mountZoneValue">60 mm</output></div></div>
+ <div class="field"><label for="mountOverlay">Pokaż strefę montażu i płytę Dibond</label><select id="mountOverlay"><option value="auto" selected>Gdy pokazuję boxy pomocnicze</option><option value="always">Zawsze w podglądzie</option><option value="never">Nie pokazuj</option></select></div>
+ <div class="field"><label for="holeInset">Odległość otworów od krawędzi nasady</label><div class="range"><input id="holeInset" type="range" min="15" max="55" step="1" value="30"><output id="holeInsetValue">30 mm</output></div></div>
+ <div class="field"><label for="holeDiameter">Średnica otworów (projektowo)</label><div class="range"><input id="holeDiameter" type="range" min="4" max="14" step="1" value="6"><output id="holeDiameterValue">6 mm</output></div><span class="fieldnote">Do zatwierdzenia z producentem uchwytu.</span></div>
+ <div class="field"><label for="holesEnabled">Otwory montażowe</label><select id="holesEnabled"><option value="yes" selected>Dwa: y = 50 i 150 mm</option><option value="no">Bez otworów</option></select></div>
+</div>
+<div id="plateSummary" class="mount-info" role="status"></div>
+<div class="techkey"><span><i style="background:#7a56c0"></i>strefa uchwytu</span><span><i style="background:#c44949"></i>otwory / osie</span><span><i style="background:#0099aa"></i>obrys płyty Dibond</span></div>
+<div class="subnote">Minimalne odstępy rower → nazwy oraz nazwy/piktogram → odległość wynikają z ustawienia suwaków; dodatkowo możesz korygować białe pole, białą strzałkę i grubość kolorowej belki. Domyślne ustawienie ma wyrównaną górną i dolną belkę.</div>
+<div class="controls-title">Cel 1</div><div class="fields"><div class="field"><label for="n1">Nazwa – linia 1</label><input id="n1" value="Koszęcin"></div><div class="field hidden" id="n1secondfield"><label for="n1second">Nazwa – linia 2</label><input id="n1second" value="Szlak Rowerowy" placeholder="Np. Szlak Rowerowy"></div><div class="field"><label for="d1">Odległość</label><input id="d1" value="4,4" inputmode="decimal"></div><div class="field"><label for="i1">Piktogram po nazwie</label><select id="i1"></select></div><div class="field"><label for="icolorMode1">Kolor piktogramu — cel 1</label><div class="iconcolor"><select id="icolorMode1"><option value="border" selected>Jak obramowanie (domyślnie)</option><option value="custom">Wybierz z palety</option></select><input aria-label="Kolor piktogramu — cel 1" id="icolor1" type="color" value="#0759a7" disabled></div></div></div>
+<div id="second"><div class="controls-title">Cel 2</div><div class="fields"><div class="field"><label for="n2">Nazwa</label><input id="n2" value="Prądy"></div><div class="field"><label for="d2">Odległość</label><input id="d2" value="2,1" inputmode="decimal"></div><div class="field"><label for="i2">Piktogram po nazwie</label><select id="i2"></select></div><div class="field"><label for="icolorMode2">Kolor piktogramu — cel 2</label><div class="iconcolor"><select id="icolorMode2"><option value="border" selected>Jak obramowanie (domyślnie)</option><option value="custom">Wybierz z palety</option></select><input aria-label="Kolor piktogramu — cel 2" id="icolor2" type="color" value="#0759a7" disabled></div></div></div></div>
+<div id="warning" class="warn hidden" role="status"></div><div id="preview" class="preview" aria-label="Podgląd tabliczki"></div>
+<div class="actions"><button id="save" type="button">Pobierz SVG grafiki</button><button id="saveTechnical" type="button" class="secondary">Pobierz SVG techniczny (montaż)</button><button id="print" type="button" class="secondary">Drukuj / zapisz PDF</button><button id="resetDefaults" type="button" class="secondary">Przywróć domyślne ustawienia</button></div>
+<p class="note">Wersja 21: wybór rodzaju płyty (cięcie po obrysie, prostokąt, prostokąt z zaokrąglonymi rogami), montaż Dibond, osobna regulacja kolorowego tła, białego pola, roweru, tekstu i strzałki. Ramki pomocnicze nie są eksportowane.</p>
+</section></main>
+<script>
+const ICONS={"none":"","museum":"<path d=\"M3 21l18 0\"/><path d=\"M3 10l18 0\"/><path d=\"M5 6l7 -3l7 3\"/><path d=\"M4 10l0 11\"/><path d=\"M20 10l0 11\"/><path d=\"M8 14l0 3\"/><path d=\"M12 14l0 3\"/><path d=\"M16 14l0 3\"/>","heritage":"<path d=\"M8 18l2 -13l2 -2l2 2l2 13\"/><path d=\"M5 21v-3h14v3\"/><path d=\"M3 21l18 0\"/>","tree":"<path d=\"M12 13l-2 -2\"/><path d=\"M12 12l2 -2\"/><path d=\"M12 21v-13\"/><path d=\"M9.824 16a3 3 0 0 1 -2.743 -3.69a3 3 0 0 1 .304 -4.833a3 3 0 0 1 4.615 -3.707a3 3 0 0 1 4.614 3.707a3 3 0 0 1 .305 4.833a3 3 0 0 1 -2.919 3.695h-4l-.176 -.005\"/>","view":"<path d=\"M4 16a3 3 0 1 0 6 0a3 3 0 1 0 -6 0\"/><path d=\"M14 16a3 3 0 1 0 6 0a3 3 0 1 0 -6 0\"/><path d=\"M16.346 9.17l-.729 -1.261c-.16 -.248 -1.056 -.203 -1.117 .091l-.177 1.38\"/><path d=\"M19.761 14.813l-2.84 -5.133c-.189 -.31 -.592 -.68 -1.421 -.68c-.828 0 -1.5 .448 -1.5 1v6\"/><path d=\"M7.654 9.17l.729 -1.261c.16 -.249 1.056 -.203 1.117 .091l.177 1.38\"/><path d=\"M4.239 14.813l2.84 -5.133c.189 -.31 .592 -.68 1.421 -.68c.828 0 1.5 .448 1.5 1v6\"/><path d=\"M10 12h4v2h-4l0 -2\"/>","route":"<path d=\"M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"/><path d=\"M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4\"/><path d=\"M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5\"/>","restaurant":"<path d=\"M19 3v12h-5c-.023 -3.681 .184 -7.406 5 -12m0 12v6h-1v-3m-10 -14v17m-3 -17v3a3 3 0 1 0 6 0v-3\"/>","bar":"<path d=\"M9 21h6a1 1 0 0 0 1 -1v-3.625c0 -1.397 .29 -2.775 .845 -4.025l.31 -.7c.556 -1.25 .845 -2.253 .845 -3.65v-4a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v4c0 1.397 .29 2.4 .845 3.65l.31 .7a9.931 9.931 0 0 1 .845 4.025v3.625a1 1 0 0 0 1 1\"/><path d=\"M6 8h12\"/>","coffee":"<path d=\"M3 14c.83 .642 2.077 1.017 3.5 1c1.423 .017 2.67 -.358 3.5 -1c.83 -.642 2.077 -1.017 3.5 -1c1.423 -.017 2.67 .358 3.5 1\"/><path d=\"M8 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2\"/><path d=\"M12 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2\"/><path d=\"M3 10h14v5a6 6 0 0 1 -6 6h-2a6 6 0 0 1 -6 -6v-5\"/><path d=\"M16.746 16.726a3 3 0 1 0 .252 -5.555\"/>","service":"<path d=\"M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5\"/>","rental":"<path d=\"M2 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0\"/><path d=\"M16 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0\"/><path d=\"M12 19v-4l-3 -3l5 -4l2 3h3\"/><path d=\"M13.007 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/>","rest":"<path d=\"M16 7l2 9m-10 -9l-2 9m-1 -9h14m2 5h-18\"/>","bed":"<path d=\"M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M22 17v-3h-20\"/><path d=\"M2 8v9\"/><path d=\"M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5\"/>","park":"<path d=\"M6 12a6 6 0 1 0 12 0a6 6 0 1 0 -12 0\"/><path d=\"M3 8a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M10 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M17 8a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M3 16a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M17 16a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M8 22l4 -10l4 10\"/>","football":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/><path d=\"M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45\"/><path d=\"M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45\"/>","church":"<path d=\"M3 21l18 0\"/><path d=\"M10 21v-4a2 2 0 0 1 4 0v4\"/><path d=\"M10 5l4 0\"/><path d=\"M12 3l0 5\"/><path d=\"M6 21v-7m-2 2l8 -8l8 8m-2 -2v7\"/>","train":"<path d=\"M21 13c0 -3.87 -3.37 -7 -10 -7h-8\"/><path d=\"M3 15h16a2 2 0 0 0 2 -2\"/><path d=\"M3 6v5h17.5\"/><path d=\"M3 11v4\"/><path d=\"M8 11v-5\"/><path d=\"M13 11v-4.5\"/><path d=\"M3 19h18\"/>","playground":"<path d=\"M3 21a5.55 5.55 0 0 0 5.265 -3.795l.735 -2.205a8.775 8.775 0 0 1 8.325 -6h3.675\"/><path d=\"M20 9v12\"/><path d=\"M8 21v-3\"/><path d=\"M12 21v-10\"/><path d=\"M16 9.5v11.5\"/><path d=\"M15 3h5v3h-5l0 -3\"/><path d=\"M6 8l4 -3l2 2.5l-4 3l-1.8 -.5l-.2 -2\"/>","sport":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/><path d=\"M5.65 5.65l12.7 12.7\"/><path d=\"M5.65 18.35l12.7 -12.7\"/><path d=\"M12 3a9 9 0 0 0 9 9\"/><path d=\"M3 12a9 9 0 0 1 9 9\"/>","bikeparking":"<path d=\"M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14\"/><path d=\"M10 16v-8h2.667c.736 0 1.333 .895 1.333 2s-.597 2 -1.333 2h-2.667\"/>","bus":"<path d=\"M4 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M16 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8\"/><path d=\"M16 5l1.5 7l4.5 0\"/><path d=\"M2 10l15 0\"/><path d=\"M7 5l0 5\"/><path d=\"M12 5l0 5\"/>","skatepark":"<path d=\"M5 15a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M15 15a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/><path d=\"M3 9a2 1 0 0 0 2 1h14a2 1 0 0 0 2 -1\"/>","swim":"<path d=\"M15 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/><path d=\"M6 11l4 -2l3.5 3l-1.5 2\"/><path d=\"M3 16.75a2.4 2.4 0 0 0 1 .25a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 1 -.25\"/>","hospital":"<path d=\"M3 21l18 0\"/><path d=\"M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16\"/><path d=\"M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4\"/><path d=\"M10 9l4 0\"/><path d=\"M12 7l0 4\"/>","firstaid":"<path d=\"M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2\"/><path d=\"M4 10a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -8\"/><path d=\"M10 14h4\"/><path d=\"M12 12v4\"/>","pharmacy":"<path d=\"M4.5 12.5l8 -8a4.94 4.94 0 0 1 7 7l-8 8a4.94 4.94 0 0 1 -7 -7\"/><path d=\"M8.5 8.5l7 7\"/>","information":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/><path d=\"M12 9h.01\"/><path d=\"M11 12h1v4h1\"/>","parking":"<path d=\"M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14\"/><path d=\"M10 16v-8h2.667c.736 0 1.333 .895 1.333 2s-.597 2 -1.333 2h-2.667\"/>","wc":"<path d=\"M3 10a3 7 0 1 0 6 0a3 7 0 1 0 -6 0\"/><path d=\"M21 10c0 -3.866 -1.343 -7 -3 -7\"/><path d=\"M6 3h12\"/><path d=\"M21 10v10l-3 -1l-3 2l-3 -3l-3 2v-10\"/><path d=\"M6 10h.01\"/>","picnic":"<path d=\"M16 7l2 9m-10 -9l-2 9m-1 -9h14m2 5h-18\"/>","clinic":"<path d=\"M6 4h-1a2 2 0 0 0 -2 2v3.5a5.5 5.5 0 0 0 11 0v-3.5a2 2 0 0 0 -2 -2h-1\"/><path d=\"M8 15a6 6 0 1 0 12 0v-3\"/><path d=\"M11 3v2\"/><path d=\"M6 3v2\"/><path d=\"M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/>","walking":"<path d=\"M12 4a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/><path d=\"M7 21l3 -4\"/><path d=\"M16 21l-2 -4l-3 -3l1 -6\"/><path d=\"M6 12l2 -3l4 -1l3 3l3 1\"/>","community":"<path d=\"M8 9l5 5v7h-5v-4m0 4h-5v-7l5 -5m1 1v-6a1 1 0 0 1 1 -1h10a1 1 0 0 1 1 1v17h-8\"/><path d=\"M13 7l0 .01\"/><path d=\"M17 7l0 .01\"/><path d=\"M17 11l0 .01\"/><path d=\"M17 15l0 .01\"/>","castle":"<path d=\"M15 19v-2a3 3 0 0 0 -6 0v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-14h4v3h3v-3h4v3h3v-3h4v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1\"/><path d=\"M3 11l18 0\"/>","location":"<path d=\"M9 11a3 3 0 1 0 6 0a3 3 0 1 0 -6 0\"/><path d=\"M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0\"/>"};
+const PALETTE={blue:'#0759A7',brown:'#81552F',green:'#237647',red:'#902B38',gray:'#505C66',orange:'#B96516'};
+const LENGTHS={S:800,M:950,L:1100};
+const PLATE_LABELS={contour:'Cięcie po obrysie',rect:'Prostokątna',roundrect:'Prostokątna z zaokrąglonymi rogami'};
+const ICON_OPTIONS=[['none','Brak'],['museum','Muzeum'],['heritage','Zabytek'],['tree','Przyroda / drzewo'],['view','Punkt widokowy'],['route','Szlak rowerowy'],['restaurant','Restauracja'],['bar','Bar / kufel'],['coffee','Kawiarnia'],['service','Serwis rowerowy'],['rental','Wypożyczalnia rowerów'],['rest','Miejsce odpoczynku'],['bed','Nocleg'],['park','Park rozrywki'],['football','Boisko piłkarskie / piłka'],['church','Kościół / krzyż'],['train','Dworzec / pociąg'],['playground','Plac zabaw / huśtawka'],['sport','Sport / hala sportowa'],['bikeparking','Parking rowerowy'],['bus','Przystanek autobusowy'],['skatepark','Skatepark'],['swim','Kąpielisko'],['hospital','Szpital'],['firstaid','Pierwsza pomoc'],['pharmacy','Apteka'],['clinic','Przychodnia / lekarz'],['information','Informacja turystyczna'],['parking','Parking samochodowy'],['wc','Toaleta / WC'],['picnic','Miejsce piknikowe'],['walking','Trasa piesza'],['community','Dom kultury'],['castle','Zamek / fortyfikacje'],['location','Punkt / cel lokalny']];
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const fontFamily='Fira Sans Condensed, Roboto Condensed, DejaVu Sans Condensed, Arial Narrow, sans-serif';
+const BIKE_BBOX={minX:39,minY:69,w:324,h:212};
+const MIN_NAME_DIST_GAP=18;
+function populateIcons(){for(const id of ['i1','i2']){const sel=$(id);sel.innerHTML='';for(const [v,t] of ICON_OPTIONS){const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o)}}}
+function formatDist(s,km){s=String(s).trim().replace(/\s+/g,'').replace(/km$/i,'').replace('.',',');return (s||'0,0')+(km?' km':'');}
+function el(doc,tag,attrs={}){const node=doc.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));return node;}
+function currentSvg(){return $('preview').querySelector('svg');}
+function pathLeft(W){return `M 94,8 H ${W-35} Q ${W-10},8 ${W-10},33 V 167 Q ${W-10},192 ${W-35},192 H 94 Q 79,192 69,178 L 7,113 Q -3,100 7,87 L 69,22 Q 79,8 94,8 Z`;}
+function pathRight(W){return `M 35,8 H ${W-94} Q ${W-79},8 ${W-69},22 L ${W-7},87 Q ${W+3},100 ${W-7},113 L ${W-69},178 Q ${W-79},192 ${W-94},192 H 35 Q 10,192 10,167 V 33 Q 10,8 35,8 Z`;}
+function addPlateOutline(doc,parent,plateType,direction,W,variant='overlay',stroke='#B8C1C7',fill='white',strokeWidth=2.5,dash=''){
+ const extra=variant==='tongue'?60:0, signX=(direction==='right'&&variant==='tongue')?60:0;
+ const common={fill,stroke,'stroke-width':strokeWidth}; if(dash) common['stroke-dasharray']=dash;
+ if(plateType==='rect' || plateType==='roundrect'){
+   const rx=plateType==='roundrect'?24:1;
+   parent.appendChild(el(doc,'rect',{x:0,y:0,width:W+extra,height:200,rx,...common}));
+ }else{
+   if(variant==='tongue'){
+     const tx=direction==='left'?W:0;
+     parent.appendChild(el(doc,'rect',{x:tx,y:0,width:60,height:200,rx:1,...common}));
+   }
+   const d=direction==='left'?pathLeft(W):pathRight(W);
+   const attrs={d, ...common};
+   if(signX) attrs.transform=`translate(${signX} 0)`;
+   parent.appendChild(el(doc,'path',attrs));
+ }
+ return {plateW:W+extra, signX};
+}
+// Jeden spójny kontur bazowy: identyczne marginesy góra/dół i dokładne odbicie lustrzane.
+function colorShapeLeft(W,inset=7){
+ const top=8+inset,bottom=192-inset,ymid=100;
+ const tip=7+inset+7, shoulder=69+inset, flat=94+inset;
+ const right=W-10-inset, rounding=25-inset/3;
+ const shoulderTop=22+inset,shoulderBottom=178-inset;
+ return `M ${flat} ${top} H ${right-rounding} Q ${right} ${top} ${right} ${top+rounding} V ${bottom-rounding} Q ${right} ${bottom} ${right-rounding} ${bottom} H ${flat} Q ${flat-15} ${bottom} ${shoulder} ${shoulderBottom} L ${tip} 113 Q ${tip-10} ${ymid} ${tip} 87 L ${shoulder} ${shoulderTop} Q ${flat-15} ${top} ${flat} ${top} Z`;
+}
+function colorBackground(doc,svg,direction,W,primary,opts){
+ const inset=opts.bgInset; const xLeft=14+inset,xRight=W-10-inset;
+ const baseWidth=xRight-xLeft,baseHeight=184-2*inset;
+ const sx=(baseWidth+opts.bgWidthAdjust)/baseWidth;
+ const sy=(baseHeight+opts.bgHeightAdjust)/baseHeight;
+ const cx=(xLeft+xRight)/2,cy=100;
+ const bg=el(doc,'g',{id:'kolorowe_tlo',transform:`translate(${(cx+opts.bgShiftX).toFixed(3)} ${(cy+opts.bgShiftY).toFixed(3)}) scale(${sx.toFixed(6)} ${sy.toFixed(6)}) translate(${-cx} ${-cy})`});
+ const shape=el(doc,'path',{id:'ksztalt_kolorowego_tla',d:colorShapeLeft(W,inset),fill:primary});
+ if(direction==='right')shape.setAttribute('transform',`translate(${W} 0) scale(-1 1)`);
+ bg.appendChild(shape);svg.appendChild(bg);
+ return {x:cx+opts.bgShiftX-baseWidth*sx/2,y:cy+opts.bgShiftY-baseHeight*sy/2,width:baseWidth*sx,height:baseHeight*sy};
+}function buildBaseSvg(direction,W,primary,opts){
+ const doc=document.implementation.createDocument(NS,'svg',null);const svg=doc.documentElement;svg.setAttribute('xmlns',NS);svg.setAttribute('width',W+'mm');svg.setAttribute('height','200mm');svg.setAttribute('viewBox',`0 0 ${W} 200`);
+ addPlateOutline(doc,svg,opts.plateType||'contour',direction,W,'overlay','#B8C1C7','white',2.5,'');
+ const bgBox=colorBackground(doc,svg,direction,W,primary,opts);
+ const baseFieldX=direction==='left'?154:54;
+ const baseFieldW=W-208;
+ const fieldW=baseFieldW+opts.fieldWidthAdjust;
+ const fieldH=162+opts.fieldHeightAdjust;
+ const fieldX=baseFieldX+opts.fieldXShift-(opts.fieldWidthAdjust/2);
+ const fieldY=19+opts.fieldYOffset-(opts.fieldHeightAdjust/2);
+ svg.appendChild(el(doc,'rect',{x:fieldX,y:fieldY,width:fieldW,height:fieldH,rx:15,fill:'white',stroke:primary,'stroke-width':5}));
+ const ax=opts.arrowXShift, ay=opts.arrowYShift;
+ const totalLen=92+opts.arrowLengthAdjust; const totalH=100+opts.arrowHeightAdjust;
+ const headLen=totalLen*(58/92); const shaftLen=totalLen-headLen; const shaftHalf=totalH*(17/100); const top=100-totalH/2+ay; const bottom=100+totalH/2+ay;
+ let d;
+ if(direction==='left'){
+   const tip=54+ax, notch=tip+headLen, back=tip+totalLen;
+   d=`M ${tip} ${100+ay} L ${notch} ${top} L ${notch} ${100+ay-shaftHalf} L ${back} ${100+ay-shaftHalf} L ${back} ${100+ay+shaftHalf} L ${notch} ${100+ay+shaftHalf} L ${notch} ${bottom} Z`;
+ }else{
+   const tip=W-52+ax, notch=tip-headLen, back=tip-totalLen;
+   d=`M ${tip} ${100+ay} L ${notch} ${top} L ${notch} ${100+ay-shaftHalf} L ${back} ${100+ay-shaftHalf} L ${back} ${100+ay+shaftHalf} L ${notch} ${100+ay+shaftHalf} L ${notch} ${bottom} Z`;
+ }
+ const arrow=el(doc,'path',{d,fill:'white'});svg.appendChild(arrow);
+ const group=el(doc,'g',{id:'teksty_edytowalne'});svg.appendChild(group);
+ return {doc,svg,group,fieldX,fieldW,fieldY,fieldH,bgBox,arrowMetrics:{totalLen,totalH,shaftHalf,ax,ay}};}
+
+function prepareMountPlate(doc,svg,direction,W,variant){
+ const extra=variant==='tongue'?60:0;
+ const plateW=W+extra;
+ if(extra){
+   // Blacha pod całą grafiką; języczek jest po stronie nasady.
+   const shift=direction==='right'?60:0;
+   const artwork=el(doc,'g',{id:'grafika_znaku',transform:`translate(${shift} 0)`});
+   while(svg.firstChild)artwork.appendChild(svg.firstChild);
+   const plate=el(doc,'rect',{id:'plyta_dibond',x:0,y:1,width:plateW,height:198,rx:9,fill:'#ffffff',stroke:'#8b99a2','stroke-width':2});
+   svg.appendChild(plate);
+   svg.appendChild(artwork);
+   svg.setAttribute('viewBox',`0 0 ${plateW} 200`);
+   svg.setAttribute('width',plateW+'mm');
+ }
+ return {extra,plateW,offset:direction==='right'?extra:0,signLeft:direction==='right'?extra:0,signRight:(direction==='right'?extra:0)+W};
+}
+function mountCoordinates(direction,W,variant,holeInset,zone){
+ const extra=variant==='tongue'?60:0,plateW=W+extra;
+ const start=direction==='left'?plateW-zone:0;
+ const hx=direction==='left'?plateW-holeInset:holeInset;
+ return {plateW,zoneRect:{x:start,y:0,width:zone,height:200},holeX:hx,holes:[{x:hx,y:50},{x:hx,y:150}]};
+}
+function addMountOverlay(svg,doc,direction,W,variant,zone,holeInset,holeDiameter,holesEnabled,plateType='contour'){
+ const m=mountCoordinates(direction,W,variant,holeInset,zone);
+ const g=el(doc,'g',{id:'warstwa_techniczna_niedrukowana','data-layer':'technical', 'pointer-events':'none'});
+ addPlateOutline(doc,g,plateType,direction,W,variant,'#0099aa','none',1.5,'7 4');
+ g.appendChild(el(doc,'rect',{...m.zoneRect,fill:'#7a56c0','fill-opacity':'.15',stroke:'#7a56c0','stroke-width':1.5,'stroke-dasharray':'5 4'}));
+ if(holesEnabled){for(const h of m.holes){
+   g.appendChild(el(doc,'circle',{cx:h.x,cy:h.y,r:holeDiameter/2,fill:'white',stroke:'#c44949','stroke-width':1.4}));
+   g.appendChild(el(doc,'path',{d:`M ${h.x-12} ${h.y} H ${h.x+12} M ${h.x} ${h.y-12} V ${h.y+12}`,fill:'none',stroke:'#c44949','stroke-width':.9,'stroke-dasharray':'3 2'}));
+ }}
+ svg.appendChild(g);return m;
+}
+function downloadSvg(name,markup){const blob=new Blob([markup],{type:'image/svg+xml;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);}
+function addBike(doc,parent,primary,bikeBox,bikeSize){const s=bikeSize/BIKE_BBOX.w;const drawW=BIKE_BBOX.w*s,drawH=BIKE_BBOX.h*s;const tx=bikeBox.x+(bikeBox.width-drawW)/2-BIKE_BBOX.minX*s;const ty=bikeBox.y+(bikeBox.height-drawH)/2-BIKE_BBOX.minY*s;const g=el(doc,'g',{id:'symbol_roweru',transform:`translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${s.toFixed(4)})`,fill:'none',stroke:primary,'stroke-width':10.5,'stroke-linecap':'round','stroke-linejoin':'round'});g.innerHTML=`<circle cx="100" cy="220" r="61"/><circle cx="302" cy="220" r="61"/><path d="M101 214 L140 109 L147 73 Q149 69 154 69 H175"/><path d="M140 108 H242 L213 218 Z"/><path d="M242 108 V91 M231 91 H259"/><path d="M242 108 L303 216 H213"/>`;parent.appendChild(g);return {group:g,box:{x:tx+BIKE_BBOX.minX*s,y:ty+BIKE_BBOX.minY*s,width:drawW,height:drawH}};}
+function render(){
+ const direction=$('dir').value,count=Number($('count').value),primary=PALETTE[$('cat').value],W=LENGTHS[$('lengthVar').value],plateType=$('plateType').value;
+ const font=Number($('fontSize').value),iconSize=Number($('iconSize').value),bikeSize=Number($('bikeSize').value);
+ const bikeBoxWidth=Number($('bikeBoxWidth').value),textGap=Number($('textGap').value),nameShift=Number($('nameShift').value),distanceInset=Number($('distanceInset').value),distanceShift=Number($('distanceShift').value),minGap=Number($('minGap').value),fieldXShift=Number($('fieldXShift').value),fieldYOffset=Number($('fieldYOffset').value),fieldWidthAdjust=Number($('fieldWidthAdjust').value),fieldHeightAdjust=Number($('fieldHeightAdjust').value),arrowXShift=Number($('arrowXShift').value),arrowYShift=Number($('arrowYShift').value),arrowLengthAdjust=Number($('arrowLengthAdjust').value),arrowHeightAdjust=Number($('arrowHeightAdjust').value),bgInset=Number($('bgInset').value),bgShiftX=Number($('bgShiftX').value),bgShiftY=Number($('bgShiftY').value),bgWidthAdjust=Number($('bgWidthAdjust').value),bgHeightAdjust=Number($('bgHeightAdjust').value);
+ const mountVariant=$('mountVariant').value,mountZone=Number($('mountZone').value),holeInset=Number($('holeInset').value),holeDiameter=Number($('holeDiameter').value),holesEnabled=$('holesEnabled').value==='yes';
+ const mountOverlayOn=$('mountOverlay').value==='always'||($('mountOverlay').value==='auto'&&$('showBoxes').value==='1');
+ const mCoords=mountCoordinates(direction,W,mountVariant,holeInset,mountZone);
+ $('plateSummary').textContent=`Płyta: ${PLATE_LABELS[plateType]} • Dibond: ${mCoords.plateW} × 200 mm (grafika znaku ${W} × 200 mm). Nasada: ${direction==='left'?'prawa':'lewa'} strona. Strefa: ${mountZone} mm. Otwory: ${holesEnabled?'2 × Ø'+holeDiameter+' mm, '+holeInset+' mm od nasady, y=50/150 mm':'wyłączone'}. ${mountVariant==='tongue'?'Języczek +60 mm poza obramowaniem.':'Uchwyt może zasłonić fragment ramki.'}`;
+ for(const [id,v] of [['mountZoneValue',mountZone],['holeInsetValue',holeInset],['holeDiameterValue',holeDiameter]])$(id).textContent=v+' mm';
+ const multiline=count===1&&$('wrapname').value==='two';
+ $('second').classList.toggle('hidden',count===1);$('wrapfield').classList.toggle('hidden',count!==1);$('n1secondfield').classList.toggle('hidden',!multiline);$('iconposfield').classList.toggle('hidden',!multiline);
+ for(const [id,val] of [['fontValue',font],['iconValue',iconSize],['bikeValue',bikeSize],['textGapValue',textGap],['bikeBoxWidthValue',bikeBoxWidth],['nameShiftValue',nameShift],['distanceInsetValue',distanceInset],['distanceShiftValue',distanceShift],['minGapValue',minGap],['fieldXShiftValue',fieldXShift],['fieldYOffsetValue',fieldYOffset],['fieldWidthAdjustValue',fieldWidthAdjust],['fieldHeightAdjustValue',fieldHeightAdjust],['arrowXShiftValue',arrowXShift],['arrowYShiftValue',arrowYShift],['arrowLengthAdjustValue',arrowLengthAdjust],['arrowHeightAdjustValue',arrowHeightAdjust],['bgInsetValue',bgInset],['bgShiftXValue',bgShiftX],['bgShiftYValue',bgShiftY],['bgWidthAdjustValue',bgWidthAdjust],['bgHeightAdjustValue',bgHeightAdjust]])$(id).textContent=val+' mm';
+ for(const i of [1,2]){const picker=$('icolor'+i),mode=$('icolorMode'+i).value;picker.disabled=mode==='border';if(mode==='border')picker.value=primary;}
+ const {doc,svg,group,fieldX,fieldW,fieldY,fieldH,bgBox,arrowMetrics}=buildBaseSvg(direction,W,primary,{plateType,fieldXShift,fieldYOffset,fieldWidthAdjust,fieldHeightAdjust,arrowXShift,arrowYShift,arrowLengthAdjust,arrowHeightAdjust,bgInset,bgShiftX,bgShiftY,bgWidthAdjust,bgHeightAdjust});
+ // All three layout sections are defined in the same local coordinate system for LEFT and RIGHT.
+ const innerLeft=fieldX+12,innerRight=fieldX+fieldW-12;
+ const bikeBox={x:innerLeft,y:fieldY+8,width:bikeBoxWidth,height:fieldH-16};
+ const bikeInfo=addBike(doc,svg,primary,bikeBox,bikeSize);
+ const nameX=bikeBox.x+bikeBox.width+textGap+nameShift;
+ const kmRight=innerRight-(distanceInset-12)-distanceShift;
+ const arrowBox=direction==='left'?{x:54+arrowMetrics.ax,y:100+arrowMetrics.ay-arrowMetrics.totalH/2,width:arrowMetrics.totalLen,height:arrowMetrics.totalH}:{x:(W-52+arrowMetrics.ax)-arrowMetrics.totalLen,y:100+arrowMetrics.ay-arrowMetrics.totalH/2,width:arrowMetrics.totalLen,height:arrowMetrics.totalH};
+ const entries=[[$('n1').value.trim()||'Cel',$('d1').value,$('i1').value],[$('n2').value.trim()||'Cel',$('d2').value,$('i2').value]];
+ const record=[]; const warnings=[];
+ const advice=$('lengthVar').value==='S'?'Wybierz 950 mm albo popraw położenie bloków.':$('lengthVar').value==='M'?'Wybierz 1100 mm albo popraw położenie bloków.':'Zmniejsz czcionkę, piktogram lub rower albo popraw ustawienia boxów.';
+ const warn=(message)=>{if(!warnings.includes(message))warnings.push(message);};
+ for(const [idx,[name,dist,ico]] of entries.slice(0,count).entries()){
+   const lines=(idx===0&&multiline)?[name,$('n1second').value.trim()||'Szlak Rowerowy']:[name];
+   const baseline=(idx===0&&multiline)?[83,148]:[count===1?116:idx===0?83:149];
+   const names=[];
+   lines.forEach((line,j)=>{const label=el(doc,'text',{id:'miejscowosc_'+(idx+1)+(j?'_linia2':''),x:nameX,y:baseline[j],'font-size':font,'font-family':fontFamily,'font-weight':600,fill:primary});label.textContent=line;group.appendChild(label);names.push(label);});
+   const distance=el(doc,'text',{id:'odleglosc_'+(idx+1),x:kmRight,y:(idx===0&&multiline)?116:(count===1?116:idx===0?83:149),'text-anchor':'end','font-size':font,'font-family':fontFamily,'font-weight':600,fill:primary});distance.textContent=formatDist(dist,$('showkm').value==='1');group.appendChild(distance);
+   let pict=null;
+   if(ico!=='none'&&ICONS[ico]){const color=$('icolorMode'+(idx+1)).value==='custom'?$('icolor'+(idx+1)).value:primary;pict=el(doc,'g',{id:'piktogram_'+(idx+1),'data-icon':ico,fill:'none',stroke:color,'stroke-width':1.8,'stroke-linecap':'round','stroke-linejoin':'round'});pict.innerHTML=ICONS[ico];group.appendChild(pict);}
+   record.push({idx,names,distance,pict});
+ }
+ const plateInfo=prepareMountPlate(doc,svg,direction,W,mountVariant);
+ $('preview').replaceChildren(document.importNode(svg,true));
+ const live=currentSvg();
+ // Wyrównanie pionowe względem RZECZYWISTEJ bryły liter (getBBox),
+ // a nie przybliżonej linii bazowej czcionki.
+ function centerTextVertically(node, targetCenter){
+   const b=node.getBBox();
+   const shift=targetCenter-(b.y+b.height/2);
+   node.setAttribute('y',(Number(node.getAttribute('y'))+shift).toFixed(3));
+ }
+ // Przy jednym celu środek pola = 102 mm; przy dwóch środek każdego pasa.
+ // Dwuwierszowa nazwa zachowuje swoje dwa wiersze, lecz odległość
+ // również zostaje centrowana na wysokości 102 mm.
+ for(const entry of record){
+   const target=count===1?102:(entry.idx===0?67:133);
+   const labelNodes=entry.names.map(n=>live.querySelector('#'+n.id));
+   if(!(multiline&&entry.idx===0))
+     for(const n of labelNodes)centerTextVertically(n,target);
+   const distanceNode=live.querySelector('#'+entry.distance.id);
+   centerTextVertically(distanceNode, count===1?102:target);
+ }
+ const left=(r)=>r.x,right=(r)=>r.x+r.width,top=(r)=>r.y,bottom=(r)=>r.y+r.height;
+ const boxes=[];
+ for(const entry of record){
+   const {idx}=entry;
+   const names=entry.names.map(e=>live.querySelector('#'+e.id));const textBoxes=names.map(n=>n.getBBox());
+   const d=live.querySelector('#'+entry.distance.id),db=d.getBBox(),p=entry.pict?live.querySelector('#'+entry.pict.id):null;
+   let iconRect=null, iconMode=(idx===0&&multiline)?$('iconpos').value:'second';
+   if(p){const size=iconSize;let px,py;if(iconMode==='distance'){
+       px=db.x-size-13;py=db.y+(db.height-size)/2;
+     }else{const j=iconMode==='first'?0:textBoxes.length-1;const t=textBoxes[j];px=t.x+t.width+10;py=t.y+(t.height-size)/2;}
+     p.setAttribute('transform',`translate(${px.toFixed(3)} ${py.toFixed(3)}) scale(${(size/24).toFixed(5)})`);
+     iconRect={x:px,y:py,width:size,height:size};
+   }
+   const nameLeft=Math.min(...textBoxes.map(left));
+   let nameRight=Math.max(...textBoxes.map(right));
+   if(iconRect&&iconMode!=='distance')nameRight=Math.max(nameRight,right(iconRect));
+   let distLeft=db.x;
+   if(iconRect&&iconMode==='distance')distLeft=Math.min(distLeft,iconRect.x);
+   const nameSection={x:nameLeft,y:Math.min(...textBoxes.map(top)),width:nameRight-nameLeft,height:Math.max(...textBoxes.map(bottom))-Math.min(...textBoxes.map(top))};
+   const kmSection={x:distLeft,y:db.y,width:db.x+db.width-distLeft,height:db.height};
+   if(nameLeft<right(bikeBox)+minGap-0.5)warn('Cel '+(idx+1)+': sekcja nazw jest za blisko sekcji roweru — zwiększ odsunięcie tekstu.');
+   if(nameRight+minGap>distLeft+0.5)warn('Cel '+(idx+1)+': sekcja nazwy/piktogramu jest za blisko kilometrówki. '+advice);
+   if(left(kmSection)<innerLeft||right(kmSection)>innerRight+0.5)warn('Cel '+(idx+1)+': kilometrówka wychodzi poza bezpieczny margines białego pola.');
+   if(nameLeft<innerLeft||nameRight>innerRight)warn('Cel '+(idx+1)+': tekst wychodzi poza bezpieczny obszar tabliczki.');
+   for(const tb of textBoxes)if(tb.y<fieldY+7||bottom(tb)>fieldY+fieldH-7)warn('Cel '+(idx+1)+': tekst jest za blisko górnej lub dolnej krawędzi.');
+   if(iconRect){
+     if(iconRect.y<fieldY+7||bottom(iconRect)>fieldY+fieldH-7)warn('Cel '+(idx+1)+': piktogram jest za blisko krawędzi.');
+     for(const tb of textBoxes){const horizontal=left(iconRect)<right(tb)+3&&right(iconRect)>left(tb)-3;const vertical=top(iconRect)<bottom(tb)+3&&bottom(iconRect)>top(tb)-3;if(horizontal&&vertical)warn('Cel '+(idx+1)+': piktogram nachodzi na tekst.');}
+     if(iconMode==='distance'&&right(iconRect)+8>left(db))warn('Cel '+(idx+1)+': piktogram jest za blisko liczby kilometrów.');
+   }
+   boxes.push({nameSection,kmSection});
+ }
+ // Montaż: w wariancie z języczkiem 60 mm strefa jest na dodatkowej płycie,
+ // w wariancie standardowym obejmuje koniec grafiki przy nasadzie.
+ const mountBoundary=direction==='left'?W-(mountVariant==='tongue'?Math.max(0,mountZone-60):mountZone):(mountVariant==='tongue'?Math.max(0,mountZone-60):mountZone);
+ if(mountVariant==='overlay'||(mountVariant==='tongue'&&mountZone>60)){
+   const effectiveZone=mountVariant==='tongue'?mountZone-60:mountZone;
+   const intersects=(r)=>direction==='left'?right(r)>mountBoundary-0.01:left(r)<mountBoundary+0.01;
+   if(intersects(bikeInfo.box))warn('Rower wchodzi w strefę montażową '+mountZone+' mm — zmień szerokość sekcji albo wybierz języczek.');
+   for(let i=0;i<boxes.length;i++){
+     if(intersects(boxes[i].nameSection))warn('Cel '+(i+1)+': nazwa lub piktogram wchodzi w strefę montażową.');
+     if(intersects(boxes[i].kmSection))warn('Cel '+(i+1)+': kilometrówka wchodzi w strefę montażową.');
+   }
+ }
+ if(holeInset+holeDiameter/2> (mountVariant==='tongue'?60:mountZone))warn('Otwory są dalej od nasady niż przewidziana strefa / języczek — sprawdź położenie.');
+ if(bikeSize>bikeBoxWidth-12)warn('Rower jest za duży względem swojej sekcji — powiększ box roweru lub zmniejsz symbol.');
+ if(bikeInfo.box.y<fieldY+7||bottom(bikeInfo.box)>fieldY+fieldH-7)warn('Rower jest zbyt blisko górnej lub dolnej ramki.');
+ if(fieldY<15||fieldY+fieldH>185)warn('Białe pole wychodzi za bezpieczny obszar tabliczki — cofnij położenie lub wysokość.');
+ if(fieldX<(direction==='left'?95:15)||fieldX+fieldW>(direction==='left'?W-15:W-95))warn('Białe pole jest zbyt szerokie lub przesunięte — wchodzi w strefę grotu/końca tabliczki.');
+ if(arrowBox.y<28||bottom(arrowBox)>172)warn('Strzałka jest zbyt wysoko lub zbyt nisko.');
+ // Kolorowe tło pozostaje niezależne, ale kontrolujemy ryzyko widocznej bieli i wyjścia poza obrys.
+ const safeTip=(direction==='left'?2:2);
+ if(bgBox.y<7||bgBox.y+bgBox.height>193)warn('Kolorowe tło przekracza górny/dolny obrys tabliczki.');
+ if(bgBox.x<safeTip||bgBox.x+bgBox.width>W-safeTip)warn('Kolorowe tło przekracza boczny obrys tabliczki.');
+ if(fieldY<bgBox.y+1||fieldY+fieldH>bgBox.y+bgBox.height-1)warn('Białe pole jest zbyt blisko krawędzi kolorowego tła. Wyrównaj wysokość lub położenie tła.');
+ if(fieldX<bgBox.x+5||fieldX+fieldW>bgBox.x+bgBox.width-5)warn('Białe pole wykracza poza szerokość kolorowego tła — dopasuj tło albo białe pole.');
+
+ if(font>53&&count===2)warn('Przy dwóch celach bardzo duża czcionka może mieć za małe odstępy pionowe.');
+ // Diagnostic overlays are temporary and excluded from downloaded SVG.
+ if($('showBoxes').value==='1'){
+   const g=el(document,'g',{id:'pomocnicze_boxy','pointer-events':'none'});
+   function rect(b,color){g.appendChild(el(document,'rect',{x:b.x,y:b.y,width:Math.max(0,b.width),height:Math.max(0,b.height),fill:color,'fill-opacity':'.065',stroke:color,'stroke-width':1.3,'stroke-dasharray':'5 4'}));}
+   rect(bgBox,'#2376a5');
+   rect(bikeBox,'#a14bd4');
+   for(const b of boxes){rect(b.nameSection,'#10a5b4');rect(b.kmSection,'#df7d18');}
+   (mountVariant==='tongue' ? live.querySelector('#grafika_znaku') : live).appendChild(g);
+ }
+ if(mountOverlayOn)addMountOverlay(live,document,direction,W,mountVariant,mountZone,holeInset,holeDiameter,holesEnabled);
+ $('warning').classList.toggle('hidden',!warnings.length);
+ $('warning').textContent=warnings.join('\n');
+}
+function cleanSvg(){const svg=currentSvg().cloneNode(true);svg.querySelector('#pomocnicze_boxy')?.remove();svg.querySelector('#warstwa_techniczna_niedrukowana')?.remove();return svg;}
+function exportSvg(){return '<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(cleanSvg());}
+for(const id of ['dir','cat','uiMode','lengthVar','plateType','count','showkm','fontSize','iconSize','bikeSize','textGap','bikeBoxWidth','nameShift','distanceInset','distanceShift','minGap','showBoxes','fieldXShift','fieldYOffset','fieldWidthAdjust','fieldHeightAdjust','arrowXShift','arrowYShift','arrowLengthAdjust','arrowHeightAdjust','bgInset','bgShiftX','bgShiftY','bgWidthAdjust','bgHeightAdjust','mountVariant','mountZone','mountOverlay','holeInset','holeDiameter','holesEnabled','wrapname','iconpos','n1','n1second','n2','d1','d2','i1','i2','icolorMode1','icolorMode2','icolor1','icolor2']){const node=$(id);if(node)node.addEventListener('input',()=>{applyUiMode();render();});}
+$('save').addEventListener('click',()=>{render();downloadSvg('drogowskaz_'+($('n1').value.trim()||'cel').replace(/[^\p{L}\p{N}]+/gu,'_')+'.svg',exportSvg());});
+$('saveTechnical').addEventListener('click',()=>{
+ render();const dir=$('dir').value,W=LENGTHS[$('lengthVar').value],variant=$('mountVariant').value,plateType=$('plateType').value;
+ const zone=Number($('mountZone').value),inset=Number($('holeInset').value),dia=Number($('holeDiameter').value),holes=$('holesEnabled').value==='yes';
+ const doc=document.implementation.createDocument(NS,'svg',null),svg=doc.documentElement;
+ const physicalW=W+(variant==='tongue'?60:0);
+ svg.setAttribute('xmlns',NS);svg.setAttribute('width',physicalW+'mm');svg.setAttribute('height','200mm');svg.setAttribute('viewBox',`0 0 ${physicalW} 200`);
+ addPlateOutline(doc,svg,plateType,dir,W,variant,'#273746','white',1,'');
+ const signX=dir==='right'&&variant==='tongue'?60:0;
+ svg.appendChild(el(doc,'rect',{x:signX,y:0,width:W,height:200,fill:'#e2edf5','fill-opacity':'.25',stroke:'#5d7183','stroke-width':1,'stroke-dasharray':'8 4'}));
+ addMountOverlay(svg,doc,dir,W,variant,zone,inset,dia,holes,plateType);
+ const meta=el(doc,'metadata');meta.textContent='Warstwa techniczna: nie drukować na znaku. Średnica i odległości otworów wymagają zatwierdzenia przez producenta mocowania.';svg.appendChild(meta);
+ downloadSvg('drogowskaz_rysunek_montazowy_'+physicalW+'x200.svg','<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n'+new XMLSerializer().serializeToString(svg));
+});
+$('print').addEventListener('click',()=>{render();const win=window.open('','_blank');if(!win){alert('Przeglądarka zablokowała okno do drukowania.');return;}win.document.write('<!doctype html><html><head><meta charset="UTF-8"><style>@page{size:landscape;margin:8mm}body{display:grid;place-items:center;min-height:90vh;margin:0}svg{width:95vw;height:auto}.mount-title{margin:24px 0 12px;border-top:1px solid #dae2e9;padding-top:17px}.mount-info{font-size:13px;padding:10px 12px;background:#eef4f8;border-radius:8px;margin-top:14px}.technical{background:#f6fbff;color:#184763}.techkey{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#4a6472;margin:6px 0 4px}.techkey i{width:14px;height:14px;display:inline-block;border-radius:2px;vertical-align:middle;margin-right:5px}.fieldnote{font-size:12px;color:#6a7480} </style></head><body>'+exportSvg()+'</body></html>');win.document.close();win.onload=()=>win.print();});
+
+function applyUiMode(){const simple=$('uiMode').value==='contractor';document.querySelectorAll('.advanced-ui').forEach(el=>el.classList.toggle('hidden',simple));}
+function resetDefaults(){const defaults={dir:'left',cat:'blue',uiMode:'full',lengthVar:'S',plateType:'contour',count:'2',wrapname:'one',iconpos:'second',showkm:'1',fontSize:'44',iconSize:'36',bikeSize:'100',textGap:'24',bikeBoxWidth:'128',nameShift:'0',distanceInset:'28',distanceShift:'0',minGap:'18',showBoxes:'0',fieldXShift:'0',fieldYOffset:'0',fieldWidthAdjust:'0',fieldHeightAdjust:'0',arrowXShift:'0',arrowYShift:'0',arrowLengthAdjust:'0',arrowHeightAdjust:'0',bgInset:'7',bgShiftX:'0',bgShiftY:'0',bgWidthAdjust:'0',bgHeightAdjust:'0',mountVariant:'overlay',mountZone:'60',mountOverlay:'auto',holeInset:'30',holeDiameter:'6',holesEnabled:'yes',n1:'Koszęcin',n1second:'Szlak Rowerowy',d1:'4,4',i1:'none',icolorMode1:'border',icolor1:'#0759a7',n2:'Prądy',d2:'2,1',i2:'none',icolorMode2:'border',icolor2:'#0759a7'}; for(const [id,val] of Object.entries(defaults)){const e=$(id); if(e) e.value=val;} applyUiMode(); render();}
+$('resetDefaults').addEventListener('click',resetDefaults);
+populateIcons();applyUiMode();render();
+</script></body></html>

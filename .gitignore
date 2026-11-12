@@ -1,0 +1,6 @@
+out/
+skrypty/signs.json
+skrypty/signs_prop.json
+skrypty/kierunki_raport.json
+__pycache__/
+*.pyc

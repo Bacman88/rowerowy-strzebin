@@ -1,0 +1,1351 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.929899,
+            50.636086
+          ],
+          [
+            18.930857,
+            50.639361
+          ],
+          [
+            18.93118,
+            50.64033
+          ],
+          [
+            18.931298,
+            50.640681
+          ],
+          [
+            18.932209,
+            50.640728
+          ],
+          [
+            18.933239,
+            50.640771
+          ],
+          [
+            18.933982,
+            50.641099
+          ],
+          [
+            18.935988,
+            50.642195
+          ],
+          [
+            18.936063,
+            50.642548
+          ],
+          [
+            18.935977,
+            50.642684
+          ],
+          [
+            18.935769,
+            50.642815
+          ],
+          [
+            18.935673,
+            50.642917
+          ],
+          [
+            18.935618,
+            50.64299
+          ],
+          [
+            18.935594,
+            50.643118
+          ],
+          [
+            18.935678,
+            50.643459
+          ],
+          [
+            18.935765,
+            50.643889
+          ],
+          [
+            18.935795,
+            50.644237
+          ],
+          [
+            18.935772,
+            50.644339
+          ],
+          [
+            18.935894,
+            50.645119
+          ],
+          [
+            18.936023,
+            50.645377
+          ],
+          [
+            18.936109,
+            50.645608
+          ],
+          [
+            18.936249,
+            50.64604
+          ],
+          [
+            18.936339,
+            50.646349
+          ],
+          [
+            18.936523,
+            50.646992
+          ],
+          [
+            18.936381,
+            50.647177
+          ],
+          [
+            18.936109,
+            50.647528
+          ],
+          [
+            18.935905,
+            50.64779
+          ],
+          [
+            18.935524,
+            50.648283
+          ],
+          [
+            18.935158,
+            50.648756
+          ],
+          [
+            18.934785,
+            50.649223
+          ],
+          [
+            18.934759,
+            50.649427
+          ],
+          [
+            18.934886,
+            50.649609
+          ],
+          [
+            18.935106,
+            50.649835
+          ],
+          [
+            18.935103,
+            50.649895
+          ],
+          [
+            18.935016,
+            50.650074
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "bardzo dobry",
+        "Przejezdność ogólna": "bardzo dobra",
+        "Warunki po deszczu": "miejscami kałuże",
+        "Typ drogi": "droga lokalna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.896699,
+            50.584044
+          ],
+          [
+            18.897158,
+            50.586726
+          ],
+          [
+            18.897498,
+            50.588795
+          ],
+          [
+            18.897817,
+            50.590823
+          ],
+          [
+            18.898606,
+            50.595686
+          ],
+          [
+            18.898949,
+            50.597786
+          ],
+          [
+            18.899352,
+            50.600457
+          ],
+          [
+            18.899631,
+            50.602297
+          ],
+          [
+            18.900146,
+            50.60548
+          ],
+          [
+            18.900505,
+            50.6077
+          ],
+          [
+            18.900718,
+            50.60895
+          ],
+          [
+            18.900654,
+            50.609099
+          ],
+          [
+            18.900384,
+            50.609607
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "bardzo dobry",
+        "Przejezdność ogólna": "bardzo dobra",
+        "Warunki po deszczu": "miejscami kałuże"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.8884,
+            50.60094
+          ],
+          [
+            18.8877,
+            50.599648
+          ],
+          [
+            18.887598,
+            50.599558
+          ],
+          [
+            18.887499,
+            50.5995
+          ],
+          [
+            18.887378,
+            50.599459
+          ],
+          [
+            18.885648,
+            50.598904
+          ],
+          [
+            18.88556,
+            50.598863
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "dobry",
+        "Przejezdność ogólna": "dobra",
+        "Warunki po deszczu": "miejscami kałuże",
+        "Typ drogi": "droga lokalna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.890262,
+            50.602226
+          ],
+          [
+            18.890074,
+            50.602067
+          ],
+          [
+            18.889709,
+            50.601894
+          ],
+          [
+            18.889405,
+            50.601725
+          ],
+          [
+            18.88937,
+            50.601689
+          ],
+          [
+            18.88934,
+            50.601637
+          ],
+          [
+            18.889136,
+            50.601454
+          ],
+          [
+            18.889047,
+            50.601328
+          ],
+          [
+            18.888895,
+            50.601027
+          ],
+          [
+            18.888871,
+            50.600945
+          ],
+          [
+            18.888829,
+            50.600916
+          ],
+          [
+            18.888785,
+            50.600901
+          ],
+          [
+            18.888746,
+            50.600895
+          ],
+          [
+            18.888678,
+            50.600893
+          ],
+          [
+            18.8886,
+            50.600906
+          ],
+          [
+            18.888402,
+            50.600945
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "dobry",
+        "Przejezdność ogólna": "dobra",
+        "Warunki po deszczu": "miejscami kałuże",
+        "Typ drogi": "droga lokalna"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.891029,
+            50.60385
+          ],
+          [
+            18.890272,
+            50.602226
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "dobry",
+        "Przejezdność ogólna": "dobra",
+        "Warunki po deszczu": "miejscami kałuże",
+        "Typ drogi": "droga lokalna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.893652,
+            50.609743
+          ],
+          [
+            18.891029,
+            50.603856
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "bardzo dobry",
+        "Przejezdność ogólna": "bardzo dobra",
+        "Warunki po deszczu": "miejscami kałuże",
+        "Typ drogi": "droga lokalna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.897659,
+            50.615574
+          ],
+          [
+            18.892048,
+            50.616701
+          ],
+          [
+            18.890133,
+            50.617089
+          ],
+          [
+            18.888486,
+            50.617705
+          ],
+          [
+            18.8884,
+            50.617739
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "kostka",
+        "Zagęszczenie nawierzchni": "nie dotyczy",
+        "Stan": "bardzo dobry",
+        "Przejezdność ogólna": "bardzo dobra",
+        "Warunki po deszczu": "bez zmian",
+        "Typ drogi": "chodnik pieszy",
+        "Uwagi": "chodnik pieszy",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.917556,
+            50.611642
+          ],
+          [
+            18.915324,
+            50.612105
+          ],
+          [
+            18.907739,
+            50.613623
+          ],
+          [
+            18.898512,
+            50.615475
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "kostka",
+        "Zagęszczenie nawierzchni": "nie dotyczy",
+        "Stan": "bardzo dobry",
+        "Przejezdność ogólna": "bardzo dobra",
+        "Warunki po deszczu": "bez zmian",
+        "Typ drogi": "ciąg pieszo-rowerowy",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.923398,
+            50.62169
+          ],
+          [
+            18.923526,
+            50.621683
+          ],
+          [
+            18.92395,
+            50.621445
+          ],
+          [
+            18.927244,
+            50.620901
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "ziemia",
+        "Zagęszczenie nawierzchni": "częściowo ubita",
+        "Stan": "średni",
+        "Przejezdność ogólna": "średnia",
+        "Warunki po deszczu": "miejscami błoto lub grząsko",
+        "Typ drogi": "droga polna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.927882,
+            50.620627
+          ],
+          [
+            18.925653,
+            50.621018
+          ],
+          [
+            18.924894,
+            50.621095
+          ],
+          [
+            18.924728,
+            50.621081
+          ],
+          [
+            18.924578,
+            50.621015
+          ],
+          [
+            18.923982,
+            50.620834
+          ],
+          [
+            18.923062,
+            50.620615
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "ziemia",
+        "Zagęszczenie nawierzchni": "częściowo ubita",
+        "Stan": "średni",
+        "Przejezdność ogólna": "średnia",
+        "Warunki po deszczu": "miejscami błoto lub grząsko",
+        "Typ drogi": "droga polna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.931849,
+            50.61995
+          ],
+          [
+            18.927888,
+            50.620625
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "ziemia",
+        "Zagęszczenie nawierzchni": "luźna",
+        "Stan": "zły",
+        "Przejezdność ogólna": "trudna",
+        "Warunki po deszczu": "bardzo trudna",
+        "Typ drogi": "droga polna",
+        "Data": "2026-09-27",
+        "Uwagi": "strasznie grząski odcinek"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.933133,
+            50.61974
+          ],
+          [
+            18.931855,
+            50.619948
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "ziemia",
+        "Zagęszczenie nawierzchni": "częściowo ubita",
+        "Stan": "średni",
+        "Przejezdność ogólna": "średnia",
+        "Warunki po deszczu": "miejscami błoto lub grząsko",
+        "Typ drogi": "droga polna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.930779,
+            50.620594
+          ],
+          [
+            18.930328,
+            50.620764
+          ],
+          [
+            18.930001,
+            50.620809
+          ],
+          [
+            18.929867,
+            50.620836
+          ],
+          [
+            18.929288,
+            50.620996
+          ],
+          [
+            18.928907,
+            50.621054
+          ],
+          [
+            18.928526,
+            50.621064
+          ],
+          [
+            18.927839,
+            50.621023
+          ],
+          [
+            18.927587,
+            50.620955
+          ],
+          [
+            18.927437,
+            50.620907
+          ],
+          [
+            18.927249,
+            50.620894
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "ziemia",
+        "Zagęszczenie nawierzchni": "częściowo ubita",
+        "Stan": "zły",
+        "Przejezdność ogólna": "trudna",
+        "Warunki po deszczu": "bardzo trudna",
+        "Typ drogi": "droga polna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.933182,
+            50.619893
+          ],
+          [
+            18.933064,
+            50.620012
+          ],
+          [
+            18.931653,
+            50.620274
+          ],
+          [
+            18.930795,
+            50.620584
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "ziemia z gruzem",
+        "Zagęszczenie nawierzchni": "częściowo ubita",
+        "Stan": "zły",
+        "Przejezdność ogólna": "trudna",
+        "Warunki po deszczu": "bardzo trudna",
+        "Typ drogi": "droga polna",
+        "Uwagi": "ogólnie droga polna w złym stanie"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.935567,
+            50.618336
+          ],
+          [
+            18.932807,
+            50.61869
+          ],
+          [
+            18.933188,
+            50.619876
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "ziemia",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "średni",
+        "Przejezdność ogólna": "średnia",
+        "Warunki po deszczu": "miejscami błoto lub grząsko",
+        "Typ drogi": "droga polna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.942297,
+            50.612127
+          ],
+          [
+            18.94397,
+            50.617218
+          ],
+          [
+            18.93558,
+            50.618334
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Przejezdność ogólna": "dobra",
+        "Warunki po deszczu": "miejscami kałuże",
+        "Typ drogi": "droga lokalna",
+        "Data": "2026-09-27",
+        "Stan": "dobry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.911934,
+            50.612595
+          ],
+          [
+            18.911301,
+            50.608674
+          ],
+          [
+            18.910759,
+            50.604949
+          ],
+          [
+            18.910308,
+            50.602188
+          ],
+          [
+            18.909756,
+            50.598759
+          ],
+          [
+            18.909241,
+            50.595501
+          ],
+          [
+            18.90886,
+            50.593393
+          ],
+          [
+            18.908468,
+            50.5909
+          ],
+          [
+            18.908243,
+            50.589412
+          ],
+          [
+            18.90797,
+            50.587712
+          ],
+          [
+            18.907621,
+            50.585713
+          ],
+          [
+            18.907186,
+            50.583356
+          ],
+          [
+            18.906741,
+            50.580556
+          ],
+          [
+            18.906253,
+            50.577538
+          ],
+          [
+            18.905808,
+            50.574363
+          ],
+          [
+            18.905759,
+            50.57395
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "bardzo dobry",
+        "Przejezdność ogólna": "bardzo dobra",
+        "Warunki po deszczu": "miejscami kałuże",
+        "Typ drogi": "droga pożarowa",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.931535,
+            50.613555
+          ],
+          [
+            18.92748,
+            50.614086
+          ],
+          [
+            18.927244,
+            50.614107
+          ],
+          [
+            18.926686,
+            50.614005
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "piach",
+        "Zagęszczenie nawierzchni": "częściowo ubita",
+        "Stan": "średni",
+        "Przejezdność ogólna": "średnia",
+        "Warunki po deszczu": "miejscami błoto lub grząsko",
+        "Typ drogi": "droga polna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.935379,
+            50.61304
+          ],
+          [
+            18.931568,
+            50.613542
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "tłuczeń",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "dobry",
+        "Przejezdność ogólna": "dobra"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.94227,
+            50.612127
+          ],
+          [
+            18.935387,
+            50.613038
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "kamień",
+        "Zagęszczenie nawierzchni": "ubita",
+        "Stan": "dobry",
+        "Przejezdność ogólna": "dobra",
+        "Warunki po deszczu": "bez zmian",
+        "Typ drogi": "droga lokalna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.957961,
+            50.610056
+          ],
+          [
+            18.942275,
+            50.612126
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "asfalt",
+        "Zagęszczenie nawierzchni": "nie dotyczy",
+        "Stan": "bardzo dobry",
+        "Przejezdność ogólna": "bardzo dobra",
+        "Warunki po deszczu": "bez zmian",
+        "Typ drogi": "droga lokalna",
+        "Data": "2026-09-27"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            18.942299,
+            50.612119
+          ],
+          [
+            18.941532,
+            50.609069
+          ],
+          [
+            18.941267,
+            50.608221
+          ],
+          [
+            18.940966,
+            50.606906
+          ]
+        ]
+      },
+      "properties": {
+        "Nawierzchnia": "asfalt",
+        "Zagęszczenie nawierzchni": "nie dotyczy",
+        "Stan": "bardzo dobry",
+        "Przejezdność ogólna": "bardzo dobra",
+        "Typ drogi": "droga lokalna",
+        "Warunki po deszczu": "bez zmian",
+        "Data": "2026-10-08"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.874093,
+          50.626087
+        ]
+      },
+      "properties": {
+        "Kierunki": "Koszęcin, Boronów, Strzebiń",
+        "Liczba tabliczek": 3,
+        "Lokalizacja": "koło PGR",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.892429,
+          50.616527
+        ]
+      },
+      "properties": {
+        "Kierunki": "Koszęcin, Prądy",
+        "Liczba tabliczek": 2,
+        "Lokalizacja": "Spokojna",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.897192,
+          50.615829
+        ]
+      },
+      "properties": {
+        "Kierunki": "Prądy, Boronów, Prądy",
+        "Liczba tabliczek": 3,
+        "Lokalizacja": "Na przeciwko ośrodka zdrowia",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.894778,
+          50.570884
+        ]
+      },
+      "properties": {
+        "Kierunki": "Strzebiń, Dubiele, Koszęcin, Prądy",
+        "Liczba tabliczek": 4,
+        "Lokalizacja": "Koszęcińska, Kalety",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.905979,
+          50.574151
+        ]
+      },
+      "properties": {
+        "Kierunki": "Strzebiń, Łazy",
+        "Liczba tabliczek": 2,
+        "Lokalizacja": "Koszęcińska, Kalety",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.911945,
+          50.612844
+        ]
+      },
+      "properties": {
+        "Kierunki": "Kalety, Strzebiń, Bukowiec",
+        "Liczba tabliczek": 3,
+        "Lokalizacja": "Koło starej leśniczówki po drugiej stronie",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30",
+        "Uwagi": "do dogadania z gminą"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.924658,
+          50.613794
+        ]
+      },
+      "properties": {
+        "Kierunki": "Łazy, Strzebiń, Strzebiń",
+        "Liczba tabliczek": 3,
+        "Lokalizacja": "Skrzyżowanie 1 Maja i Poprzecznej",
+        "Status": "propozycja",
+        "Uwagi": "do uzgodnienia z gminą",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.942178,
+          50.612078
+        ]
+      },
+      "properties": {
+        "Kierunki": "Psary - 0.5 km, Bukowiec 0,2 km, Strzebiń 0,6 km, Łazy 3,5 km",
+        "Liczba tabliczek": 4,
+        "Status": "propozycja",
+        "Uwagi": "do uzgodnienia z gminą",
+        "Data dodania": "2026-09-30",
+        "Lokalizacja": "Skrzyżowanie Bukowiec-Strzebiń-Psary"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.871202,
+          50.624508
+        ]
+      },
+      "properties": {
+        "Kierunki": "Koszęcin, Kalety",
+        "Liczba tabliczek": 2,
+        "Lokalizacja": "za pasem DW 906",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.921311,
+          50.615448
+        ]
+      },
+      "properties": {
+        "Kierunki": "Łazy, Strzebiń, Psary, Bukowiec",
+        "Liczba tabliczek": 4,
+        "Lokalizacja": "1 Maja / Kosmonautów",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.898147,
+          50.619212
+        ]
+      },
+      "properties": {
+        "Kierunki": "Prądy, Boronów, Łazy",
+        "Liczba tabliczek": 3,
+        "Lokalizacja": "Wojska Polskiego / Kościuszki",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.927941,
+          50.636533
+        ]
+      },
+      "properties": {
+        "Kierunki": "Koszęcin, Strzebiń, Sitki, Hucisko, Boronów, Babienica",
+        "Liczba tabliczek": 6,
+        "Lokalizacja": "J. Chrzciciela Łazy / Kołłątaja",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.906012,
+          50.642351
+        ]
+      },
+      "properties": {
+        "Kierunki": "Koszęcin, Boronów, Strzebiń, Kurzychowe, Łazy",
+        "Liczba tabliczek": 5,
+        "Lokalizacja": "Las",
+        "Status": "propozycja",
+        "Uwagi": "do uzgodnienia z Nadleśnictwem Boronów",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.905668,
+          50.63667
+        ]
+      },
+      "properties": {
+        "Kierunki": "Koszęcin, Boronów, Kurzichowe, Łazy, Strzebiń",
+        "Liczba tabliczek": 5,
+        "Lokalizacja": "Las",
+        "Uwagi": "do uzgodnienia z Nadleśnictwem Boronów",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.872259,
+          50.638806
+        ]
+      },
+      "properties": {
+        "Kierunki": "Koszęcin, Prądy, Łazy",
+        "Liczba tabliczek": 3,
+        "Lokalizacja": "Las",
+        "Status": "propozycja",
+        "Uwagi": "do uzgodnienia z Gminą Koszęcin",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.917481,
+          50.611785
+        ]
+      },
+      "properties": {
+        "Kierunki": "Strzebiń, Łazy, Bukowiec",
+        "Liczba tabliczek": 3,
+        "Lokalizacja": "Lubliniecka",
+        "Status": "propozycja",
+        "Uwagi": "do uzgodnienia z Gminą Koszęcin",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.899258,
+          50.611942
+        ]
+      },
+      "properties": {
+        "Kierunki": "Koszęcin, Dubiele, LR, Prądy, Kalety, Bukowiec",
+        "Liczba tabliczek": 6,
+        "Lokalizacja": "Koło Czesi",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.908522,
+          50.590117
+        ]
+      },
+      "properties": {
+        "Kierunki": "Strzebiń, Dubiele, LR, Bukowiec, Sośnica"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.910131,
+          50.597213
+        ]
+      },
+      "properties": {
+        "Kierunki": "Strzebiń, Prądy, Bukowiec, Piasek",
+        "Liczba tabliczek": 4,
+        "Lokalizacja": "Las",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.907664,
+          50.613709
+        ]
+      },
+      "properties": {
+        "Kierunki": "Łazy, Koszęcin, Prądy, Kalety, Bukowiec",
+        "Liczba tabliczek": 5,
+        "Lokalizacja": "Dębowa / Lubliniecka",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.908726,
+          50.617157
+        ]
+      },
+      "properties": {
+        "Kierunki": "Prądy, Łazy, Psary, Koszęcin, Kalety",
+        "Liczba tabliczek": 5,
+        "Lokalizacja": "Lompy / 1Maja / Kolejowa",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.941653,
+          50.598385
+        ]
+      },
+      "properties": {
+        "Kierunki": "Bukowiec, Piasek, Kalety",
+        "Liczba tabliczek": 3,
+        "Lokalizacja": "Las",
+        "Status": "propozycja",
+        "Data dodania": "2026-09-30"
+      }
+    }
+  ]
+}

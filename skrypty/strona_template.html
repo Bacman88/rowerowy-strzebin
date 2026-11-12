@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUB rowerowy Strzebiń</title>
+<meta name="description" content="Sołectwo Strzebiń jako HUB rowerowy – propozycja tras rowerowych i oznakowania kierunkowego w gminie Koszęcin.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lib/leaflet.css">
+<style>
+:root{
+  --bg:#f7f4ec; --card:#fffdf8; --ink:#1d2a23; --muted:#56665c; --line:#e3dccb;
+  --green:#1d3b30; --accent:#8a5300; --node:#00838F; --grey:#8a9399;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--green)}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+header.top{padding:34px 0 22px}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+h1{font-size:clamp(30px,4.4vw,48px);line-height:1.08;margin:0 0 12px;font-weight:800;letter-spacing:-.02em}
+.lead{max-width:760px;color:var(--muted);font-size:17px;margin:0}
+.stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:22px}
+.stat b{display:block;font-size:30px;line-height:1;color:var(--green);font-weight:800}
+.stat span{font-size:13px;color:var(--muted)}
+.app{display:grid;grid-template-columns:360px 1fr;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);height:min(82vh,860px)}
+.side{overflow:auto;border-right:1px solid var(--line);padding:18px 16px 20px}
+.side h2{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin:4px 0 10px}
+#map{height:100%;background:#e9e4d6}
+.route{display:grid;grid-template-columns:30px 1fr;gap:10px;padding:10px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.route:hover{background:#f3eee2}
+.route.on{background:#efe9da;border-color:var(--line)}
+.route.dim{opacity:.45}
+.badge{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;font-weight:800;font-size:15px}
+.rt{font-weight:700;font-size:15px;line-height:1.25}
+.rs{font-size:12.5px;color:var(--accent)}
+.rm{font-size:12.5px;color:var(--muted);margin-top:2px}
+.detail{display:none;margin-top:8px}
+.route.on .detail{display:block}
+.bar{display:flex;height:7px;border-radius:4px;overflow:hidden;margin:6px 0 4px;background:#ddd}
+.bar i{display:block}
+.legend-s{display:flex;gap:10px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+.legend-s em{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.seq{font-size:12.5px;margin:6px 0;color:var(--ink)}
+.seq b{display:inline-grid;place-items:center;min-width:21px;height:21px;padding:0 4px;border-radius:11px;background:var(--node);color:#fff;font-size:11px;font-weight:700;margin:1px}
+.gpx{display:inline-block;margin-top:4px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid var(--green);padding:4px 10px;border-radius:7px}
+.gpx:hover{background:var(--green);color:#fff}
+.toggles{margin-top:18px;border-top:1px solid var(--line);padding-top:14px;font-size:14px}
+.toggles label{display:flex;align-items:center;gap:8px;margin:6px 0;cursor:pointer}
+.key{margin-top:14px;font-size:12.5px;color:var(--muted)}
+.key div{display:flex;align-items:center;gap:8px;margin:5px 0}
+.dot{width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);display:inline-grid;place-items:center;color:#fff;font-size:9px;font-weight:700}
+.reset{font-size:13px;background:none;border:0;color:var(--green);text-decoration:underline;cursor:pointer;padding:0;margin:0 0 8px}
+/* markers */
+.pm{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 11.5px Inter,sans-serif;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.far .pm{width:12px;height:12px;font-size:0;border-width:1.5px}
+.far .star{font-size:13px}
+.pm.off{background:var(--grey)} .pm.on{background:var(--node)}
+.star{font-size:20px;line-height:20px;text-shadow:0 0 3px #fff,0 0 3px #fff}
+.leaflet-popup-content{margin:12px 14px;font:14px/1.45 Inter,sans-serif;min-width:230px}
+.pp h3{margin:0 0 2px;font-size:16px}
+.pp .loc{color:var(--muted);font-size:12.5px;margin-bottom:6px}
+.pp img{width:100%;display:block;margin:5px 0;border-radius:3px}
+.chip{display:inline-block;padding:1px 7px;border-radius:5px;font-size:11.5px;font-weight:700;margin:0 3px 3px 0}
+.tag{font-size:11.5px;color:var(--muted)}
+/* sections */
+section{padding:46px 0 10px}
+section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.card h3{margin:0 0 6px;font-size:17px}
+.card p{margin:0;color:var(--muted);font-size:14.5px}
+.dl{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.dl a{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 16px;text-decoration:none;color:var(--ink)}
+.dl a:hover{border-color:var(--green)}
+.dl-t{font-weight:600;font-size:15px}
+.dl-s{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.bands{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.pole{width:34px;height:150px;background:linear-gradient(90deg,#7f888d,#c7ced2 35%,#6f787d);border-radius:2px;position:relative}
+.pole .n{position:absolute;top:22px;left:0;right:0;height:38px;background:#fff;display:grid;place-items:center}
+.pole .n i{width:28px;height:28px;border-radius:50%;background:var(--node);color:#fff;font:700 12px/28px Inter;text-align:center;font-style:normal}
+.pole .b{position:absolute;left:0;right:0;height:12px;font:700 9px/12px Inter;text-align:center}
+footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;height:auto}
+  #map{height:62vh;order:-1}
+  .side{border-right:0;border-top:1px solid var(--line);max-height:none}
+  .grid3,.dl{grid-template-columns:1fr}
+  .wrap{padding:0 16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">Sołectwo Strzebiń · gmina Koszęcin</p>
+  <h1>HUB rowerowy Strzebiń</h1>
+  <p class="lead">Strzebiń leży między Leśno Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
+  <div class="stats">
+    <div class="stat"><b>{{NROUTES}}</b><span>tras pokazowych</span></div>
+    <div class="stat"><b>{{NPOSTS}}</b><span>słupków (węzłów)</span></div>
+    <div class="stat"><b>{{NPLATES}}</b><span>tabliczek kierunkowych</span></div>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="side">
+    <h2>Trasy</h2>
+    <button class="reset" id="reset" hidden>Pokaż wszystkie trasy</button>
+    <div id="routes"></div>
+    <div class="toggles">
+      <label><input type="checkbox" id="t-opt" checked> słupki poza trasami</label>
+      <label><input type="checkbox" id="t-poi" checked> ciekawe miejsca i gastronomia</label>
+    </div>
+    <div class="key">
+      <div><span class="dot" style="background:var(--node)">7</span> słupek na trasie – kliknij, by zobaczyć tabliczki</div>
+      <div><span class="dot" style="background:var(--grey)">7</span> pozostałe słupki (część opcjonalna)</div>
+      <div><span class="star" style="color:#81552F">★</span> historia i kultura · <span class="star" style="color:#902B38">★</span> gastronomia (przykładowo)</div>
+    </div>
+  </aside>
+  <div id="map" role="region" aria-label="Mapa tras rowerowych"></div>
+</div>
+
+<section>
+  <h2>O projekcie</h2>
+  <div class="grid3">
+    <div class="card"><h3>Objazd DW 906</h3><p>Wzdłuż drogi wojewódzkiej między Bukowcem, Strzebiniem, Prądami i Koszęcinem nie ma drogi rowerowej. Trasa 1 prowadzi bocznymi ulicami i drogami leśnymi – z jezdnią wojewódzkiej styka się tylko na kilkuset metrach.</p></div>
+    <div class="card"><h3>Tabliczki kierunkowe</h3><p>Proste tablice informacyjne: nazwa miejscowości lub miejsca, odległość liczona po drodze i strzałka. Kolor tła mówi, czy to miejscowość, szlak, zabytek czy gastronomia.</p></div>
+    <div class="card"><h3>Węzły i paski tras</h3><p>Każdy słupek ma numer – ten sam na mapie i w terenie. Pod numerem kolorowe paski z numerami tras, które przez niego przebiegają. Trasę można opisać ciągiem numerów.</p></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="bands">
+      <div class="pole"><div class="n"><i>25</i></div>
+        <div class="b" style="top:66px;background:#d62828;color:#fff">1</div><div class="b" style="top:82px;background:#15803d;color:#fff">3</div>
+        <div class="b" style="top:98px;background:#7e22ce;color:#fff">4</div><div class="b" style="top:114px;background:#14b8d4;color:#000">6</div></div>
+      <p style="margin:0;max-width:640px;color:var(--muted);font-size:14.5px">Przykład: słupek 25 w Strzebiniu. Rowerzysta jadący czerwoną trasą 1 widzi na każdym słupku swój czerwony pasek z „1”. Przy zmianie przebiegu trasy wystarczy wymienić pasek – tabliczki zostają.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Do pobrania</h2>
+  <ul class="dl">
+{{DOWNLOADS}}
+  </ul>
+  <p class="tag" style="margin-top:12px">Ślady GPX każdej trasy pobierzesz z listy tras przy mapie.</p>
+</section>
+
+<footer>
+  Projekt oddolny mieszkańca Strzebinia, przygotowany dla Sołectwa Strzebiń i Gminy Koszęcin · propozycja do dyskusji, przebieg tras do potwierdzenia w terenie.<br>
+  Dane mapy © autorzy <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · piktogramy tabliczek: Tabler Icons (MIT).
+</footer>
+</div>
+
+<script src="lib/leaflet.js"></script>
+<script src="data.js"></script>
+<script>
+(function(){
+  const H = window.HUB;
+  const map = L.map('map', {zoomControl:true, scrollWheelZoom:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18,
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+  const byId = {}; const all = L.featureGroup().addTo(map);
+  const main = H.routes.filter(r => !r.alt);
+  H.routes.forEach(r => {
+    const casing = L.polyline(r.coords, {color:'#fff', weight:7, opacity:.9, interactive:false});
+    const line = L.polyline(r.coords, {color:r.col, weight:4, opacity:.95, dashArray:r.alt ? '8 6' : null});
+    const g = L.featureGroup([casing, line]).addTo(all);
+    line.on('click', () => select(r.alt ? '1' : r.id));
+    line.bindTooltip((r.alt ? 'Wariant 1a – ' : 'Trasa ' + r.id + ': ') + r.name, {sticky:true});
+    byId[r.id] = {r, g, line, casing};
+  });
+  // posts
+  const onL = L.layerGroup().addTo(map), offL = L.layerGroup().addTo(map);
+  H.posts.forEach(p => {
+    const on = p.routes.length > 0;
+    const m = L.marker([p.lat, p.lon], {icon:L.divIcon({className:'', html:`<div class="pm ${on?'on':'off'}">${p.nr}</div>`, iconSize:[26,26], iconAnchor:[13,13]}),
+      zIndexOffset: on ? 500 : 0, title:'Słupek ' + p.nr});
+    const chips = p.routes.map(id => { const r = byId[id].r; return `<span class="chip" style="background:${r.col};color:${r.txt}">${id}</span>`; }).join('');
+    const imgs = p.imgs.map(f => `<img src="tabliczki/${f}" alt="tabliczka" loading="lazy">`).join('');
+    const st = {'istniejący':'istniejący słupek','nowy':'nowy słupek','opcjonalny':'słupek opcjonalny'}[p.pole] || p.pole;
+    m.bindPopup(`<div class="pp"><h3>Węzeł ${p.nr}</h3><div class="loc">${p.loc || ''}</div>${chips ? '<div>' + chips + '</div>' : ''}${imgs}
+      <div class="tag">${st}${p.agree.length ? ' · uzgodnienie: ' + p.agree.join(', ') : ''}</div></div>`, {maxWidth:300});
+    (on ? onL : offL).addLayer(m);
+  });
+  const colP = {brown:'#81552F', red:'#902B38', orange:'#B96516', gray:'#505C66', green:'#237647', blue:'#0759A7'};
+  const poiL = L.layerGroup().addTo(map);
+  H.pois.forEach(q => {
+    const ic = q.icon === 'service' ? '🔧' : '★';
+    L.marker([q.lat, q.lon], {icon:L.divIcon({className:'', html:`<div class="star" style="color:${colP[q.cat]||'#902B38'}">${ic}</div>`, iconSize:[20,20], iconAnchor:[10,10]}), title:q.name})
+      .bindPopup(`<b>${q.name}</b>`).addTo(poiL);
+  });
+  document.getElementById('t-opt').onchange = e => e.target.checked ? offL.addTo(map) : map.removeLayer(offL);
+  document.getElementById('t-poi').onchange = e => e.target.checked ? poiL.addTo(map) : map.removeLayer(poiL);
+  // list
+  const box = document.getElementById('routes');
+  main.forEach(r => {
+    const el = document.createElement('div'); el.className = 'route'; el.dataset.id = r.id;
+    const seq = r.seq.map(s => /^\d+$/.test(s) ? `<b>${s}</b>` : s).join(' → ');
+    const alt = byId['1a'] && r.id === '1' ? `<div class="rm">wariant 1a (przerywana): przez Strzebiń drogą rowerową wzdłuż DW 906</div>` : '';
+    el.innerHTML = `<div class="badge" style="background:${r.col};color:${r.txt}">${r.id}</div>
+      <div><div class="rt">${r.name}</div>${r.sub ? `<div class="rs">${r.sub}</div>` : ''}
+      <div class="rm">${String(r.km).replace('.', ',')} km${r.dw ? ' · po DW 906 ok. ' + r.dw + ' m' : ''}</div>
+      <div class="detail">
+        <div class="bar"><i style="width:${r.pav}%;background:#555"></i><i style="width:${r.grv}%;background:#c9a96e"></i><i style="width:${r.grunt}%;background:#8fbf73"></i></div>
+        <div class="legend-s"><span><em style="background:#555"></em>asfalt/kostka ${r.pav}%</span><span><em style="background:#c9a96e"></em>szuter ${r.grv}%</span><span><em style="background:#8fbf73"></em>gruntowe ${r.grunt}%</span></div>
+        <div class="seq">${seq}</div>${alt}
+        <a class="gpx" href="gpx/trasa_${r.id}.gpx" download onclick="event.stopPropagation()">Pobierz GPX</a>
+      </div></div>`;
+    el.onclick = () => select(el.classList.contains('on') ? null : r.id);
+    box.appendChild(el);
+  });
+  const reset = document.getElementById('reset'); reset.onclick = () => select(null);
+  function select(id){
+    document.querySelectorAll('.route').forEach(e => { e.classList.toggle('on', e.dataset.id === id); e.classList.toggle('dim', !!id && e.dataset.id !== id); });
+    Object.values(byId).forEach(o => {
+      const act = !id || o.r.id === id || (id === '1' && o.r.id === '1a');
+      o.line.setStyle({opacity: act ? .95 : .18, weight: act && id ? 5 : 4}); o.casing.setStyle({opacity: act ? .9 : 0});
+      if (act) o.g.bringToFront();
+    });
+    reset.hidden = !id;
+    map.fitBounds(id ? byId[id].g.getBounds() : all.getBounds(), {padding:[30,30]});
+    if (id && window.innerWidth < 900) document.getElementById('map').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  const upd = () => map.getContainer().classList.toggle('far', map.getZoom() < 13);
+  map.on('zoomend', upd);
+  map.fitBounds(all.getBounds(), {padding:[20,20]}); upd();
+})();
+</script>
+</body>
+</html>

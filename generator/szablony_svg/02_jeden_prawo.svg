@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800mm" height="200mm" viewBox="0 0 800 200" role="img" aria-label="Drogowskaz rowerowy">
+<title>Drogowskaz rowerowy — szablon edytowalny</title>
+<desc>Wymiary robocze 800 × 200 mm. Wszystkie napisy są edytowalnymi obiektami tekstowymi. Wykonawca powinien zweryfikować rozmiar i zgodność z przepisami.</desc>
+<g id="ksztalt_tablicy">
+ <path d="M 35,8 H 706 Q 721,8 731,22 L 793,87 Q 803,100 793,113 L 731,178 Q 721,192 706,192 H 35 Q 10,192 10,167 V 33 Q 10,8 35,8 Z" fill="white" stroke="#B8C1C7" stroke-width="2.5"/>
+ <path d="M 35,8 H 706 Q 721,8 731,22 L 793,87 Q 803,100 793,113 L 731,178 Q 721,192 706,192 H 35 Q 10,192 10,167 V 33 Q 10,8 35,8 Z" fill="#0759A7" transform="translate(400 100) scale(.974 .933) translate(-400 -100)"/>
+ <rect x="54" y="21" width="592" height="162" rx="15" fill="white" stroke="#0759A7" stroke-width="5"/>
+ <path d="M 748 100 L 693 50 L 693 83 L 654 83 L 654 117 L 693 117 L 693 150 Z" fill="white"/>
+</g>
+<g id="symbol_roweru" transform="translate(7 26) scale(0.31)" fill="none" stroke="#07376B" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="100" cy="220" r="61"/>
+ <circle cx="302" cy="220" r="61"/>
+ <path d="M101 214 L140 109 L147 73 Q149 69 154 69 H175"/>
+ <path d="M140 108 H242 L213 218 Z"/>
+ <path d="M242 108 V91 M231 91 H259"/>
+ <path d="M242 108 L303 216 H213"/>
+</g>
+<g id="teksty_edytowalne"><text id="miejscowosc_1" x="182" y="120" font-size="51" font-family="Roboto Condensed, DejaVu Sans Condensed, sans-serif" font-weight="700" fill="#07376B">Strzebiń</text>
+<text id="odleglosc_1" x="627" y="120" text-anchor="end" font-size="51" font-family="Roboto Condensed, DejaVu Sans Condensed, sans-serif" font-weight="700" fill="#07376B">5,2 km</text></g>
+</svg>
