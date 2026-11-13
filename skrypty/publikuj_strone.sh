@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Publikuje zbudowaną stronę (out/strona) na gałąź "strona" – jeden commit, nadpisywany przy każdej publikacji.
-# Układ gałęzi: tylko public/ (strona).
+# Układ gałęzi: public/ (strona) + .github/workflows/apk.yml (budowanie APK).
 # Joton: katalog publikacji PUSTY, skrypt budowy "cp -r public/. ../../public_html/",
 #        document root /public_html (kopiuje z deploys/<commit>/ do public_html).
 # Opcjonalnie: TRAILER="..." dopisuje linie na końcu opisu commita.
@@ -13,6 +13,8 @@ TMP=$(mktemp -d); mkdir -p "$TMP/public"
 cp -r "$SRC"/. "$TMP/public"/
 cp "$ROOT/joton/.htaccess" "$TMP/public/"
 [ -f "$ROOT/CNAME" ] && cp "$ROOT/CNAME" "$TMP/public/"
+# budowanie aplikacji na Androida po każdej publikacji (GitHub uruchamia workflow z gałęzi, na którą wypchnięto zmiany)
+mkdir -p "$TMP/.github/workflows" && cp "$ROOT/.github/workflows/apk.yml" "$TMP/.github/workflows/"
 MSG="Strona: $(date +%F)"
 [ -n "$TRAILER" ] && MSG="$MSG
 
