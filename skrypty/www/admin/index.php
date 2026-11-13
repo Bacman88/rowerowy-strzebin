@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['akcja'] ?? '') === 'korekt
     hub_json(['ok' => true, 'korekty' => hub_korekty($db)]);
 }
 if (isset($_GET['test_maila'])) {   // próbna wiadomość – sprawdzenie, czy powiadomienia dochodzą
-    $ok = hub_powiadom('Test powiadomień', "To jest próbna wiadomość z panelu mapy wspólnej (" . hub_teraz() . ").\nJeśli ją widzisz, powiadomienia o nowych zgłoszeniach działają.");
+    $ok = hub_powiadom('Test powiadomień', "To jest próbna wiadomość z panelu mapy wspólnej (" . hub_teraz() . ").\nJeśli ją widzisz, powiadomienia o nowych zgłoszeniach działają.", '', true);
     $do = hub_cfg()['powiadom'];
     header('Content-Type: text/html; charset=utf-8');
     echo '<p style="font:16px system-ui;margin:30px">' . ($do === '' ? 'Brak adresu: dopisz w hub_config.php <code>\'powiadom\' => \'twój@adres\'</code>.'

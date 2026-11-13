@@ -3,6 +3,7 @@
 // Konfiguracja leży POZA public_html: /var/www/<witryna>/hub_config.php (wdrożenie jej nie nadpisuje).
 declare(strict_types=1);
 date_default_timezone_set('Europe/Warsaw');
+ob_start();   // przypadkowe ostrzeżenia PHP nie mogą zepsuć odpowiedzi JSON (hub_json czyści bufor)
 
 const STANY = ['dobra', 'srednia', 'trudna', 'nieprzejezdna'];
 const TYPY_MIEJSC = ['lawka', 'wiata', 'piknik', 'widok', 'zabawa', 'woda', 'serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'apteczka', 'info',
@@ -74,7 +75,13 @@ function hub_json($data, int $code = 200): void {
     header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store, no-cache, must-revalidate, private, max-age=0');
     header('X-LiteSpeed-Cache-Control: no-cache');
+    while (ob_get_level()) ob_end_clean();
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    // odpowiedź idzie do przeglądarki od razu; powiadomienia e-mail wysyłamy dopiero potem (wolny serwer poczty nie może wyglądać jak błąd)
+    if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+    elseif (function_exists('litespeed_finish_request')) litespeed_finish_request();
+    else flush();
+    foreach ($GLOBALS['hub_po_odp'] ?? [] as $f) { try { $f(); } catch (Throwable $e) { error_log('hub po odpowiedzi: ' . $e->getMessage()); } }
     exit;
 }
 
@@ -141,7 +148,9 @@ function hub_ip_limit(PDO $db): string {
 }
 // E-mail do administratora przy każdym nowym zgłoszeniu (hub_config.php: 'powiadom' => 'adres', opcjonalnie 'nadawca').
 // Kontaktów zgłaszających nie wysyłamy mailem – są tylko w panelu. Zwraca true, gdy serwer przyjął wiadomość.
-function hub_powiadom(string $temat, string $tresc, string $zakladka = ''): bool {
+// Domyślnie wysyła dopiero po odesłaniu odpowiedzi JSON (zob. hub_json); $teraz = true – od razu (test z panelu).
+function hub_powiadom(string $temat, string $tresc, string $zakladka = '', bool $teraz = false): bool {
+    if (!$teraz) { $GLOBALS['hub_po_odp'][] = fn() => hub_powiadom($temat, $tresc, $zakladka, true); return true; }
     $c = hub_cfg(); $do = trim((string)$c['powiadom']);
     if ($do === '') return false;
     $host = preg_replace('/^www\./', '', preg_replace('/[^a-z0-9.\-]/i', '', (string)($_SERVER['HTTP_HOST'] ?? 'rowerowy-strzebin.smart-ant.pl')));

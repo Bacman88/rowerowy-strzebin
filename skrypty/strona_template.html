@@ -727,7 +727,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : tryb === 'wezly' ? WZ.gotowe()
     : tryb === 'trasa' ? TRASA.gotowe() && F.tnazwa.value.trim().length >= 3 : pin && F.typ.value)); }
   F.addEventListener('input', walid); F.addEventListener('change', walid);
-  function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; }
+  function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; try { m.scrollIntoView({block:'nearest', behavior:'smooth'}); } catch (e) {} }
   F.addEventListener('submit', async e => {
     e.preventDefault(); if ($('send').disabled) return;
     if (F.kontakt.value.trim() && !F.zgoda.checked) return msg('Zaznacz zgodę na kontakt albo zostaw pole kontaktu puste.');

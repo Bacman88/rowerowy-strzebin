@@ -27,6 +27,21 @@ foreach ($odc as $o) if (!isset($znane[$o])) hub_json(['blad' => 'Nieznany odcin
 try {
     $db = hub_db();
     $ip = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . hub_cfg()['sol']);
+
+    // to samo zgłoszenie wysłane ponownie (np. ktoś kliknął jeszcze raz, bo nie zobaczył potwierdzenia):
+    // zamiast duplikatu uzupełniamy poprzednie, wciąż oczekujące – nowy kontakt, komentarz, data, zdjęcie
+    $klucz = $odc; sort($klucz);
+    $q = $db->prepare("SELECT id, kontakt, komentarz, data_przejazdu FROM zgloszenia WHERE ip = ? AND stan = ? AND moderacja = 'oczekuje' AND utworzono > ? ORDER BY id DESC");
+    $q->execute([$ip, $stan, date('Y-m-d H:i:s', time() - 6 * 3600)]);
+    $qo = $db->prepare('SELECT odcinek FROM zgloszenia_odcinki WHERE zgloszenie = ?');
+    foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $w) {
+        $qo->execute([$w['id']]); $byly = array_map('strval', $qo->fetchAll(PDO::FETCH_COLUMN)); sort($byly);
+        if ($byly !== $klucz) continue;
+        $db->prepare('UPDATE zgloszenia SET nick = ?, kontakt = ?, komentarz = ?, data_przejazdu = ? WHERE id = ?')
+           ->execute([$nick, $kontakt !== '' ? $kontakt : $w['kontakt'], $kom !== '' ? $kom : (string)$w['komentarz'], $data !== '' ? $data : $w['data_przejazdu'], $w['id']]);
+        hub_foto_zapisz($db, $in, 'zgloszenia', (int)$w['id']);
+        hub_json(['ok' => true, 'id' => (int)$w['id'], 'ponownie' => true]);
+    }
     $q = $db->prepare('SELECT COUNT(*) FROM zgloszenia WHERE ip = ? AND utworzono > ?');
     $q->execute([$ip, date('Y-m-d H:i:s', time() - 3600)]);
     if ((int)$q->fetchColumn() >= 15) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);
