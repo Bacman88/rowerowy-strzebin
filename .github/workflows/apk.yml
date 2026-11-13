@@ -87,7 +87,9 @@ jobs:
           tag_name: jedz-0.1.${{ github.run_number }}
           name: "Jedź – aplikacja na Androida 0.1.${{ github.run_number }} (beta)"
           make_latest: true
-          files: jedz-hub-strzebin.apk
+          files: |
+            jedz-hub-strzebin.apk
+            *.aab
           body: |
             Nawigacja rowerowa HUB Strzebiń – wersja testowa do instalacji poza Sklepem Play.
 
