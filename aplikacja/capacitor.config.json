@@ -1,0 +1,8 @@
+{
+  "appId": "pl.smartant.jedz",
+  "appName": "Jedź – HUB Strzebiń",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

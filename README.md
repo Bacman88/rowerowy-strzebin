@@ -100,3 +100,8 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
 - `skrypty/jedz_dane.py` (po `odcinki.py`) → `stan/jedz.js`: odcinki na trasach i odcinki DW z ciągiem pieszo-rowerowym (z pomiarów uMap).
 - Prowadzenie „następny kierunek”: przy przyszłych drogowskazach – tabliczka tak, jak widzi ją nadjeżdżający; poza nimi – skręty z nazwami ulic. Zejście z trasy → przeliczenie od bieżącej pozycji.
 - Kierunek tabliczki: pole `g` (azymut) w `data.js` (strona.py). Symulacja przejazdu do testów w domu.
+
+## Aplikacja na Androida (`aplikacja/`)
+Capacitor opakowuje stronę „Jedź” w aplikację z lokalizacją w tle (usługa z powiadomieniem – nawigacja na zgaszonym ekranie) i głosem (syntezator telefonu).
+- Budowanie: GitHub Actions (`.github/workflows/apk.yml`) po każdej publikacji strony; pliki brane z gałęzi `strona` (`aplikacja/przygotuj.sh`), APK trafia do wydań („Releases”).
+- `beta-debug.keystore` – klucz tylko do wersji testowych instalowanych poza sklepem (żeby aktualizacje instalowały się na starą wersję). Do Sklepu Play – osobny klucz w sekretach repozytorium.

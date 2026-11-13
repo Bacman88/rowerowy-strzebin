@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Kopiuje pliki nawigacji „Jedź” z opublikowanej strony (gałąź `strona`, katalog public/) do www/ aplikacji
+# i podmienia linki względne na adresy strony (w aplikacji nie ma reszty witryny).
+# Użycie: bash przygotuj.sh <ścieżka do public/>
+set -euo pipefail
+SRC="$1"; DST="$(dirname "$0")/www"
+rm -rf "$DST"; mkdir -p "$DST/lib/fonts" "$DST/stan"
+cp "$SRC/jedz.html" "$DST/index.html"
+cp "$SRC/data.js" "$SRC/favicon.svg" "$SRC/ikona-192.png" "$SRC/apple-touch-icon.png" "$DST/"
+cp "$SRC"/lib/{jedz.js,leaflet.js,leaflet.css,ikony.js,tabliczka-dane.js,tabliczka.js} "$DST/lib/"
+cp "$SRC/lib/fonts/FiraSansCondensed-SemiBold.ttf" "$DST/lib/fonts/"
+[ -d "$SRC/lib/images" ] && cp -r "$SRC/lib/images" "$DST/lib/"
+cp "$SRC/stan/odcinki.js" "$SRC/stan/jedz.js" "$DST/stan/"
+STRONA="https://rowerowy-strzebin.smart-ant.pl/"
+sed -i -e "s|href=\"\./\"|href=\"$STRONA\"|g" -e "s|href=\"polityka-prywatnosci.html\"|href=\"${STRONA}polityka-prywatnosci.html\"|g" \
+       -e 's|<link rel="manifest" href="jedz.webmanifest">||' "$DST/index.html"
+# (mostek Capacitora – window.Capacitor – Android wstrzykuje sam, bez dodatkowego skryptu)
+echo "www gotowe: $(du -sh "$DST" | cut -f1)"

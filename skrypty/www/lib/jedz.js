@@ -14,6 +14,10 @@
   const kmTxt = m => m < 950 ? (Math.round(m / 10) * 10) + ' m' : (m / 1000).toFixed(m < 9950 ? 1 : 0).replace('.', ',') + ' km';
   const minTxt = m => { const t = Math.max(1, Math.round(m / 1000 / 15 * 60)); return t < 60 ? '~' + t + ' min' : '~' + Math.floor(t / 60) + ' h ' + (t % 60) + ' min'; };
   const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
+  // aplikacja na Androida (Capacitor): GPS z usługą w tle (jazda na zgaszonym ekranie) i głos z syntezatora telefonu
+  const NAT = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  const PL = NAT ? window.Capacitor.Plugins : {};
+  const BAZA = NAT ? 'https://rowerowy-strzebin.smart-ant.pl/' : './';
   const LS = {get(k, d) { try { const v = localStorage.getItem('jedz.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
               set(k, v) { try { localStorage.setItem('jedz.' + k, JSON.stringify(v)); } catch (e) {} }};
 
@@ -259,7 +263,23 @@
   $('wstecz').onclick = () => { if (stan.jazda) return; stan.wybor = null; ekran('s-cel'); };
 
   // --- start: GPS albo punkt na mapie
+  // GEO.sledz(cb, blad) → funkcja zatrzymująca; w aplikacji przez usługę w tle (powiadomienie „nawigacja aktywna”)
+  const GEO = {
+    sledz(cb, blad, opis) {
+      if (NAT && PL.BackgroundGeolocation) {
+        let id = null, stop = false;
+        PL.BackgroundGeolocation.addWatcher({backgroundTitle: 'Jedź – nawigacja aktywna', backgroundMessage: opis || 'Prowadzimy Cię trasą rowerową', requestPermissions: true, stale: false, distanceFilter: 0},
+          (loc, err) => { if (err) { if (err.code === 'NOT_AUTHORIZED') blad('zgoda'); else blad(); return; } if (loc) cb([loc.latitude, loc.longitude], loc.accuracy, loc.bearing); })
+          .then(w => { id = w; if (stop) PL.BackgroundGeolocation.removeWatcher({id}); });
+        return () => { stop = true; if (id != null) PL.BackgroundGeolocation.removeWatcher({id}); };
+      }
+      if (!navigator.geolocation) { blad('brak'); return () => {}; }
+      const w = navigator.geolocation.watchPosition(e => cb([e.coords.latitude, e.coords.longitude], e.coords.accuracy, e.coords.heading), e => blad(e.code === 1 ? 'zgoda' : ''), {enableHighAccuracy: true, maximumAge: 1000, timeout: 20000});
+      return () => navigator.geolocation.clearWatch(w);
+    }
+  };
   function gps(ok, zle) {
+    if (NAT) { let gotowe = false; const stop = GEO.sledz(p => { if (gotowe) return; gotowe = true; stop(); ok(p); }, e => { if (gotowe) return; gotowe = true; stop(); zle(e === 'zgoda' ? 'Brak zgody na lokalizację – zezwól w ustawieniach telefonu albo wskaż start na mapie.' : 'Nie udało się ustalić lokalizacji.'); }, 'Ustalam Twoją lokalizację'); return; }
     if (!navigator.geolocation) return zle('Ten telefon nie udostępnia lokalizacji.');
     navigator.geolocation.getCurrentPosition(p => ok([p.coords.latitude, p.coords.longitude]), e => zle(e.code === 1 ? 'Brak zgody na lokalizację – zezwól w ustawieniach przeglądarki albo wskaż start na mapie.' : 'Nie udało się ustalić lokalizacji.'), {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000});
   }
@@ -336,14 +356,14 @@
       <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b>${minTxt(T.m)}</b><span>przy 15 km/h</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
       <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich: ${kmTxt(T.km.dw)}.` : 'Bez dłuższych odcinków po drogach wojewódzkich.'}</div>
       <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}Jedź</button>
-      <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a><button type="button" class="btn2" id="b-gpx">GPX</button></div>
+      <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a>${NAT ? '' : '<button type="button" class="btn2" id="b-gpx">GPX</button>'}</div>
       <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
       <div class="sek">Po drodze</div><div class="manew">${lista}</div>`;
     $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
     $('c-dw').onchange = e => { stan.bezDW = e.target.checked; LS.set('bezDW', stan.bezDW); podglad(); };
     $('b-jedz').onclick = () => startJazdy(false);
     $('b-symstart').onclick = () => startJazdy(true);
-    $('b-gpx').onclick = () => gpx(T);
+    if ($('b-gpx')) $('b-gpx').onclick = () => gpx(T);
     $('b-google').href = linkGoogle(T);
     atryb();
     map.fitBounds(L.polyline(T.ll).getBounds(), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(window.innerHeight * .55, 420)]});
@@ -390,12 +410,12 @@
     $('b-kurs').classList.remove('hide');
     if (!sym) pozycja(stan.start, 20, true);
     if (sym) { symV = 1; $('b-sym').textContent = 'Symulacja: ×1'; sym.t = setInterval(() => { sym.d += 6 * symV; const p = wDal(stan.T, sym.d); pozycja(p, 5, sym.d); }, 1000); }
-    else watch = navigator.geolocation.watchPosition(e => pozycja([e.coords.latitude, e.coords.longitude], e.coords.accuracy), () => { $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Brak sygnału GPS'; }, {enableHighAccuracy: true, maximumAge: 1000, timeout: 20000});
+    else watch = GEO.sledz((p, acc) => pozycja(p, acc), () => { $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Brak sygnału GPS'; }, 'Do: ' + stan.celN);
     odswiez();
   }
   $('b-sym').onclick = () => { symV = symV === 1 ? 3 : symV === 3 ? 8 : 1; $('b-sym').textContent = 'Symulacja: ×' + symV; };
   function koniecJazdy() {
-    stan.jazda = false; if (watch != null) navigator.geolocation.clearWatch(watch); watch = null;
+    stan.jazda = false; if (watch) watch(); watch = null;
     if (sym) clearInterval(sym.t); sym = null; try { wake && wake.release(); } catch (e) {} wake = null;
     if (jaM) { jaM.remove(); jaM = null; } if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
   }
@@ -489,15 +509,18 @@
   function dojechales() {
     if (!stan.jazda) return;
     powiedz('Jesteś na miejscu'); navigator.vibrate && navigator.vibrate([100, 80, 100, 80, 200]);
-    if (watch != null) navigator.geolocation.clearWatch(watch); watch = null; if (sym) clearInterval(sym.t); sym = null;
+    if (watch) watch(); watch = null; if (sym) clearInterval(sym.t); sym = null;
     stan.jazda = false; try { wake && wake.release(); } catch (e) {}
     if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); ekran('s-mapa'); panele('podglad');
     $("gora").innerHTML = `<div class="pasek" style="padding-left:76px"><div class="r1"><div class="strz">${strzalkaSVG("cel", "#1d3b30", 40)}</div><div><div class="lab">Jesteś na miejscu</div><div class="co">${esc(stan.celN)}</div></div></div></div>`; $('gora').dataset.h = '';
-    $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Dojechałeś! ${kmTxt(stan.T.m)}</div><p class="msg">Coś było nie tak z trasą albo drogą? Oceń drogę na mapie wspólnej – poprawimy trasy dla wszystkich.</p><div class="rzad"><a class="btn2" href="./#wspolna" style="text-decoration:none;color:inherit">Oceń drogę</a><button type="button" class="btn2" id="b-nowy">Nowy cel</button></div>`;
+    $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Dojechałeś! ${kmTxt(stan.T.m)}</div><p class="msg">Coś było nie tak z trasą albo drogą? Oceń drogę na mapie wspólnej – poprawimy trasy dla wszystkich.</p><div class="rzad"><a class="btn2" href="${BAZA}#wspolna" style="text-decoration:none;color:inherit">Oceń drogę</a><button type="button" class="btn2" id="b-nowy">Nowy cel</button></div>`;
     $('b-nowy').onclick = () => { stan.start = jaM ? [jaM.getLatLng().lat, jaM.getLatLng().lng] : stan.start; if (jaM) { jaM.remove(); jaM = null; } ekran('s-cel'); };
   }
   // głos
-  function powiedz(t) { if (!stan.glos || !window.speechSynthesis) return; try { const u = new SpeechSynthesisUtterance(t); u.lang = 'pl-PL'; u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
+  function powiedz(t) {
+    if (!stan.glos) return;
+    if (NAT && PL.TextToSpeech) { PL.TextToSpeech.speak({text: t, lang: 'pl-PL', rate: 1.0, category: 'playback'}).catch(() => {}); return; }
+    if (!window.speechSynthesis) return; try { const u = new SpeechSynthesisUtterance(t); u.lang = 'pl-PL'; u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
   function glosIkona() { $('b-glos').innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/>${stan.glos ? '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>' : '<path d="M17 9l5 6M22 9l-5 6"/>'}</svg>`; $('b-glos').ariaLabel = stan.glos ? 'Wyłącz komunikaty głosowe' : 'Włącz komunikaty głosowe'; }
   $('b-glos').onclick = () => { stan.glos = !stan.glos; LS.set('glos', stan.glos); glosIkona(); if (stan.glos) powiedz('Komunikaty głosowe włączone'); };
   $('b-srodek').onclick = () => { sledz = true; $('b-srodek').classList.add('hide'); if (kurs && stan.jazda) obroc(true); if (jaM) map.setView(jaM.getLatLng(), Math.max(map.getZoom(), 16), {animate: !obrocona}); };
@@ -507,12 +530,12 @@
   // link z celem: jedz.html#do=lat,lon&n=Nazwa
   const hs = new URLSearchParams(location.hash.slice(1));
   if (hs.get('do')) { const [a, b] = hs.get('do').split(',').map(Number); if (isFinite(a) && isFinite(b)) setTimeout(() => ustawCel([a, b], hs.get('n') || 'Punkt na mapie', najblizszaMiejscowosc([a, b]) || ''), 300); }
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('jedz-sw.js').catch(() => {});
+  if (!NAT && 'serviceWorker' in navigator) navigator.serviceWorker.register('jedz-sw.js').catch(() => {});
   // przycisk „Zainstaluj na telefonie”: Android/Chrome – systemowe okno, iPhone – instrukcja; po instalacji znika
   const zainst = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   let prosba = null;
-  if (!zainst) {
+  if (!zainst && !NAT) {
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prosba = e; $('b-instaluj').classList.remove('hide'); });
     if (ios) $('b-instaluj').classList.remove('hide');
   }
