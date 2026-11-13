@@ -13,6 +13,12 @@ concurrency:
 jobs:
   apk:
     runs-on: ubuntu-24.04
+    env:
+      # klucz do Sklepu Play – sekrety repozytorium (Settings → Secrets and variables → Actions); bez nich powstaje tylko APK
+      PLAY_KS: ${{ secrets.PLAY_KEYSTORE_B64 }}
+      PLAY_KS_PASS: ${{ secrets.PLAY_KEYSTORE_PASSWORD }}
+      PLAY_KEY_ALIAS: ${{ secrets.PLAY_KEY_ALIAS }}
+      PLAY_KEY_PASS: ${{ secrets.PLAY_KEY_PASSWORD }}
     steps:
       - name: Kod aplikacji (main)
         uses: actions/checkout@v5
@@ -55,6 +61,22 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk ../../jedz-hub-strzebin.apk
+      - name: AAB do Sklepu Play (gdy są sekrety z kluczem)
+        if: env.PLAY_KS != ''
+        working-directory: aplikacja/android
+        run: |
+          echo "$PLAY_KS" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          ./gradlew bundleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/upload.jks" -Pandroid.injected.signing.store.password="$PLAY_KS_PASS" \
+            -Pandroid.injected.signing.key.alias="$PLAY_KEY_ALIAS" -Pandroid.injected.signing.key.password="$PLAY_KEY_PASS"
+          cp app/build/outputs/bundle/release/app-release.aab ../../jedz-hub-strzebin-${{ github.run_number }}.aab
+          rm -f "$RUNNER_TEMP/upload.jks"
+      - name: AAB jako artefakt (do wgrania w konsoli Play)
+        if: hashFiles('*.aab') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedz-aab-play
+          path: "*.aab"
       - uses: actions/upload-artifact@v4
         with:
           name: jedz-apk
