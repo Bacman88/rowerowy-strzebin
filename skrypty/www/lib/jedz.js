@@ -270,10 +270,10 @@
   // --- start: GPS albo punkt na mapie
   // GEO.sledz(cb, blad) → funkcja zatrzymująca; w aplikacji przez usługę w tle (powiadomienie „nawigacja aktywna”)
   const GEO = {
-    sledz(cb, blad, opis) {
+    sledz(cb, blad, opis, stara) {
       if (NAT && PL.BackgroundGeolocation) {
         let id = null, stop = false;
-        PL.BackgroundGeolocation.addWatcher({backgroundTitle: 'Jedź – nawigacja aktywna', backgroundMessage: opis || 'Prowadzimy Cię trasą rowerową', requestPermissions: true, stale: false, distanceFilter: 0},
+        PL.BackgroundGeolocation.addWatcher({backgroundTitle: 'Jedź – nawigacja aktywna', backgroundMessage: opis || 'Prowadzimy Cię trasą rowerową', requestPermissions: true, stale: !!stara, distanceFilter: 0},
           (loc, err) => { if (err) { if (err.code === 'NOT_AUTHORIZED') blad('zgoda'); else blad(); return; } if (loc) cb([loc.latitude, loc.longitude], loc.accuracy, loc.bearing); })
           .then(w => { id = w; if (stop) PL.BackgroundGeolocation.removeWatcher({id}); });
         return () => { stop = true; if (id != null) PL.BackgroundGeolocation.removeWatcher({id}); };
@@ -284,7 +284,15 @@
     }
   };
   function gps(ok, zle) {
-    if (NAT) { let gotowe = false; const stop = GEO.sledz(p => { if (gotowe) return; gotowe = true; stop(); ok(p); }, e => { if (gotowe) return; gotowe = true; stop(); zle(e === 'zgoda' ? 'Brak zgody na lokalizację – zezwól w ustawieniach telefonu albo wskaż start na mapie.' : 'Nie udało się ustalić lokalizacji.'); }, 'Ustalam Twoją lokalizację'); return; }
+    if (NAT) {
+      // pierwsza pozycja: wystarczy ostatnia znana (stale) – w domu świeży GPS potrafi nie przyjść wcale; limit 15 s
+      let gotowe = false, stop = () => {};
+      const koniec = (p, e) => { if (gotowe) return; gotowe = true; clearTimeout(t); stop(); if (p) ok(p); else zle(e); };
+      const t = setTimeout(() => koniec(null, 'Nie udało się ustalić lokalizacji (słaby sygnał GPS) – wskaż start na mapie albo spróbuj na zewnątrz.'), 15000);
+      stop = GEO.sledz(p => koniec(p), e => koniec(null, e === 'zgoda' ? 'Brak zgody na lokalizację – zezwól w ustawieniach telefonu albo wskaż start na mapie.' : 'Nie udało się ustalić lokalizacji.'), 'Ustalam Twoją lokalizację', true);
+      if (gotowe) stop();
+      return;
+    }
     if (!navigator.geolocation) return zle('Ten telefon nie udostępnia lokalizacji.');
     navigator.geolocation.getCurrentPosition(p => ok([p.coords.latitude, p.coords.longitude]), e => zle(e.code === 1 ? 'Brak zgody na lokalizację – zezwól w ustawieniach przeglądarki albo wskaż start na mapie.' : 'Nie udało się ustalić lokalizacji.'), {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000});
   }
