@@ -276,7 +276,10 @@
         PL.BackgroundGeolocation.addWatcher({backgroundTitle: 'Jedź – nawigacja aktywna', backgroundMessage: opis || 'Prowadzimy Cię trasą rowerową', requestPermissions: true, stale: !!stara, distanceFilter: 0},
           (loc, err) => { if (err) { if (err.code === 'NOT_AUTHORIZED') blad('zgoda'); else blad(); return; } if (loc) cb([loc.latitude, loc.longitude], loc.accuracy, loc.bearing); })
           .then(w => { id = w; if (stop) PL.BackgroundGeolocation.removeWatcher({id}); });
-        return () => { stop = true; if (id != null) PL.BackgroundGeolocation.removeWatcher({id}); };
+        // równolegle lokalizacja z WebView (GPS + Wi-Fi + sieć – lepsza przy słabym GPS, działa przy włączonym ekranie)
+        let w2 = null;
+        if (!stara && navigator.geolocation) w2 = navigator.geolocation.watchPosition(e => cb([e.coords.latitude, e.coords.longitude], e.coords.accuracy, e.coords.heading), () => {}, {enableHighAccuracy: true, maximumAge: 1000, timeout: 20000});
+        return () => { stop = true; if (id != null) PL.BackgroundGeolocation.removeWatcher({id}); if (w2 != null) navigator.geolocation.clearWatch(w2); };
       }
       if (!navigator.geolocation) { blad('brak'); return () => {}; }
       const w = navigator.geolocation.watchPosition(e => cb([e.coords.latitude, e.coords.longitude], e.coords.accuracy, e.coords.heading), e => blad(e.code === 1 ? 'zgoda' : ''), {enableHighAccuracy: true, maximumAge: 1000, timeout: 20000});
@@ -289,8 +292,9 @@
       let gotowe = false, stop = () => {};
       const koniec = (p, e) => { if (gotowe) return; gotowe = true; clearTimeout(t); stop(); if (p) ok(p); else zle(e); };
       const t = setTimeout(() => koniec(null, 'Nie udało się ustalić lokalizacji (słaby sygnał GPS) – wskaż start na mapie albo spróbuj na zewnątrz.'), 15000);
-      stop = GEO.sledz(p => koniec(p), e => koniec(null, e === 'zgoda' ? 'Brak zgody na lokalizację – zezwól w ustawieniach telefonu albo wskaż start na mapie.' : 'Nie udało się ustalić lokalizacji.'), 'Ustalam Twoją lokalizację', true);
-      if (gotowe) stop();
+      const wtyczka = () => { if (gotowe) return; stop = GEO.sledz(p => koniec(p), e => koniec(null, e === 'zgoda' ? 'Brak zgody na lokalizację – zezwól w ustawieniach telefonu albo wskaż start na mapie.' : 'Nie udało się ustalić lokalizacji.'), 'Ustalam Twoją lokalizację', true); if (gotowe) stop(); };
+      if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => koniec([p.coords.latitude, p.coords.longitude]), wtyczka, {enableHighAccuracy: true, timeout: 8000, maximumAge: 30000});
+      else wtyczka();
       return;
     }
     if (!navigator.geolocation) return zle('Ten telefon nie udostępnia lokalizacji.');
@@ -447,6 +451,10 @@
   }
   function pozycja(p, acc, wSym) {
     const T = stan.T; if (!T || !stan.jazda) return;
+    // dwa źródła pozycji (aplikacja): odrzuć wyraźnie gorszy odczyt, jeśli przed chwilą był lepszy
+    const teraz = Date.now(); acc = acc || 20;
+    if (pozycja.ost && teraz - pozycja.ost.t < 3000 && acc > Math.max(25, pozycja.ost.acc * 2)) return;
+    pozycja.ost = {t: teraz, acc};
     const r = rzut(T, p);
     const kierRuchu = ostPoz && dist(ostPoz, p) > 3 ? brg(ostPoz, p) : null; if (!ostPoz || dist(ostPoz, p) > 3) ostPoz = p;
     // ikona „ja” – strzałka w kierunku jazdy
