@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zostań testerem aplikacji „Jedź” – HUB rowerowy Strzebiń</title>
+<meta name="description" content="Pomóż przetestować aplikację „Jedź” – nawigację rowerową po Strzebiniu i okolicy – z Google Play.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#f7f4ec;--card:#fffdf8;--line:#e3dccb;--ink:#1d2a23;--muted:#56665c;--green:#1d3b30;--teal:#00737e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:linear-gradient(160deg,#00737e,#1d3b30);color:#fff;padding:24px 16px 28px}
+header div,main{max-width:720px;margin:0 auto}
+header a{color:#cfe6e6;font-size:14px}
+h1{margin:8px 0 4px;font-size:30px;line-height:1.2}
+header p{margin:0;opacity:.9}
+main{padding:22px 16px 48px}
+ol{padding:0;margin:0;list-style:none;counter-reset:k;display:flex;flex-direction:column;gap:14px}
+ol li{counter-increment:k;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px 16px 62px;position:relative}
+ol li::before{content:counter(k);position:absolute;left:16px;top:14px;width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;font-weight:800;display:grid;place-items:center}
+ol b{display:block;font-size:17px;margin-bottom:4px}
+.btn{display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;padding:10px 16px;border-radius:12px}
+.btn.g{background:#01875f}
+.muted{color:var(--muted);font-size:14.5px}
+h2{font-size:19px;margin:30px 0 8px}
+ul{padding-left:20px}
+a{color:var(--teal)}
+</style>
+</head>
+<body>
+<header><div><a href="./">← HUB rowerowy Strzebiń</a><h1>Zostań testerem aplikacji „Jedź”</h1><p>Nawigacja rowerowa po Strzebiniu i okolicy – na Androida, z Google Play.</p></div></header>
+<main>
+  <ol>
+    <li><b>Wyślij nam swój adres Gmail</b>
+      Ten, na który jest zalogowany Sklep Play w Twoim telefonie. Dopiszemy Cię do listy testerów – zwykle tego samego dnia.
+      <br><a class="btn" href="mailto:info@rowerowy-strzebin.smart-ant.pl?subject=Chc%C4%99%20testowa%C4%87%20aplikacj%C4%99%20Jed%C5%BA&amp;body=M%C3%B3j%20adres%20Gmail%20(Sklep%20Play)%3A%20">Napisz: chcę testować</a>
+    </li>
+    <li><b>Gdy dostaniesz potwierdzenie – otwórz link testów na telefonie</b>
+      Zaloguj się tym samym kontem Google i kliknij „Akceptuj zaproszenie”.
+      <br><a class="btn g" href="https://play.google.com/apps/internaltest/4701097482832312037">Dołącz do testów w Google Play</a>
+      <p class="muted" style="margin:8px 0 0">Zanim Cię dopiszemy, link pokaże „brak dostępu” – to normalne.</p>
+    </li>
+    <li><b>Zainstaluj „Jedź – HUB rowerowy Strzebiń” ze Sklepu Play</b>
+      Aktualizacje przyjdą same, jak każda inna aplikacja. Przy pierwszym prowadzeniu zezwól na lokalizację i powiadomienia – dzięki temu nawigacja mówi także przy zgaszonym ekranie.
+    </li>
+  </ol>
+
+  <h2>Co sprawdzać?</h2>
+  <ul>
+    <li>czy trasa prowadzi sensownie (tryb <b>Bezpieczna</b> omija drogi wojewódzkie i krajowe),</li>
+    <li>czy komunikaty i ekran kierunku pojawiają się w dobrym momencie na skrzyżowaniach,</li>
+    <li>czy po zjechaniu z trasy aplikacja dobrze wyznacza nową,</li>
+    <li>jak długo wytrzymuje bateria.</li>
+  </ul>
+  <p>Uwagi, zrzuty ekranu i miejsca, gdzie coś nie zadziałało – na <a href="mailto:info@rowerowy-strzebin.smart-ant.pl">info@rowerowy-strzebin.smart-ant.pl</a>. Drogi możesz też oceniać na <a href="./#wspolna">mapie wspólnej</a>.</p>
+  <p class="muted">Nie masz Androida? Nawigacja działa też w przeglądarce telefonu: <a href="jedz.html">Jedź – wersja w przeglądarce</a>. <a href="polityka-prywatnosci.html">Polityka prywatności</a>.</p>
+</main>
+</body>
+</html>
