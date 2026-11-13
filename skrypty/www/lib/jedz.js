@@ -15,8 +15,14 @@
   const minTxt = m => { const t = Math.max(1, Math.round(m / 1000 / 15 * 60)); return t < 60 ? '~' + t + ' min' : '~' + Math.floor(t / 60) + ' h ' + (t % 60) + ' min'; };
   const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
   // aplikacja na Androida (Capacitor): GPS z usługą w tle (jazda na zgaszonym ekranie) i głos z syntezatora telefonu
-  const NAT = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-  const PL = NAT ? window.Capacitor.Plugins : {};
+  const CAP = window.Capacitor;
+  const NAT = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
+  const wtyczka = n => { try { return (CAP.Plugins && CAP.Plugins[n]) || (window.capacitorExports && window.capacitorExports.registerPlugin(n)) || (CAP.registerPlugin && CAP.registerPlugin(n)) || null; } catch (e) { return null; } };
+  const PL = NAT ? {BackgroundGeolocation: wtyczka('BackgroundGeolocation'), TextToSpeech: wtyczka('TextToSpeech'), LocalNotifications: wtyczka('LocalNotifications')} : {};
+  const diag = {};
+  const pokazDiag = () => { if (!NAT) return; const el = document.querySelector('#s-cel .stopka'); if (!el) return; let d = document.getElementById('diag'); if (!d) { d = document.createElement('div'); d.id = 'diag'; d.style.cssText = 'margin-top:6px;font-size:11px;opacity:.7'; el.appendChild(d); }
+    d.textContent = 'Aplikacja · GPS w tle: ' + (PL.BackgroundGeolocation ? (diag.bg || 'gotowy') : 'brak') + ' · głos: ' + (PL.TextToSpeech ? 'tak' : 'brak') + ' · powiadomienia: ' + (PL.LocalNotifications ? 'tak' : 'brak'); };
+  setTimeout(pokazDiag, 500);
   const BAZA = NAT ? 'https://rowerowy-strzebin.smart-ant.pl/' : './';
   const LS = {get(k, d) { try { const v = localStorage.getItem('jedz.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
               set(k, v) { try { localStorage.setItem('jedz.' + k, JSON.stringify(v)); } catch (e) {} }};
@@ -273,9 +279,12 @@
     sledz(cb, blad, opis, stara) {
       if (NAT && PL.BackgroundGeolocation) {
         let id = null, stop = false;
-        PL.BackgroundGeolocation.addWatcher({backgroundTitle: 'Jedź – nawigacja aktywna', backgroundMessage: opis || 'Prowadzimy Cię trasą rowerową', requestPermissions: true, stale: !!stara, distanceFilter: 0},
+        // Android 13+: bez zgody na powiadomienia usługa nie pokaże „nawigacja aktywna”
+        const zgodaPow = !stara && PL.LocalNotifications ? PL.LocalNotifications.requestPermissions().catch(() => {}) : Promise.resolve();
+        zgodaPow.then(() => stop ? null : PL.BackgroundGeolocation.addWatcher({backgroundTitle: 'Jedź – nawigacja aktywna', backgroundMessage: opis || 'Prowadzimy Cię trasą rowerową', requestPermissions: true, stale: !!stara, distanceFilter: 0},
           (loc, err) => { if (err) { if (err.code === 'NOT_AUTHORIZED') blad('zgoda'); else blad(); return; } if (loc) cb([loc.latitude, loc.longitude], loc.accuracy, loc.bearing); })
-          .then(w => { id = w; if (stop) PL.BackgroundGeolocation.removeWatcher({id}); });
+          .then(w => { id = w; if (stop) PL.BackgroundGeolocation.removeWatcher({id}); }))
+          .catch(e => { diag.bg = 'błąd: ' + (e && e.message || e); pokazDiag(); });
         // równolegle lokalizacja z WebView (GPS + Wi-Fi + sieć – lepsza przy słabym GPS, działa przy włączonym ekranie)
         let w2 = null;
         if (!stara && navigator.geolocation) w2 = navigator.geolocation.watchPosition(e => cb([e.coords.latitude, e.coords.longitude], e.coords.accuracy, e.coords.heading), () => {}, {enableHighAccuracy: true, maximumAge: 1000, timeout: 20000});

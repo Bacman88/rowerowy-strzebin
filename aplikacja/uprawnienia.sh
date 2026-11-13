@@ -8,3 +8,6 @@ done
 # synteza mowy (Android 11+: widoczność usług TTS)
 grep -q "TTS_SERVICE" "$M" || sed -i 's|</manifest>|    <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n</manifest>|' "$M"
 grep -c "uses-permission" "$M"
+# nazwa kanału powiadomienia nawigacji (Ustawienia → Powiadomienia)
+S="$(dirname "$0")/android/app/src/main/res/values/strings.xml"
+grep -q capacitor_background_geolocation_notification_channel_name "$S" || sed -i 's|</resources>|    <string name="capacitor_background_geolocation_notification_channel_name">Nawigacja</string>\n</resources>|' "$S"

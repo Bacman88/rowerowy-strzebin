@@ -14,5 +14,8 @@ cp "$SRC/stan/odcinki.js" "$SRC/stan/jedz.js" "$DST/stan/"
 STRONA="https://rowerowy-strzebin.smart-ant.pl/"
 sed -i -e "s|href=\"\./\"|href=\"$STRONA\"|g" -e "s|href=\"polityka-prywatnosci.html\"|href=\"${STRONA}polityka-prywatnosci.html\"|g" \
        -e 's|<link rel="manifest" href="jedz.webmanifest">||' "$DST/index.html"
-# (mostek Capacitora – window.Capacitor – Android wstrzykuje sam, bez dodatkowego skryptu)
+# biblioteka Capacitora (bez bundlera): udostępnia wtyczki natywne – BackgroundGeolocation, TextToSpeech, LocalNotifications
+cp "$(dirname "$0")/node_modules/@capacitor/core/dist/capacitor.js" "$DST/capacitor-core.js"
+sed -i 's|<script src="lib/jedz.js"></script>|<script src="capacitor-core.js"></script>\n<script src="lib/jedz.js"></script>|' "$DST/index.html"
+grep -q capacitor-core.js "$DST/index.html" || { echo "brak capacitor-core.js w index.html"; exit 1; }
 echo "www gotowe: $(du -sh "$DST" | cut -f1)"
