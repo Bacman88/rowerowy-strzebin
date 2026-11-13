@@ -96,7 +96,7 @@ Baza SQLite i kopie dobowe (JSON, ostatnie 60) zapisują się w `hub_dane/` obok
 
 ## Nawigacja „Jedź” (beta) – `jedz.html`
 Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak aplikację – PWA).
-- Trasa liczona w telefonie po drogach z mapy wspólnej (`stan/odcinki.js`), tryby: **trasami rowerowymi** (odcinki tras HUB ×0,7) i **najkrócej**; opcja **omijaj drogi wojewódzkie** (×5, poza odcinkami z drogą rowerową obok).
+- Trasa liczona w telefonie po drogach z mapy wspólnej (`stan/odcinki.js`), tryby: **Bezpieczna** (drogi wojewódzkie i krajowe ×6 – krótki odcinek przejdzie, dłuższy objedzie; poza odcinkami z drogą rowerową obok; trasy HUB ×0,9) i **Najkrótsza** (sama długość).
 - `skrypty/jedz_dane.py` (po `odcinki.py`) → `stan/jedz.js`: odcinki na trasach i odcinki DW z ciągiem pieszo-rowerowym (z pomiarów uMap).
 - Prowadzenie „następny kierunek”: przy przyszłych drogowskazach – tabliczka tak, jak widzi ją nadjeżdżający; poza nimi – skręty z nazwami ulic. Zejście z trasy → przeliczenie od bieżącej pozycji.
 - Kierunek tabliczki: pole `g` (azymut) w `data.js` (strona.py). Symulacja przejazdu do testów w domu.

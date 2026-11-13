@@ -41,13 +41,18 @@
     adj[a].push({v: b, s, ll}); adj[b].push({v: a, s, ll: ll.slice().reverse()});
   }
   const DW = s => s[1] === 'droga wojewódzka' || s[1] === 'droga krajowa';
+  // dwa tryby:
+  //  bezp   – „Bezpieczna”: drogi wojewódzkie i krajowe ×6 (krótki odcinek przejdzie, dłuższy – objazd),
+  //           chyba że obok jest droga rowerowa; uliczki w miejscowościach i drogi gminne/powiatowe – normalnie;
+  //           lekka preferencja tras HUB (×0,9, bez kary za brak oceny) i ocen nawierzchni od mieszkańców
+  //  krotko – „Najkrótsza”: sama długość (omija tylko drogi ocenione jako nieprzejezdne, trudne lekko droższe)
   function koszt(s, opc) {
     const st = s[4] || 'brak';
-    let f;
-    if (opc.tryb === 'krotko') f = st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 1.4 : 1;
-    else { f = F[st] ?? 1.25; if (TRASY.has(s[0])) f *= 0.7; }
+    if (opc.tryb === 'krotko') return s[6] * (st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 1.4 : 1);
+    let f = F[st] ?? 1.25;
+    if (TRASY.has(s[0])) f = Math.min(f, 1) * 0.9;   // drogi tras HUB są sprawdzone – bez kary „brak oceny”
     if (ROWER.has(s[0])) f = Math.min(f, 0.85);
-    else if (opc.bezDW && DW(s)) f *= 5;
+    else if (DW(s)) f *= 6;
     return s[6] * f;
   }
   // najbliższy węzeł grafu (siatka ~1 km, żeby nie przeszukiwać 27 tys. punktów co sekundę)
@@ -244,7 +249,7 @@
   }
 
   // ===================== stan i mapa =====================
-  const stan = {start: null, startN: 'Twoja lokalizacja', startGPS: true, cel: null, celN: '', celS: '', tryb: LS.get('tryb', 'trasy'), bezDW: LS.get('bezDW', true),
+  const stan = {start: null, startN: 'Twoja lokalizacja', startGPS: true, cel: null, celN: '', celS: '', tryb: LS.get('tryb', 'bezp') === 'krotko' ? 'krotko' : 'bezp',
                 T: null, M: [], wybor: null, jazda: false, glos: LS.get('glos', true)};
   let map = null, warstwa = null, jaM = null, celM = null, sledz = true;
   function mapa() {
@@ -325,7 +330,7 @@
 
   // ===================== 2. podgląd trasy =====================
   function policz() {
-    const opc = {tryb: stan.tryb, bezDW: stan.bezDW};
+    const opc = {tryb: stan.tryb};
     const T = trasuj(stan.start, stan.cel, opc);
     if (T.blad) return T;
     T.km = {dw: 0, trasy: 0}; for (let i = 0; i < T.seg.length; i++) { const s = T.seg[i]; if (!s) continue; const d = T.cum[i + 1] - T.cum[i]; if (DW(s) && !ROWER.has(s[0])) T.km.dw += d; if (TRASY.has(s[0])) T.km.trasy += d; }
@@ -342,25 +347,23 @@
     }
     stan.T = T; stan.M = manewry(T); rysuj(T, stan.M);
     // porównanie z drugim trybem (do przełącznika)
-    const inny = trasuj(stan.start, stan.cel, {tryb: stan.tryb === 'trasy' ? 'krotko' : 'trasy', bezDW: stan.bezDW});
-    const kmT = stan.tryb === 'trasy' ? T.m : inny.m, kmK = stan.tryb === 'krotko' ? T.m : inny.m;
+    const inny = trasuj(stan.start, stan.cel, {tryb: stan.tryb === 'bezp' ? 'krotko' : 'bezp'});
+    const kmB = stan.tryb === 'bezp' ? T.m : inny.m, kmK = stan.tryb === 'krotko' ? T.m : inny.m;
     const nTab = stan.M.filter(m => m.typ === 'tab').length;
     const lista = stan.M.slice(0, 40).map(m => `<div>${strzalkaSVG(m.k, m.typ === 'tab' ? '#0759A7' : m.typ === 'cel' ? '#1d3b30' : '#1d2a23', 22)}<span>${esc(mTekst(m))}</span><span class="km">${kmTxt(m.c)}</span></div>`).join('');
     $('dol').innerHTML = `<div class="uchwyt"></div>
       <div><div class="msg">${esc(stan.startGPS ? 'Z Twojej lokalizacji' : stan.startN)} →</div><div style="font-size:21px;font-weight:800">${esc(stan.celN)}</div>${stan.celS ? `<div class="msg">${esc(stan.celS)}</div>` : ''}</div>
       <div class="tryb" role="radiogroup" aria-label="Rodzaj trasy">
-        <button type="button" role="radio" data-t="trasy" aria-checked="${stan.tryb === 'trasy'}"><b>Trasami rowerowymi</b><span>${kmTxt(kmT)}</span></button>
-        <button type="button" role="radio" data-t="krotko" aria-checked="${stan.tryb === 'krotko'}"><b>Najkrócej</b><span>${kmTxt(kmK)}</span></button>
+        <button type="button" role="radio" data-t="bezp" aria-checked="${stan.tryb === 'bezp'}"><b>Bezpieczna</b><span>${kmTxt(kmB)} · omija DW i DK</span></button>
+        <button type="button" role="radio" data-t="krotko" aria-checked="${stan.tryb === 'krotko'}"><b>Najkrótsza</b><span>${kmTxt(kmK)}</span></button>
       </div>
-      <label class="chk"><input type="checkbox" id="c-dw" ${stan.bezDW ? 'checked' : ''}><span><b>Omijaj drogi wojewódzkie</b> <span class="msg">– krótkie odcinki i ścieżki rowerowe obok DW są OK</span></span></label>
       <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b>${minTxt(T.m)}</b><span>przy 15 km/h</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
-      <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich: ${kmTxt(T.km.dw)}.` : 'Bez dłuższych odcinków po drogach wojewódzkich.'}</div>
+      <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich i krajowych: ${kmTxt(T.km.dw)}.` : 'Bez dróg wojewódzkich i krajowych.'}</div>
       <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}Jedź</button>
       <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a>${NAT ? '' : '<button type="button" class="btn2" id="b-gpx">GPX</button>'}</div>
       <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
       <div class="sek">Po drodze</div><div class="manew">${lista}</div>`;
     $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
-    $('c-dw').onchange = e => { stan.bezDW = e.target.checked; LS.set('bezDW', stan.bezDW); podglad(); };
     $('b-jedz').onclick = () => startJazdy(false);
     $('b-symstart').onclick = () => startJazdy(true);
     if ($('b-gpx')) $('b-gpx').onclick = () => gpx(T);
