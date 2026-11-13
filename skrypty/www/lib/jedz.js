@@ -387,12 +387,14 @@
   document.addEventListener('visibilitychange', () => { if (stan.jazda && document.visibilityState === 'visible') budzik(); });
   // ---- mapa obrócona „kierunkiem jazdy do góry”: kontener mapy to kwadrat o boku = przekątnej ekranu,
   //      środek kwadratu (= Twoja pozycja) w 62% wysokości ekranu, obrót CSS wokół środka
-  let obrocona = false, B = 0, kurs = LS.get('kurs', true);
+  let obrocona = false, B = 0, kurs = LS.get('kurs', true), tilt = LS.get('tilt', false);
+  // 3D: obrócona mapa dodatkowo pochylona jak kartka na stole (perspektywa CSS); kontener większy, żeby pokryć „dal”
+  const tr = () => tilt && obrocona ? `perspective(${Math.round($('s-mapa').clientHeight * 1.1)}px) rotateX(48deg) rotate(${-B}deg)` : `rotate(${-B}deg)`;
   function obroc(on) {
     const el = $('mapa'), box = $('s-mapa'), w = box.clientWidth, h = box.clientHeight;
     obrocona = on;
     map.options.touchZoom = map.options.doubleClickZoom = map.options.scrollWheelZoom = on ? 'center' : true;
-    if (on) { const D = Math.ceil(Math.hypot(w, h)) + 4, ay = Math.round(h * .62); el.style.cssText = `inset:auto;left:${Math.round((w - D) / 2)}px;top:${ay - Math.round(D / 2)}px;width:${D}px;height:${D}px;transform:rotate(${-B}deg);transition:transform .6s linear`; map.dragging.disable(); }
+    if (on) { const D = Math.ceil(Math.hypot(w, h) * (tilt ? 2.3 : 1)) + 4, ay = Math.round(h * (tilt ? .7 : .62)); el.style.cssText = `inset:auto;left:${Math.round((w - D) / 2)}px;top:${ay - Math.round(D / 2)}px;width:${D}px;height:${D}px;transition:transform .6s linear`; el.style.transform = tr(); map.dragging.disable(); }
     else { el.style.cssText = ''; map.dragging.enable(); }
     map.invalidateSize({pan: false}); if (jaM && sledz) map.setView(jaM.getLatLng(), map.getZoom(), {animate: false});
     kompas();
@@ -407,7 +409,7 @@
     $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
     $('b-stop').onclick = koniecJazdy;
     map.setView(stan.T.ll[0], 17); B = brg(stan.T.ll[0], wDal(stan.T, 40)); if (kurs) obroc(true); else kompas();
-    $('b-kurs').classList.remove('hide');
+    $('b-kurs').classList.remove('hide'); $('b-3d').classList.remove('hide'); trojwymiar();
     if (!sym) pozycja(stan.start, 20, true);
     if (sym) { symV = 1; $('b-sym').textContent = 'Symulacja: ×1'; sym.t = setInterval(() => { sym.d += 6 * symV; const p = wDal(stan.T, sym.d); pozycja(p, 5, sym.d); }, 1000); }
     else watch = GEO.sledz((p, acc) => pozycja(p, acc), () => { $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Brak sygnału GPS'; }, 'Do: ' + stan.celN);
@@ -417,7 +419,7 @@
   function koniecJazdy() {
     stan.jazda = false; if (watch) watch(); watch = null;
     if (sym) clearInterval(sym.t); sym = null; try { wake && wake.release(); } catch (e) {} wake = null;
-    if (jaM) { jaM.remove(); jaM = null; } if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
+    if (jaM) { jaM.remove(); jaM = null; } if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
   }
   // rzut pozycji na trasę: szukamy w okolicy ostatniego znanego miejsca (żeby nie „przeskakiwać” na równoległy fragment)
   function rzut(T, p) {
@@ -443,7 +445,7 @@
     if (sledz && obrocona) {
       // kierunek: trasa ok. 40 m przed Tobą (stabilny także na postoju), łagodnie wygładzony
       const cel = brg(wDal(T, r.w), wDal(T, r.w + 40)); B = (B + kat(cel, B) * .6 + 360) % 360;
-      $('mapa').style.transform = `rotate(${-B}deg)`; kompas();
+      $('mapa').style.transform = tr(); kompas();
       map.setView(p, map.getZoom(), {animate: false});
     } else if (sledz) map.panTo(p, {animate: true, duration: .5});
     // zejście z trasy → przeliczenie od miejsca, w którym jesteś
@@ -511,7 +513,7 @@
     powiedz('Jesteś na miejscu'); navigator.vibrate && navigator.vibrate([100, 80, 100, 80, 200]);
     if (watch) watch(); watch = null; if (sym) clearInterval(sym.t); sym = null;
     stan.jazda = false; try { wake && wake.release(); } catch (e) {}
-    if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); ekran('s-mapa'); panele('podglad');
+    if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); panele('podglad');
     $("gora").innerHTML = `<div class="pasek" style="padding-left:76px"><div class="r1"><div class="strz">${strzalkaSVG("cel", "#1d3b30", 40)}</div><div><div class="lab">Jesteś na miejscu</div><div class="co">${esc(stan.celN)}</div></div></div></div>`; $('gora').dataset.h = '';
     $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Dojechałeś! ${kmTxt(stan.T.m)}</div><p class="msg">Coś było nie tak z trasą albo drogą? Oceń drogę na mapie wspólnej – poprawimy trasy dla wszystkich.</p><div class="rzad"><a class="btn2" href="${BAZA}#wspolna" style="text-decoration:none;color:inherit">Oceń drogę</a><button type="button" class="btn2" id="b-nowy">Nowy cel</button></div>`;
     $('b-nowy').onclick = () => { stan.start = jaM ? [jaM.getLatLng().lat, jaM.getLatLng().lng] : stan.start; if (jaM) { jaM.remove(); jaM = null; } ekran('s-cel'); };
@@ -524,6 +526,8 @@
   function glosIkona() { $('b-glos').innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/>${stan.glos ? '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>' : '<path d="M17 9l5 6M22 9l-5 6"/>'}</svg>`; $('b-glos').ariaLabel = stan.glos ? 'Wyłącz komunikaty głosowe' : 'Włącz komunikaty głosowe'; }
   $('b-glos').onclick = () => { stan.glos = !stan.glos; LS.set('glos', stan.glos); glosIkona(); if (stan.glos) powiedz('Komunikaty głosowe włączone'); };
   $('b-srodek').onclick = () => { sledz = true; $('b-srodek').classList.add('hide'); if (kurs && stan.jazda) obroc(true); if (jaM) map.setView(jaM.getLatLng(), Math.max(map.getZoom(), 16), {animate: !obrocona}); };
+  function trojwymiar() { const b = $('b-3d'); b.textContent = '3D'; b.style.cssText = `position:static;font-weight:800;font-size:15px;${tilt ? 'background:#00737e;color:#fff;box-shadow:0 0 0 3px #fff,0 1px 6px rgba(0,0,0,.3)' : ''}`; b.ariaLabel = tilt ? 'Widok płaski (2D)' : 'Widok pochylony (3D)'; b.setAttribute('aria-pressed', tilt); }
+  $('b-3d').onclick = () => { tilt = !tilt; LS.set('tilt', tilt); trojwymiar(); if (tilt && !obrocona) { kurs = true; LS.set('kurs', true); } sledz = true; $('b-srodek').classList.add('hide'); obroc(true); };
   $('b-kurs').onclick = () => { kurs = !obrocona; LS.set('kurs', kurs); sledz = true; $('b-srodek').classList.add('hide'); obroc(kurs); };
   $('s-kier').onclick = () => { kierPokaz = null; ekran('s-mapa'); };   // dotknięcie – wróć do mapy
 
