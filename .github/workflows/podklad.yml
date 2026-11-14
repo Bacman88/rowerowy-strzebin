@@ -1,0 +1,24 @@
+name: Podklad
+on:
+  push:
+    branches: [wysokosci]
+    paths: [pobierz_osm.py, .github/workflows/podklad.yml]
+permissions:
+  contents: write
+jobs:
+  podklad:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests shapely osm2geojson
+      - run: python pobierz_osm.py
+        timeout-minutes: 40
+      - name: Wydanie z danymi
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete podklad -y --cleanup-tag || true
+          gh release create podklad --target wysokosci --title "Podkład mapy offline (dane robocze)" --notes "Dane © współtwórcy OpenStreetMap (ODbL): lasy, wody, zabudowa, budynki, tory, nazwy – podkład offline nawigacji Jedź." --prerelease log_osm.txt podklad.json

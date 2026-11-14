@@ -2,6 +2,7 @@ name: NMT
 on:
   push:
     branches: [wysokosci]
+    paths: [pobierz_nmt.py, .github/workflows/nmt.yml]
 permissions:
   contents: write
 jobs:
