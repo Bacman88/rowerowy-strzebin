@@ -122,7 +122,7 @@
     map.on('click', e => { if (stan.wybor) stan.wybor([e.latlng.lat, e.latlng.lng]); });
     return map;
   }
-  function ekran(id) { document.querySelectorAll('.ekran').forEach(e => e.classList.toggle('on', e.id === id)); if (id === 's-mapa') setTimeout(() => map && map.invalidateSize(), 30); }
+  function ekran(id) { document.querySelectorAll('.ekran').forEach(e => e.classList.toggle('on', e.id === id)); if (id === 's-mapa' && map) { map.invalidateSize({pan: false}); setTimeout(() => map && map.invalidateSize({pan: false}), 60); } }
   $('wstecz').onclick = () => { if (stan.jazda) return; stan.wybor = null; ekran('s-cel'); };
 
   // --- start: GPS albo punkt na mapie
@@ -166,7 +166,7 @@
   $('skad-zmien').onclick = () => wybierzNaMapie('Stuknij w mapę, skąd startujesz', p => { stan.start = p; stan.startGPS = false; stan.startN = 'Punkt na mapie · ' + (najblizszaMiejscowosc(p) || ''); opiszStart(); ekran('s-cel'); }, true);
   $('cel-mapa').onclick = () => wybierzNaMapie('Stuknij w mapę, dokąd jedziesz', p => ustawCel(p, 'Punkt na mapie', najblizszaMiejscowosc(p) || ''));
   function wybierzNaMapie(tytul, cb, start) {
-    mapa(); ekran('s-mapa'); warstwa.clearLayers(); panele('wybor');
+    ekran('s-mapa'); mapa(); warstwa.clearLayers(); panele('wybor');   // najpierw pokaż ekran – mapa tworzona na widocznym kontenerze
     $('gora').innerHTML = `<div class="pasek" style="padding-left:70px"><div class="co">${esc(tytul)}</div><div class="lab">Działa na obszarze mapy HUB (Koszęcin i okolice)</div></div>`;
     $('dol').innerHTML = start ? `<button type="button" class="btn2" id="b-gps">${strzalkaSVG('prosto', '#1d2a23', 18)}Użyj mojej lokalizacji (GPS)</button><p class="msg" id="msg-w"></p>` : '<p class="msg" id="msg-w"></p>';
     if (start) $('b-gps').onclick = () => gps(p => { stan.start = p; stan.startGPS = true; opiszStart(); stan.wybor = null; ekran('s-cel'); }, e => { $('msg-w').textContent = e; });
@@ -262,7 +262,7 @@
   }
   function podglad() {
     if (stan.tryb === 'szosa' && ST.RT !== 'szosa') stan.tryb = 'bezp';
-    mapa(); ekran('s-mapa'); panele('podglad'); stan.wybor = null;
+    ekran('s-mapa'); mapa(); panele('podglad'); stan.wybor = null;
     $('gora').innerHTML = '';
     const T = policz();
     if (T.blad) {
@@ -319,7 +319,10 @@
     $('b-google').href = linkGoogle(T);
     if (kursorM) { kursorM.remove(); kursorM = null; } wykresInterakcja(T); tempoSuwak(T);
     atryb();
-    map.fitBounds(L.polyline(T.ll).getBounds(), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(window.innerHeight * .55, 420)]});
+    // mapa mogła powstać na ukrytym ekranie (rozmiar 0) – najpierw przelicz rozmiar, potem dopasuj widok; drugi raz po ułożeniu panelu
+    const dopasuj = () => { if (stan.jazda || stan.T !== T) return; map.invalidateSize({pan: false});
+      map.fitBounds(L.polyline(T.ll).getBounds(), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(($('dol').offsetHeight || window.innerHeight * .55) + 10, window.innerHeight * .7)]}); };
+    dopasuj(); setTimeout(dopasuj, 120); setTimeout(dopasuj, 600);
   }
   function linkGoogle(T) {
     const f = p => p[0].toFixed(5) + ',' + p[1].toFixed(5);
