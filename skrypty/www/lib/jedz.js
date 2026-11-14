@@ -2,19 +2,11 @@
 // Trasa liczona w telefonie po drogach z mapy wspólnej (stan/odcinki.js). Prowadzenie kierunkami z drogowskazów:
 // przy każdym słupku na trasie apka pokazuje tabliczkę, za której kierunkiem jechać (tak, jak widzi ją rowerzysta),
 // poza słupkami – skręty z nazwami ulic.
+// Ten plik: interfejs (wyszukiwanie celu, mapa, podgląd trasy, jazda, głos). Logika w lib/jedz/*.js.
 (() => {
   'use strict';
-  const H = window.HUB, ODC = window.ODC || [], J = window.JEDZ || {trasy: [], rower: []}, TB = window.TABLICZKA, WYS = window.WYS || null;
-  const $ = id => document.getElementById(id);
-  const rad = Math.PI / 180, RZ = 6371000;
-  const dist = (a, b) => { const x = (b[1] - a[1]) * rad * Math.cos((a[0] + b[0]) / 2 * rad), y = (b[0] - a[0]) * rad; return Math.hypot(x, y) * RZ; };
-  const brg = (a, b) => (Math.atan2((b[1] - a[1]) * Math.cos(a[0] * rad), b[0] - a[0]) / rad + 360) % 360;
-  const kat = (a, b) => ((a - b + 540) % 360) - 180;       // a względem b, -180..180 (+ = w prawo)
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-  const kmTxt = m => m < 950 ? (Math.round(m / 10) * 10) + ' m' : (m / 1000).toFixed(m < 9950 ? 1 : 0).replace('.', ',') + ' km';
-  const czasTxt = sek => { const t = Math.max(1, Math.round(sek / 60)); return t < 60 ? '~' + t + ' min' : '~' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + ' h'; };
-  const godz = sek => { const d = new Date(Date.now() + sek * 1000); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
-  const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
+  const JZ = window.JZ = window.JZ || {};
+  const {H, ODC, $, rad, RZ, dist, brg, kat, esc, kmTxt, czasTxt, godz, norm, LS, TRASY, ROWER, P, DW, koszt, najblizszy, trasuj, wDal, stOdc, ROWERY, ST, KOLST, NAZST, profil, czasDo, wykresSVG, strzalkaSVG, kierunek, kierTxt, manewry, mTekst, tabSVG} = JZ;
   // aplikacja na Androida (Capacitor): GPS z usługą w tle (jazda na zgaszonym ekranie) i głos z syntezatora telefonu
   const CAP = window.Capacitor;
   const NAT = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
@@ -24,312 +16,15 @@
   const pokazDiag = () => { if (!NAT) return; const el = document.querySelector('#s-cel .stopka'); if (!el) return; let d = document.getElementById('diag'); if (!d) { d = document.createElement('div'); d.id = 'diag'; d.style.cssText = 'margin-top:6px;font-size:11px;opacity:.7'; el.appendChild(d); }
     d.textContent = 'Aplikacja · GPS w tle: ' + (PL.BackgroundGeolocation ? (diag.bg || 'gotowy') : 'brak') + ' · głos: ' + (PL.TextToSpeech ? 'tak' : 'brak') + ' · powiadomienia: ' + (PL.LocalNotifications ? 'tak' : 'brak'); };
   setTimeout(pokazDiag, 500);
+  // mapa offline: informacja i przełącznik „zawsze offline” (oszczędza internet; w lesie bez zasięgu przełącza się sama)
+  setTimeout(() => {
+    const el = document.querySelector('#s-cel .stopka'); if (!el || !JZ.podklad) return;
+    const d = document.createElement('label'); d.className = 'moff';
+    d.innerHTML = `<input type="checkbox" id="moff"${mapaOffline ? ' checked' : ''}> <span><b>Mapa offline ${JZ.podklad.jest ? 'gotowa' : '(same drogi)'}</b> – działa bez zasięgu. Zaznacz, żeby używać jej zawsze (bez pobierania mapy z internetu).</span>`;
+    el.prepend(d);
+    $('moff').onchange = e => { mapaOffline = e.target.checked; LS.set('mapaOffline', mapaOffline); if (mapaUstaw) mapaUstaw(mapaOffline); };
+  }, 0);
   const BAZA = NAT ? 'https://rowerowy-strzebin.smart-ant.pl/' : './';
-  const LS = {get(k, d) { try { const v = localStorage.getItem('jedz.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-              set(k, v) { try { localStorage.setItem('jedz.' + k, JSON.stringify(v)); } catch (e) {} }};
-
-  // ===================== graf dróg =====================
-  const TRASY = new Set(J.trasy), ROWER = new Set(J.rower);
-  // rodzaj roweru wpływa tylko na CZAS jazdy (trasę wybiera tryb Bezpieczna / Najkrótsza):
-  // s – prędkość na nawierzchni względem asfaltu, g – wrażliwość na podjazdy (prędkość ÷ (1 + g·nachylenie)),
-  // vmax – prędkość maksymalna (z górki); tempo na płaskim ustawia suwak
-  const ROWERY = {
-    miejski:  {n: 'Miejski',     g: 16, vmax: 25, s: {srednia: .7,  trudna: .45, brak: .72}},
-    trekking: {n: 'Trekkingowy', g: 14, vmax: 32, s: {srednia: .8,  trudna: .55, brak: .8}},
-    szosa:    {n: 'Szosowy',     g: 11, vmax: 45, s: {srednia: .5,  trudna: .28, brak: .5}},
-    gravel:   {n: 'Gravel',      g: 12, vmax: 40, s: {srednia: .88, trudna: .6,  brak: .88}},
-    gorski:   {n: 'Górski',      g: 12, vmax: 35, s: {srednia: .92, trudna: .72, brak: .9}},
-    elektryk: {n: 'Elektryczny', g: 4,  vmax: 35, s: {srednia: .8,  trudna: .55, brak: .8}},   // wspomaganie: podjazdy prawie bez zwalniania
-  };
-  let RT = ROWERY[LS.get('rower', 'miejski')] ? LS.get('rower', 'miejski') : 'miejski', R = ROWERY[RT];
-  const F = {osm: 1, dobra: 1, srednia: 1.35, trudna: 2.2, nieprzejezdna: 50, brak: 1.25};
-  const P = [], adj = [], klucz = new Map();
-  // węzły: końce odcinków; końce leżące do 4 m od siebie łączymy (w OSM drogi leśne często „prawie” się stykają)
-  const WS = new Map(), wk = p => Math.floor(p[0] * 2e4) + ':' + Math.floor(p[1] * 1.4e4);
-  const wezel = p => {
-    const k = p[0].toFixed(5) + ',' + p[1].toFixed(5); if (klucz.has(k)) return klucz.get(k);
-    const y = Math.floor(p[0] * 2e4), x = Math.floor(p[1] * 1.4e4);
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) for (const i of WS.get((y + dy) + ':' + (x + dx)) || []) if (dist(p, P[i]) < 4) { klucz.set(k, i); return i; }
-    const i = P.length; klucz.set(k, i); P.push(p); adj.push([]);
-    const c = wk(p); if (!WS.has(c)) WS.set(c, []); WS.get(c).push(i);
-    return i;
-  };
-  for (const s of ODC) {
-    const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
-    const a = wezel(ll[0]), b = wezel(ll[ll.length - 1]);
-    adj[a].push({v: b, s, ll}); adj[b].push({v: a, s, ll: ll.slice().reverse()});
-  }
-  const DW = s => s[1] === 'droga wojewódzka' || s[1] === 'droga krajowa';
-  // dwa tryby:
-  //  bezp   – „Bezpieczna”: drogi wojewódzkie i krajowe ×6 (krótki odcinek przejdzie, dłuższy – objazd),
-  //           chyba że obok jest droga rowerowa; uliczki w miejscowościach i drogi gminne/powiatowe – normalnie;
-  //           lekka preferencja tras HUB (×0,9, bez kary za brak oceny) i ocen nawierzchni od mieszkańców
-  //  krotko – „Najkrótsza”: sama długość (omija tylko drogi ocenione jako nieprzejezdne, trudne lekko droższe)
-  function koszt(s, opc) {
-    const st = s[4] || 'brak';
-    if (opc.tryb === 'krotko') return s[6] * (st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 1.4 : 1);
-    // szosa – „prawie jak autem”: asfalt i drogi główne (wojewódzkie i krajowe bez kary, nawet lekko preferowane),
-    // drogi nieutwardzone / bez oceny / leśne – mocno omijane; autostrad i ekspresówek nie ma w sieci dróg (odcinki.py)
-    if (opc.tryb === 'szosa') {
-      let f = {osm: 1, dobra: 1, srednia: 3, trudna: 10, nieprzejezdna: 50, brak: 4}[stOdc(s)] ?? 4;
-      if (s[1] === 'ścieżka piesza' || s[1] === 'ścieżka' || s[1] === 'droga leśna/polna') f = Math.max(f, f === 1 ? 2 : 5);
-      if (DW(s) || ROWER.has(s[0])) f *= 0.9;
-      return s[6] * f;
-    }
-    let f = F[st] ?? 1.25;
-    if (TRASY.has(s[0])) f = Math.min(f, 1) * 0.9;   // drogi tras HUB są sprawdzone – bez kary „brak oceny”
-    if (ROWER.has(s[0])) f = Math.min(f, 0.85);
-    else if (DW(s)) f *= 6;
-    return s[6] * f;
-  }
-  // najbliższy węzeł grafu (siatka ~1 km, żeby nie przeszukiwać 27 tys. punktów co sekundę)
-  const SIAT = new Map(), sk = p => Math.floor(p[0] * 100) + ':' + Math.floor(p[1] * 70);
-  P.forEach((p, i) => { const k = sk(p); if (!SIAT.has(k)) SIAT.set(k, []); SIAT.get(k).push(i); });
-  function najblizszy(p) {
-    let b = -1, bd = Infinity; const y = Math.floor(p[0] * 100), x = Math.floor(p[1] * 70);
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) for (const i of SIAT.get((y + dy) + ':' + (x + dx)) || []) { const d = dist(p, P[i]); if (d < bd) { bd = d; b = i; } }
-    return [b, bd];
-  }
-  // --- przyczepienie punktu do najbliższej DROGI (rzut prostopadły na odcinek), nie do najbliższego węzła –
-  //     tak start „poza drogą” prowadzi najkrótszą linią do drogi, a cel na środku długiej drogi nie trafia do ślepej ścieżki
-  const SEGS = [], SIDX = new Map();
-  ODC.forEach((s, j) => {
-    const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
-    const g = {s, ll, a: klucz.get(ll[0][0].toFixed(5) + ',' + ll[0][1].toFixed(5)), b: klucz.get(ll[ll.length - 1][0].toFixed(5) + ',' + ll[ll.length - 1][1].toFixed(5))};
-    SEGS.push(g);
-    const kom = new Set(ll.map(sk)); for (let i = 1; i < ll.length; i++) kom.add(sk([(ll[i][0] + ll[i - 1][0]) / 2, (ll[i][1] + ll[i - 1][1]) / 2]));
-    for (const k of kom) { if (!SIDX.has(k)) SIDX.set(k, []); SIDX.get(k).push(j); }
-  });
-  function przyczep(p) {
-    let best = null; const y = Math.floor(p[0] * 100), x = Math.floor(p[1] * 70), kx = Math.cos(p[0] * rad);
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) for (const j of SIDX.get((y + dy) + ':' + (x + dx)) || []) {
-      const g = SEGS[j], ll = g.ll;
-      for (let i = 0; i < ll.length - 1; i++) {
-        const A = ll[i], B = ll[i + 1], ax = (A[1] - p[1]) * kx, ay = A[0] - p[0], bx = (B[1] - p[1]) * kx, by = B[0] - p[0], vx = bx - ax, vy = by - ay, L2 = vx * vx + vy * vy;
-        const t = L2 ? Math.max(0, Math.min(1, -(ax * vx + ay * vy) / L2)) : 0;
-        const d = Math.hypot(ax + t * vx, ay + t * vy) * rad * RZ, kara = g.s[1] === 'ścieżka piesza' ? 15 : 0;
-        if (!best || d + kara < best.dk) best = {dk: d + kara, d, g, i, pt: [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t]};
-      }
-    }
-    if (!best) return null;
-    const {g, i, pt} = best;
-    best.doA = [pt, ...g.ll.slice(0, i + 1).reverse()];    // od punktu do początku odcinka (węzeł a)
-    best.doB = [pt, ...g.ll.slice(i + 1)];                 // od punktu do końca odcinka (węzeł b)
-    const dl = l => { let m = 0; for (let k = 1; k < l.length; k++) m += dist(l[k - 1], l[k]); return m; };
-    best.mA = dl(best.doA); best.mB = dl(best.doB);
-    return best;
-  }
-  function trasuj(a, b, opc) {
-    const S = przyczep(a), T = przyczep(b);
-    if (!S || S.d > 600) return {blad: 'start'};
-    if (!T || T.d > 600) return {blad: 'cel'};
-    const kf = (g, m) => koszt(g.s, opc) * (m / (g.s[6] || 1));
-    const n = P.length, cost = new Float64Array(n).fill(Infinity), prev = new Int32Array(n).fill(-1), via = new Array(n);
-    const h = [];
-    const push = x => { h.push(x); let i = h.length - 1; while (i > 0) { const j = (i - 1) >> 1; if (h[j][0] <= h[i][0]) break; [h[i], h[j]] = [h[j], h[i]]; i = j; } };
-    const pop = () => { const top = h[0], e = h.pop(); if (h.length) { h[0] = e; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[i], h[m]] = [h[m], h[i]]; i = m; } } return top; };
-    for (const [v, m] of [[S.g.a, S.mA], [S.g.b, S.mB]]) { const w = kf(S.g, m); if (w < cost[v]) { cost[v] = w; prev[v] = -2; push([w, v]); } }
-    // koszt dojazdu do celu z obu końców odcinka celu
-    const konc = [[T.g.a, T.mA, T.doA], [T.g.b, T.mB, T.doB]];
-    let najl = Infinity;
-    // oba punkty na tym samym odcinku – jazda wprost po nim
-    let wprost = null;
-    if (S.g === T.g) {
-      const pS = S.mA, pT = T.mA; const ll = S.g.ll;
-      const geo = pT >= pS ? [S.pt, ...ll.slice(S.i + 1, T.i + 1), T.pt] : [S.pt, ...ll.slice(T.i + 1, S.i + 1).reverse(), T.pt];
-      wprost = {w: kf(S.g, Math.abs(pT - pS)), geo}; najl = wprost.w;
-    }
-    while (h.length) {
-      const [c, u] = pop(); if (c > cost[u]) continue; if (c > najl) break;
-      for (const [v, m] of konc) if (u === v) najl = Math.min(najl, c + kf(T.g, m));
-      for (const e of adj[u]) { const w = c + koszt(e.s, opc); if (w < cost[e.v]) { cost[e.v] = w; prev[e.v] = u; via[e.v] = e; push([w, e.v]); } }
-    }
-    // wybór końca
-    let kon = null, kw = wprost ? wprost.w : Infinity;
-    for (const [v, m, geo] of konc) { const w = cost[v] + kf(T.g, m); if (w < kw - 1e-9) { kw = w; kon = {v, geo}; } }
-    if (!isFinite(kw)) return {blad: 'brak'};
-    const ll = [a], seg = [], wez = [];
-    const dodaj = (pts, s) => { for (const q of pts) { if (dist(ll[ll.length - 1], q) < 0.5) continue; seg.push(s); ll.push(q); } };
-    dodaj([S.pt], null);                         // prostopadle do drogi
-    let kroki = [];
-    if (!kon) dodaj(wprost.geo, S.g.s);
-    else {
-      let v = kon.v; while (prev[v] !== -2) { kroki.unshift(via[v]); v = prev[v]; }
-      const v0 = v;
-      dodaj((v0 === S.g.a ? S.doA : S.doB).slice(1), S.g.s);
-      wez.push({i: ll.length - 1, deg: adj[v0].length});
-      for (const e of kroki) { dodaj(e.ll.slice(1), e.s); wez.push({i: ll.length - 1, deg: adj[e.v].length}); }
-      dodaj(kon.geo.slice().reverse().slice(1), T.g.s);
-    }
-    dodaj([b], null);                             // od drogi do celu
-    const cum = [0]; for (let i = 1; i < ll.length; i++) cum.push(cum[i - 1] + dist(ll[i - 1], ll[i]));
-    return {ll, seg, cum, m: cum[cum.length - 1], wez, kroki};
-  }
-  // punkt na trasie w odległości d (m) od startu
-  function wDal(T, d) {
-    d = Math.max(0, Math.min(T.m, d));
-    let lo = 0, hi = T.cum.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (T.cum[m] <= d) lo = m; else hi = m; }
-    const a = T.ll[lo], b = T.ll[hi], L = T.cum[hi] - T.cum[lo] || 1, t = (d - T.cum[lo]) / L;
-    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-  }
-
-  // ===================== wysokości, nawierzchnia i czas jazdy =====================
-  // stan/wysokosci.js: window.WYS = {k: krok (m), z: {id odcinka: [wysokość w dm, różnice…]}} – próbki co ~k m wzdłuż odcinka
-  //   (numeryczny model terenu GUGiK). Bez pliku: profil płaski, czas tylko z nawierzchni.
-  const KOLST = {osm: '#8fcf9c', dobra: '#2b9348', srednia: '#e0a800', trudna: '#d62828', nieprzejezdna: '#111', brak: '#9aa3a8'};
-  const NAZST = {osm: 'utwardzona', dobra: 'dobra', srednia: 'średnia', trudna: 'trudna', nieprzejezdna: 'nieprzejezdna', brak: 'bez oceny'};
-  const UTW = /asfalt|kostka|beton|płyty|plyty|paved|asphalt|concrete/i;
-  // rodzaj nawierzchni do wykresu i prędkości: ocena mieszkańców / pomiar, a bez niej – utwardzona wg OSM albo „bez oceny”
-  const stOdc = s => !s ? null : s[4] && s[4] !== 'osm' ? s[4] : (s[4] === 'osm' || UTW.test(s[3] || '')) ? 'osm' : 'brak';
-  // prędkość: tempo z suwaka × współczynnik nawierzchni dla rodzaju roweru (ROWERY)
-  // wpływ nachylenia: pod górę wyraźnie wolniej (5% ≈ o połowę), z górki szybciej, ale z umiarem i nie po wertepach
-  // tempo rowerzysty na płaskim, po dobrej drodze (suwak w podglądzie trasy, zapamiętane w telefonie): 17 km/h = rekreacyjnie
-  let VU = Math.max(8, Math.min(40, +LS.get('vplaska', 16) || 16));
-  function predkosc(st, g) {
-    let v = VU * (st === 'nieprzejezdna' ? .25 : R.s[st] ?? 1);
-    if (g > 0) v /= 1 + R.g * g;                       // g – nachylenie jako ułamek: 2% → ok. 13 km/h, 5% → ok. 10 km/h
-    else v *= Math.min(st === 'trudna' || st === 'srednia' ? 1.15 : 1.45, 1 - 7 * g);
-    return Math.max(4, Math.min(Math.max(R.vmax, VU), v));
-  }
-  const wysC = new Map();
-  function wysOdc(s) {
-    if (wysC.has(s)) return wysC.get(s);
-    const a = WYS && WYS.z[s[0]]; let w = null;
-    if (a && a.length) {
-      const z = []; let v = 0; for (const d of a) { v += d; z.push(v / 10); }
-      const c = s[7], ll = [], cum = [0]; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
-      for (let i = 1; i < ll.length; i++) cum.push(cum[i - 1] + dist(ll[i - 1], ll[i]));
-      w = {z, ll, cum, L: cum[cum.length - 1]};
-    }
-    wysC.set(s, w); return w;
-  }
-  // wysokość punktu leżącego na odcinku s (rzut na linię odcinka → odległość wzdłuż → interpolacja próbek)
-  function wysPkt(s, p) {
-    const w = s && wysOdc(s); if (!w) return null;
-    const n = w.z.length - 1; if (n < 1) return w.z[0];
-    let bd = Infinity, pos = 0; const kx = Math.cos(p[0] * rad);
-    for (let i = 0; i < w.ll.length - 1; i++) {
-      const A = w.ll[i], B = w.ll[i + 1], ax = (A[1] - p[1]) * kx, ay = A[0] - p[0], vx = (B[1] - A[1]) * kx, vy = B[0] - A[0], L2 = vx * vx + vy * vy;
-      const t = L2 ? Math.max(0, Math.min(1, -(ax * vx + ay * vy) / L2)) : 0, d = Math.hypot(ax + t * vx, ay + t * vy);
-      if (d < bd) { bd = d; pos = w.cum[i] + t * (w.cum[i + 1] - w.cum[i]); }
-    }
-    const f = w.L ? pos / w.L * n : 0, i = Math.min(n - 1, Math.floor(f));
-    return w.z[i] + (w.z[i + 1] - w.z[i]) * (f - i);
-  }
-  // profil trasy co ~20 m: odległość, wysokość (wygładzona), rodzaj nawierzchni, czas od startu (s)
-  function profil(T) {
-    const d = [], z = [], st = [];
-    for (let i = 0; i < T.ll.length - 1; i++) {
-      const s = T.seg[i], a = T.ll[i], b = T.ll[i + 1], L = T.cum[i + 1] - T.cum[i], n = Math.max(1, Math.round(L / 20));
-      for (let k = (i ? 1 : 0); k <= n; k++) {
-        const t = k / n, p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-        d.push(T.cum[i] + L * t); z.push(wysPkt(s, p)); st.push(stOdc(s) || stOdc(T.seg[i - 1]) || stOdc(T.seg[i + 1]) || 'brak');
-      }
-    }
-    // dziury (dojazd do drogi, odcinki bez danych) – interpolacja między znanymi wysokościami
-    const zn = z.map((v, i) => v == null ? -1 : i).filter(i => i >= 0);
-    const jest = zn.length > 0;
-    if (jest) for (let i = 0, k = 0; i < z.length; i++) {
-      if (z[i] != null) continue;
-      while (k < zn.length - 1 && zn[k + 1] < i) k++;
-      const lo = zn[k] < i ? zn[k] : null, hi = zn.find(j => j > i);
-      z[i] = lo == null ? z[hi] : hi == null ? z[lo] : z[lo] + (z[hi] - z[lo]) * (d[i] - d[lo]) / (d[hi] - d[lo]);
-    } else z.fill(0);
-    // wygładzenie ~±40 m (nasypy, rowy i szum modelu nie mogą udawać podjazdów)
-    const zs = z.map((_, i) => { let a = 0, c = 0; for (let j = i; j >= 0 && d[i] - d[j] <= 40; j--) { a += z[j]; c++; } for (let j = i + 1; j < z.length && d[j] - d[i] <= 40; j++) { a += z[j]; c++; } return a / c; });
-    const tc = [0]; let up = 0, down = 0, ref = zs[0];
-    for (let i = 1; i < d.length; i++) {
-      const L = d[i] - d[i - 1]; if (L <= 0) { tc.push(tc[i - 1]); continue; }
-      const g = (zs[i] - zs[i - 1]) / L;
-      tc.push(tc[i - 1] + L / (predkosc(st[i], Math.max(-0.12, Math.min(0.12, g))) / 3.6));
-      if (zs[i] - ref > 2) { up += zs[i] - ref; ref = zs[i]; } else if (ref - zs[i] > 2) { down += ref - zs[i]; ref = zs[i]; }
-    }
-    return {d, z: zs, st, tc, czas: tc[tc.length - 1], up, down, wys: jest};
-  }
-  // czas (s) od startu do punktu trasy w odległości w (m)
-  function czasDo(T, w) {
-    const P = T.prof; if (!P) return w / (15 / 3.6);
-    let lo = 0, hi = P.d.length - 1; if (w >= P.d[hi]) return P.tc[hi];
-    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (P.d[m] <= w) lo = m; else hi = m; }
-    return P.tc[lo] + (P.tc[hi] - P.tc[lo]) * (w - P.d[lo]) / ((P.d[hi] - P.d[lo]) || 1);
-  }
-  // wykres: wysokość (pole kolorowane rodzajem nawierzchni) + pasek nawierzchni pod spodem
-  function wykresSVG(P, W = 340) {
-    const H1 = 92, H2 = 12, G = 6, top = 8, Hh = H1 + G + H2 + 16, M = P.d[P.d.length - 1] || 1;
-    let zmin = Math.min(...P.z), zmax = Math.max(...P.z); if (zmax - zmin < 20) { const s = (20 - (zmax - zmin)) / 2; zmin -= s; zmax += s; }
-    const X = d => (d / M * W).toFixed(1), Y = z => (top + (H1 - top) * (1 - (z - zmin) / (zmax - zmin))).toFixed(1);
-    let pola = '', pasek = '', i0 = 0;
-    for (let i = 1; i <= P.d.length; i++) {
-      if (i < P.d.length && P.st[i] === P.st[i0]) continue;
-      const a = i0, b = Math.min(i, P.d.length - 1), kol = KOLST[P.st[i0]] || KOLST.brak;
-      let pts = `${X(P.d[a])},${H1} `; for (let j = a; j <= b; j++) pts += `${X(P.d[j])},${Y(P.z[j])} `; pts += `${X(P.d[b])},${H1}`;
-      pola += `<polygon points="${pts}" fill="${kol}" fill-opacity=".38"/>`;
-      pasek += `<rect x="${X(P.d[a])}" y="${H1 + G}" width="${Math.max(1, X(P.d[b]) - X(P.d[a])).toFixed(1)}" height="${H2}" fill="${kol}"/>`;
-      i0 = i;
-    }
-    const linia = P.z.map((z, i) => `${i ? 'L' : 'M'}${X(P.d[i])},${Y(z)}`).join('');
-    const km = M / 1000, krok = km > 20 ? 5 : km > 8 ? 2 : km > 3 ? 1 : .5;
-    let os = ''; for (let k = krok; k < km - krok * .3; k += krok) os += `<text x="${X(k * 1000)}" y="${Hh - 2}" text-anchor="middle">${String(+k.toFixed(1)).replace('.', ',')}</text><line x1="${X(k * 1000)}" x2="${X(k * 1000)}" y1="${H1 + G + H2}" y2="${H1 + G + H2 + 3}" stroke="#9aa3a8"/>`;
-    const zTxt = z => Math.round(z) + ' m';
-    return `<svg class="profil" viewBox="0 0 ${W} ${Hh}" width="100%" height="${Hh}" role="img" aria-label="Profil wysokości i nawierzchnia trasy">
-      <line x1="0" x2="${W}" y1="${Y(zmax)}" y2="${Y(zmax)}" stroke="#e3dccb" stroke-dasharray="3 3"/><line x1="0" x2="${W}" y1="${H1}" y2="${H1}" stroke="#e3dccb"/>
-      ${P.wys ? pola + `<path d="${linia}" fill="none" stroke="#1d2a23" stroke-width="1.6" vector-effect="non-scaling-stroke"/>` : ''}
-      <text x="3" y="${+Y(zmax) - 2}" class="zl">${P.wys ? zTxt(zmax) : ''}</text><text x="3" y="${H1 - 3}" class="zl">${P.wys ? zTxt(zmin) : ''}</text>
-      ${pasek}${os}<text x="${W - 2}" y="${Hh - 2}" text-anchor="end">km</text>
-      <line class="kursor" x1="0" x2="0" y1="0" y2="${H1 + G + H2}" stroke="#1d4ed8" stroke-width="2" vector-effect="non-scaling-stroke" style="display:none"/></svg>`;
-  }
-
-  // ===================== manewry =====================
-  // nazwa drogi do komunikatu: „ul. Leśna”, „DW 906”, „Dojazd pożarowy 75”; drogi bez nazwy – pusto
-  const nazwaDrogi = s => {
-    if (!s || !s[2]) return '';
-    if (DW(s)) return (s[1] === 'droga krajowa' ? 'DK ' : 'DW ') + (/^\d+$/.test(s[2]) ? s[2] : s[2]);
-    if (/^\d+$/.test(s[2])) return '';
-    return ['ulica', 'droga powiatowa/gminna', 'droga lokalna', 'droga dojazdowa'].includes(s[1]) && !/^(ul\.|aleja|al\.|plac|dojazd)/i.test(s[2]) ? 'ul. ' + s[2] : s[2];
-  };
-  function strzalkaSVG(kier, kol = '#00737e', w = 44) {
-    const d = {lewo: 'M19 12H5M11 6l-6 6 6 6', prawo: 'M5 12h14M13 6l6 6-6 6', prosto: 'M12 20V4M6 10l6-6 6 6', 'lekko w lewo': 'M17 20V12L8 5M8 11V5h6', 'lekko w prawo': 'M7 20V12l9-7M16 11V5h-6', 'ostro w lewo': 'M17 4v9a5 5 0 0 1-10 0V8M3 11l4-4 4 4', 'ostro w prawo': 'M7 4v9a5 5 0 0 0 10 0V8M13 11l4-4 4 4', cel: 'M6 21V3l12 5-12 5'}[kier] || 'M12 20V4M6 10l6-6 6 6';
-    return `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="${kol}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
-  }
-  const kierunek = t => { const a = Math.abs(t); return a < 25 ? 'prosto' : a < 55 ? (t < 0 ? 'lekko w lewo' : 'lekko w prawo') : a < 140 ? (t < 0 ? 'lewo' : 'prawo') : (t < 0 ? 'ostro w lewo' : 'ostro w prawo'); };
-  const kierTxt = k => ({lewo: 'W lewo', prawo: 'W prawo', prosto: 'Prosto', 'lekko w lewo': 'Lekko w lewo', 'lekko w prawo': 'Lekko w prawo', 'ostro w lewo': 'Ostro w lewo', 'ostro w prawo': 'Ostro w prawo'}[k] || k);
-  function manewry(T) {
-    const out = [];
-    // 1) drogowskazy (przyszłe słupki) na trasie
-    for (const p of H.posts) {
-      const q = [p.lat, p.lon]; let b = -1, bd = 30;
-      for (let i = 0; i < T.ll.length; i++) { const d = dist(q, T.ll[i]); if (d < bd) { bd = d; b = i; } }
-      if (b < 0) continue;
-      const c = T.cum[b]; if (c < 20 || c > T.m - 20) continue;
-      const wej = brg(wDal(T, c - 40), q), wyj = brg(q, wDal(T, c + 60));
-      let best = null;
-      for (const t of p.tab) { if (t.g == null) continue; const d = Math.abs(kat(t.g, wyj)); if (d < 40 && (!best || d < best.d)) best = {t, d}; }
-      if (!best) continue;
-      const k = kierunek(kat(wyj, wej));
-      const wzgl = kat(best.t.g, wej);   // tabliczka oglądana od strony nadjeżdżającego: grot po lewej czy po prawej?
-      const strona = Math.abs(wzgl) < 15 ? best.t.d : (wzgl < 0 ? 'left' : 'right');
-      out.push({typ: 'tab', c, k, t: best.t, strona, cele: best.t.e.map(e => e[0]), nr: p.nr});
-    }
-    // 2) skręty poza drogowskazami (nazwy ulic z OSM)
-    for (let j = 1; j < T.wez.length - 1; j++) {
-      const w = T.wez[j]; if (w.deg < 3) continue;
-      const c = T.cum[w.i]; if (c < 15 || c > T.m - 15) continue;
-      if (out.some(m => Math.abs(m.c - c) < 70)) continue;
-      const q = T.ll[w.i], t = kat(brg(q, wDal(T, c + 30)), brg(wDal(T, c - 30), q));
-      if (Math.abs(t) < 35) continue;
-      const nz = nazwaDrogi(T.seg[w.i]), przed = T.seg[w.i - 1];
-      if (nz && przed && nazwaDrogi(przed) === nz && Math.abs(t) < 75) continue;   // ta sama droga, tylko zakręt
-      out.push({typ: 'skret', c, k: kierunek(t), ulica: nz});
-    }
-    out.sort((a, b) => a.c - b.c);
-    out.push({typ: 'cel', c: T.m, k: 'cel'});
-    return out;
-  }
-  const mTekst = m => m.typ === 'tab' ? `${kierTxt(m.k)}, kierunek ${m.cele.join(' · ')}`
-    : m.typ === 'skret' ? (m.ulica ? `${kierTxt(m.k)} · ${m.ulica}` : kierTxt(m.k))
-    : 'Cel: ' + stan.celN;
-  const tabSVG = (m, cls = '') => TB.svg(m.strona, 800, m.t.cat, m.t.e).svg.replace('<svg ', `<svg class="${cls}" `);
-
   // ===================== wyszukiwanie celu =====================
   const CELE = (H.cele || []).map(c => ({n: c.n, s: c.cat === 'blue' ? 'Miejscowość' : 'Cel z drogowskazów', lat: c.lat, lon: c.lon, typ: 'm'}));
   const MIEJSCOWOSCI = (H.cele || []).filter(c => c.cat === 'blue');
@@ -384,11 +79,23 @@
   // ===================== stan i mapa =====================
   const stan = {start: null, startN: 'Twoja lokalizacja', startGPS: true, cel: null, celN: '', celS: '', tryb: ['krotko', 'szosa'].includes(LS.get('tryb', 'bezp')) ? LS.get('tryb', 'bezp') : 'bezp',
                 T: null, M: [], wybor: null, jazda: false, glos: LS.get('glos', true)};
+  JZ.stan = stan;
   let map = null, warstwa = null, jaM = null, celM = null, sledz = true;
+  let mapaOffline = LS.get('mapaOffline', false), mapaUstaw = null;
   function mapa() {
     if (map) return map;
     map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: true}).setView([50.615, 18.9], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(map);
+    // mapa offline (lib/jedz/podklad.js) zawsze pod spodem; kafelki OSM na wierzchu, chyba że wybrano „zawsze offline”.
+    // Bez zasięgu kafelki się nie wczytają (zostają niewidoczne) i widać podkład offline – wtedy dokładamy też nazwy miejscowości.
+    map.createPane('nazwy').style.zIndex = 390;
+    JZ.podklad.warstwa(L).addTo(map);
+    const nazwy = JZ.podklad.nazwy(L, map);
+    let bledyK = 0, ostOk = 0;
+    const kafelki = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'})
+      .on('tileerror', () => { if (++bledyK >= 3 && Date.now() - ostOk > 4000) nazwy.addTo(map); })
+      .on('tileload', () => { ostOk = Date.now(); bledyK = 0; if (!mapaOffline) nazwy.remove(); });
+    mapaUstaw = off => { mapaOffline = off; if (off) { kafelki.remove(); nazwy.addTo(map); } else { kafelki.addTo(map); nazwy.remove(); } };
+    mapaUstaw(mapaOffline);
     warstwa = L.layerGroup().addTo(map);
     map.on('dragstart', () => { if (stan.jazda) { sledz = false; $('b-srodek').classList.remove('hide'); } });
     // obrót „zablokowany” kompasem: mapy nie da się przesunąć, ale da się ją przybliżać/oddalać (wokół Twojej pozycji);
@@ -497,16 +204,16 @@
     const a = nieutw(T); let alt = null;
     for (const [k, X] of Object.entries(inne || {})) { const b = nieutw(X); if (X && !X.blad && b.nu < a.nu - 200 && (!alt || b.nu < alt.nu)) alt = {k, nu: b.nu}; }
     const lepiej = alt ? ` Trasa „${TRYBY[alt.k]}” ma ich mniej (${kmTxt(alt.nu)}).` : '';
-    if (RT === 'szosa' && a.nu > 300) return `⚠ Szosówką może być ciężko: ${kmTxt(a.nu)} trasy to drogi nieutwardzone, leśne albo bez oceny.${lepiej}`;
-    if (RT !== 'gorski' && RT !== 'gravel' && a.tr > 200) return `⚠ Na trasie ${kmTxt(a.tr)} dróg ocenionych jako trudne (piach, korzenie, dziury).${lepiej}`;
+    if (ST.RT === 'szosa' && a.nu > 300) return `⚠ Szosówką może być ciężko: ${kmTxt(a.nu)} trasy to drogi nieutwardzone, leśne albo bez oceny.${lepiej}`;
+    if (ST.RT !== 'gorski' && ST.RT !== 'gravel' && a.tr > 200) return `⚠ Na trasie ${kmTxt(a.tr)} dróg ocenionych jako trudne (piach, korzenie, dziury).${lepiej}`;
     return '';
   }
   const tempoNazwa = v => v < 13 ? 'spacerowo' : v < 20 ? 'rekreacyjnie' : v < 27 ? 'sportowo' : 'wyczynowo';
   function tempoSuwak(T) {
     const r = $('p-tempo'); if (!r) return;
     r.oninput = () => {
-      VU = +r.value; LS.set('vplaska', VU); T.prof = profil(T);
-      $('p-v').textContent = VU + ' km/h · ' + tempoNazwa(VU); $('p-czas').textContent = czasTxt(T.prof.czas);
+      ST.VU = +r.value; LS.set('vplaska', ST.VU); T.prof = profil(T);
+      $('p-v').textContent = ST.VU + ' km/h · ' + tempoNazwa(ST.VU); $('p-czas').textContent = czasTxt(T.prof.czas);
       clearTimeout(tempoSuwak.t); tempoSuwak.t = setTimeout(() => wykresInterakcja(T), 150);   // podpowiedzi wykresu z nowym czasem
     };
   }
@@ -536,7 +243,7 @@
     svg.addEventListener('pointerleave', ukryj);
   }
   function podglad() {
-    if (stan.tryb === 'szosa' && RT !== 'szosa') stan.tryb = 'bezp';
+    if (stan.tryb === 'szosa' && ST.RT !== 'szosa') stan.tryb = 'bezp';
     mapa(); ekran('s-mapa'); panele('podglad'); stan.wybor = null;
     $('gora').innerHTML = '';
     const T = policz();
@@ -548,7 +255,7 @@
     stan.T = T; stan.M = manewry(T); rysuj(T, stan.M);
     // porównanie z drugim trybem (do przełącznika)
     // pozostałe tryby (do przełącznika i podpowiedzi w ostrzeżeniu); „Szosowa” tylko przy rowerze szosowym
-    const tryby = RT === 'szosa' ? ['bezp', 'krotko', 'szosa'] : ['bezp', 'krotko'];
+    const tryby = ST.RT === 'szosa' ? ['bezp', 'krotko', 'szosa'] : ['bezp', 'krotko'];
     const inne = {}; for (const k of tryby) if (k !== stan.tryb) inne[k] = trasuj(stan.start, stan.cel, {tryb: k});
     const km = k => k === stan.tryb ? T.m : inne[k].m;
     const opisT = {bezp: ' · omija DW i DK', krotko: '', szosa: ' · asfalt, główne drogi'};
@@ -560,10 +267,10 @@
         ${tryby.map(k => `<button type="button" role="radio" data-t="${k}" aria-checked="${stan.tryb === k}"><b>${TRYBY[k]}</b><span>${kmTxt(km(k))}${opisT[k]}</span></button>`).join('')}
       </div>
       <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b id="p-czas">${czasTxt(T.prof.czas)}</b><span>czasu jazdy</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
-      <div class="rower" role="radiogroup" aria-label="Rodzaj roweru">${Object.entries(ROWERY).map(([k, r]) => `<button type="button" role="radio" data-r="${k}" aria-checked="${k === RT}">${r.n}</button>`).join('')}</div>
+      <div class="rower" role="radiogroup" aria-label="Rodzaj roweru">${Object.entries(ROWERY).map(([k, r]) => `<button type="button" role="radio" data-r="${k}" aria-checked="${k === ST.RT}">${r.n}</button>`).join('')}</div>
       <div class="msg ostrz" id="p-ostrz"${ostrzezenie(T, inne) ? '' : ' hidden'}>${esc(ostrzezenie(T, inne))}</div>
-      <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${VU} km/h · ${tempoNazwa(VU)}</b></div>
-        <input type="range" id="p-tempo" min="8" max="40" step="1" value="${VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
+      <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${ST.VU} km/h · ${tempoNazwa(ST.VU)}</b></div>
+        <input type="range" id="p-tempo" min="8" max="40" step="1" value="${ST.VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
         <div class="tskala"><span>spacerowo</span><span>rekreacyjnie</span><span>sportowo</span><span>wyczynowo</span></div></div>
       ${wykresBlok(T)}
       <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich i krajowych: ${kmTxt(T.km.dw)}.` : 'Bez dróg wojewódzkich i krajowych.'}</div>
@@ -574,9 +281,9 @@
     $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
     // zmiana roweru: tylko czas jazdy (prędkości na nawierzchniach, podjazdy, vmax) – trasa i suwak tempa bez zmian
     $('dol').querySelectorAll('.rower button').forEach(b => b.onclick = () => {
-      const zSzosy = RT === 'szosa'; RT = b.dataset.r; R = ROWERY[RT]; LS.set('rower', RT);
+      const zSzosy = ST.RT === 'szosa'; ST.RT = b.dataset.r; ST.R = ROWERY[ST.RT]; LS.set('rower', ST.RT);
       // szosówka: od razu tryb „Szosowa”; przesiadka z szosówki – z trybu szosowego wracamy do „Bezpieczna”
-      if (RT === 'szosa' || (zSzosy && stan.tryb === 'szosa')) { stan.tryb = RT === 'szosa' ? 'szosa' : 'bezp'; LS.set('tryb', stan.tryb); const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; return; }
+      if (ST.RT === 'szosa' || (zSzosy && stan.tryb === 'szosa')) { stan.tryb = ST.RT === 'szosa' ? 'szosa' : 'bezp'; LS.set('tryb', stan.tryb); const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; return; }
       if (zSzosy) { const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; return; }   // znika trzeci przycisk trybu
       T.prof = profil(T);
       $('dol').querySelectorAll('.rower button').forEach(x => x.setAttribute('aria-checked', x === b));

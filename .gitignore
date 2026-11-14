@@ -5,3 +5,4 @@ skrypty/kierunki_raport.json
 __pycache__/
 *.pyc
 dane/nmt.npz
+dane/podklad.json

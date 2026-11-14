@@ -110,6 +110,12 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
   suwak „Twoje tempo na płaskim” (8–40 km/h, domyślnie 16, zapamiętany w telefonie) skaluje te prędkości;
   w trakcie jazdy czas dojazdu i godzina przyjazdu dopasowują się do Twojego tempa (postoje się nie liczą).
 
+- **Mapa offline**: własny podkład rysowany w telefonie (`lib/jedz/podklad.js`) z `stan/podklad.js` – lasy, wody, zabudowa, budynki, tory, nazwy
+  z OpenStreetMap (workflow „Podklad” na gałęzi `wysokosci` → wydanie `podklad`; `skrypty/podklad.py` w rebuild) + nasze drogi. Leży pod kafelkami OSM:
+  bez zasięgu widać ją sama, można też wybrać „zawsze offline”. Kafelków OSM nie pobieramy hurtowo (zakazują tego zasady serwerów OSM).
+- **Kod**: `lib/jedz/wspolne.js` → `graf.js` (trasowanie) → `profil.js` (rower, tempo, wysokości, czas, wykres) → `manewry.js` → `podklad.js` → `lib/jedz.js` (interfejs);
+  wspólna przestrzeń `window.JZ`. Testy tras bez przeglądarki: `node skrypty/test_jedz.js out/strona` (uruchamiane też na końcu rebuild.sh).
+
 ## Aplikacja na Androida (`aplikacja/`)
 Capacitor opakowuje stronę „Jedź” w aplikację z lokalizacją w tle (usługa z powiadomieniem – nawigacja na zgaszonym ekranie) i głosem (syntezator telefonu).
 - Budowanie: GitHub Actions (`.github/workflows/apk.yml`) po każdej publikacji strony; pliki brane z gałęzi `strona` (`aplikacja/przygotuj.sh`), APK trafia do wydań („Releases”).
