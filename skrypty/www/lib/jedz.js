@@ -30,19 +30,19 @@
 
   // ===================== graf dróg =====================
   const TRASY = new Set(J.trasy), ROWER = new Set(J.rower);
-  // rodzaje roweru: v – typowe tempo na płaskim (km/h, startowe położenie suwaka); s – prędkość na nawierzchni względem asfaltu;
-  // g – wrażliwość na podjazdy (prędkość ÷ (1 + g·nachylenie)); f – kara w trasowaniu „Bezpieczna” za nawierzchnię;
-  // fT – górny limit tej kary na sprawdzonych trasach HUB (szosówce piach na trasie HUB dalej przeszkadza)
+  // rodzaj roweru wpływa tylko na CZAS jazdy (trasę wybiera tryb Bezpieczna / Najkrótsza):
+  // s – prędkość na nawierzchni względem asfaltu, g – wrażliwość na podjazdy (prędkość ÷ (1 + g·nachylenie)),
+  // vmax – prędkość maksymalna (z górki); tempo na płaskim ustawia suwak
   const ROWERY = {
-    miejski:  {n: 'Miejski',     v: 15, g: 16, s: {srednia: .7,  trudna: .45, brak: .72}, f: {srednia: 1.6,  trudna: 3,   brak: 1.4},  fT: 1.3},
-    trekking: {n: 'Trekkingowy', v: 18, g: 14, s: {srednia: .8,  trudna: .55, brak: .8},  f: {srednia: 1.35, trudna: 2.2, brak: 1.25}, fT: 1},
-    szosa:    {n: 'Szosowy',     v: 25, g: 11, s: {srednia: .5,  trudna: .28, brak: .5},  f: {srednia: 3,    trudna: 8,   brak: 2.6},  fT: 4},
-    gravel:   {n: 'Gravel',      v: 22, g: 12, s: {srednia: .88, trudna: .6,  brak: .88}, f: {srednia: 1.15, trudna: 1.7, brak: 1.1},  fT: 1},
-    gorski:   {n: 'Górski',      v: 18, g: 12, s: {srednia: .92, trudna: .72, brak: .9},  f: {srednia: 1.05, trudna: 1.25, brak: 1.05}, fT: 1},
-    elektryk: {n: 'Elektryczny', v: 23, g: 4,  s: {srednia: .78, trudna: .5,  brak: .78}, f: {srednia: 1.35, trudna: 2.2, brak: 1.25}, fT: 1},
+    miejski:  {n: 'Miejski',     g: 16, vmax: 25, s: {srednia: .7,  trudna: .45, brak: .72}},
+    trekking: {n: 'Trekkingowy', g: 14, vmax: 32, s: {srednia: .8,  trudna: .55, brak: .8}},
+    szosa:    {n: 'Szosowy',     g: 11, vmax: 45, s: {srednia: .5,  trudna: .28, brak: .5}},
+    gravel:   {n: 'Gravel',      g: 12, vmax: 40, s: {srednia: .88, trudna: .6,  brak: .88}},
+    gorski:   {n: 'Górski',      g: 12, vmax: 35, s: {srednia: .92, trudna: .72, brak: .9}},
+    elektryk: {n: 'Elektryczny', g: 4,  vmax: 35, s: {srednia: .8,  trudna: .55, brak: .8}},   // wspomaganie: podjazdy prawie bez zwalniania
   };
   let RT = ROWERY[LS.get('rower', 'miejski')] ? LS.get('rower', 'miejski') : 'miejski', R = ROWERY[RT];
-  const F = st => st === 'nieprzejezdna' ? 50 : R.f[st] ?? 1;
+  const F = {osm: 1, dobra: 1, srednia: 1.35, trudna: 2.2, nieprzejezdna: 50, brak: 1.25};
   const P = [], adj = [], klucz = new Map();
   // węzły: końce odcinków; końce leżące do 4 m od siebie łączymy (w OSM drogi leśne często „prawie” się stykają)
   const WS = new Map(), wk = p => Math.floor(p[0] * 2e4) + ':' + Math.floor(p[1] * 1.4e4);
@@ -67,9 +67,9 @@
   //  krotko – „Najkrótsza”: sama długość (omija tylko drogi ocenione jako nieprzejezdne, trudne lekko droższe)
   function koszt(s, opc) {
     const st = s[4] || 'brak';
-    if (opc.tryb === 'krotko') return s[6] * (st === 'nieprzejezdna' ? 50 : 1 + (F(st) - 1) * (st === 'trudna' ? .35 : RT === 'szosa' ? .3 : 0));
-    let f = F(st);
-    if (TRASY.has(s[0])) f = Math.min(f, R.fT) * 0.9;   // drogi tras HUB są sprawdzone – bez kary „brak oceny” (poza szosą i miejskim)
+    if (opc.tryb === 'krotko') return s[6] * (st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 1.4 : 1);
+    let f = F[st] ?? 1.25;
+    if (TRASY.has(s[0])) f = Math.min(f, 1) * 0.9;   // drogi tras HUB są sprawdzone – bez kary „brak oceny”
     if (ROWER.has(s[0])) f = Math.min(f, 0.85);
     else if (DW(s)) f *= 6;
     return s[6] * f;
@@ -176,12 +176,12 @@
   // prędkość: tempo z suwaka × współczynnik nawierzchni dla rodzaju roweru (ROWERY)
   // wpływ nachylenia: pod górę wyraźnie wolniej (5% ≈ o połowę), z górki szybciej, ale z umiarem i nie po wertepach
   // tempo rowerzysty na płaskim, po dobrej drodze (suwak w podglądzie trasy, zapamiętane w telefonie): 17 km/h = rekreacyjnie
-  let VU = Math.max(8, Math.min(40, +LS.get('vplaska', R.v) || R.v));
+  let VU = Math.max(8, Math.min(40, +LS.get('vplaska', 16) || 16));
   function predkosc(st, g) {
     let v = VU * (st === 'nieprzejezdna' ? .25 : R.s[st] ?? 1);
     if (g > 0) v /= 1 + R.g * g;                       // g – nachylenie jako ułamek: 2% → ok. 13 km/h, 5% → ok. 10 km/h
     else v *= Math.min(st === 'trudna' || st === 'srednia' ? 1.15 : 1.45, 1 - 7 * g);
-    return Math.max(4, Math.min(Math.max(32, VU * 1.7), v));
+    return Math.max(4, Math.min(Math.max(R.vmax, VU), v));
   }
   const wysC = new Map();
   function wysOdc(s) {
@@ -477,6 +477,20 @@
     T.prof = profil(T);
     return T;
   }
+  // ile metrów trasy po drogach nieutwardzonych / bez oceny / trudnych (do ostrzeżeń dla roweru)
+  function nieutw(T) {
+    const o = {nu: 0, tr: 0}; if (!T || T.blad) return o;
+    for (let i = 0; i < T.seg.length; i++) { const st = stOdc(T.seg[i]); if (!st) continue; const d = T.cum[i + 1] - T.cum[i];
+      if (st === 'srednia' || st === 'trudna' || st === 'brak') o.nu += d; if (st === 'trudna') o.tr += d; }
+    return o;
+  }
+  function ostrzezenie(T, inny) {
+    const a = nieutw(T), b = nieutw(inny), drugi = stan.tryb === 'bezp' ? 'Najkrótsza' : 'Bezpieczna';
+    const lepiej = inny && !inny.blad && b.nu < a.nu - 200 ? ` Trasa „${drugi}” ma ich mniej (${kmTxt(b.nu)}).` : '';
+    if (RT === 'szosa' && a.nu > 300) return `⚠ Szosówką może być ciężko: ${kmTxt(a.nu)} trasy to drogi nieutwardzone, leśne albo bez oceny.${lepiej}`;
+    if (RT !== 'gorski' && RT !== 'gravel' && a.tr > 200) return `⚠ Na trasie ${kmTxt(a.tr)} dróg ocenionych jako trudne (piach, korzenie, dziury).${lepiej}`;
+    return '';
+  }
   const tempoNazwa = v => v < 13 ? 'spacerowo' : v < 20 ? 'rekreacyjnie' : v < 27 ? 'sportowo' : 'wyczynowo';
   function tempoSuwak(T) {
     const r = $('p-tempo'); if (!r) return;
@@ -534,6 +548,7 @@
       </div>
       <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b id="p-czas">${czasTxt(T.prof.czas)}</b><span>czasu jazdy</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
       <div class="rower" role="radiogroup" aria-label="Rodzaj roweru">${Object.entries(ROWERY).map(([k, r]) => `<button type="button" role="radio" data-r="${k}" aria-checked="${k === RT}">${r.n}</button>`).join('')}</div>
+      <div class="msg ostrz" id="p-ostrz"${ostrzezenie(T, inny) ? '' : ' hidden'}>${esc(ostrzezenie(T, inny))}</div>
       <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${VU} km/h · ${tempoNazwa(VU)}</b></div>
         <input type="range" id="p-tempo" min="8" max="40" step="1" value="${VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
         <div class="tskala"><span>spacerowo</span><span>rekreacyjnie</span><span>sportowo</span><span>wyczynowo</span></div></div>
@@ -544,8 +559,13 @@
       <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
       <div class="sek">Po drodze</div><div class="manew">${lista}</div>`;
     $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
-    // zmiana roweru: inne prędkości i inne omijanie złych nawierzchni → trasa liczona od nowa; suwak wraca do typowego tempa
-    $('dol').querySelectorAll('.rower button').forEach(b => b.onclick = () => { RT = b.dataset.r; R = ROWERY[RT]; LS.set('rower', RT); VU = R.v; LS.set('vplaska', VU); wysC.clear(); const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; });
+    // zmiana roweru: tylko czas jazdy (prędkości na nawierzchniach, podjazdy, vmax) – trasa i suwak tempa bez zmian
+    $('dol').querySelectorAll('.rower button').forEach(b => b.onclick = () => {
+      RT = b.dataset.r; R = ROWERY[RT]; LS.set('rower', RT); T.prof = profil(T);
+      $('dol').querySelectorAll('.rower button').forEach(x => x.setAttribute('aria-checked', x === b));
+      $('p-czas').textContent = czasTxt(T.prof.czas); wykresInterakcja(T);
+      const o = ostrzezenie(T, inny); $('p-ostrz').textContent = o; $('p-ostrz').hidden = !o;
+    });
     $('b-jedz').onclick = () => startJazdy(false);
     $('b-symstart').onclick = () => startJazdy(true);
     if ($('b-gpx')) $('b-gpx').onclick = () => gpx(T);
