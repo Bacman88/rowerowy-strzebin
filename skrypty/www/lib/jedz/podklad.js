@@ -4,8 +4,11 @@
 (() => {
   'use strict';
   const JZ = window.JZ = window.JZ || {};
-  const {ODC} = JZ;
-  const PD = window.PODKLAD || null;
+  const {ODC, LS} = JZ;
+  // mapa offline jest na życzenie: dopóki użytkownik jej nie pobierze (JZ.podklad.pobierz), rysujemy tylko nasze drogi
+  const pobrana = () => !!LS.get('mapaPobrana', false);
+  let wW = null, wypelnijNazwy = () => {};
+  let PD = window.PODKLAD || null;                    // stan/podklad.js wczytujemy w tle przy pierwszym otwarciu mapy (2,8 MB – nie blokuje startu)
   // współrzędne w układzie Mercatora znormalizowanym do 0..1 (jak kafelki): x = lon, y = lat
   const mx = lon => (lon + 180) / 360;
   const my = lat => { const s = Math.sin(lat * Math.PI / 180); return .5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI); };
@@ -20,14 +23,29 @@
   }
   // dekodowanie: [dlat, dlon, …] w 1e-5 stopnia, różnicowo
   const dek = a => { const r = new Float64Array(a.length); let la = 0, lo = 0; for (let i = 0; i < a.length; i += 2) { la += a[i]; lo += a[i + 1]; r[i] = mx(lo / 1e5); r[i + 1] = my(la / 1e5); } return r; };
-  let gotowy = false;
+  let drogiGotowe = false, pdGotowy = false;
+  function przygotujPD() {
+    if (pdGotowy || !PD) return; pdGotowy = true;
+    for (const k of ['ziel', 'zab', 'przem', 'cment', 'las', 'woda']) for (const p of PD[k] || []) dodaj(k, p.map(dek), false);
+    // budynki: tylko pierwszy punkt do indeksu, pełny kształt dekodowany przy pierwszym rysowaniu (49 tys. – szybki start)
+    for (const b of PD.bud || []) { const x = mx((b[1]) / 1e5), y = my(b[0] / 1e5); dodajBud(b, x, y); }
+    for (const k of ['rzeki', 'tory']) for (const l of PD[k] || []) dodaj(k, [dek(l)], true);
+  }
+  function dodajBud(raw, x, y) {
+    const d = 0.0000035, o = {k: 'bud', raw, x0: x - d, y0: y - d, x1: x + d, y1: y + d}, n = OB.push(o) - 1, c = cel(x, y);
+    if (!IDX.has(c)) IDX.set(c, []); IDX.get(c).push(n);
+  }
+  let laduje = null;
+  function laduj(cb) {
+    if (PD || window.PODKLAD) { PD = PD || window.PODKLAD; return cb(); }
+    if (!laduje) { laduje = []; const sc = document.createElement('script'); sc.src = 'stan/podklad.js'; sc.async = true;
+      sc.onload = () => { PD = window.PODKLAD || null; const l = laduje; laduje = null; l.forEach(f => f()); };
+      sc.onerror = () => { laduje = null; sc.remove(); };
+      document.head.appendChild(sc); }
+    laduje.push(cb);
+  }
   function przygotuj() {
-    if (gotowy) return; gotowy = true;
-    if (PD) {
-      for (const k of ['ziel', 'zab', 'przem', 'cment', 'las', 'woda']) for (const p of PD[k] || []) dodaj(k, p.map(dek), false);
-      for (const b of PD.bud || []) dodaj('bud', [dek(b)], false);
-      for (const k of ['rzeki', 'tory']) for (const l of PD[k] || []) dodaj(k, [dek(l)], true);
-    }
+    if (drogiGotowe) return; drogiGotowe = true;
     for (const s of ODC) {
       const c = s[7], r = new Float64Array(c.length); for (let i = 0; i < c.length; i += 2) { r[i] = mx(c[i + 1]); r[i + 1] = my(c[i]); }
       const t = s[1], k = t === 'droga wojewódzka' || t === 'droga krajowa' || t === 'primary_link' ? 'dg' : ['ulica', 'droga powiatowa/gminna', 'droga lokalna', 'droga dojazdowa', 'pedestrian'].includes(t) ? 'du'
@@ -58,6 +76,7 @@
         const m = 8 / sk, X0 = ox / sk - m, Y0 = oy / sk - m, X1 = (ox + S.x) / sk + m, Y1 = (oy + S.y) / sk + m, wid = new Set();
         for (let a = Math.floor(X0 / CEL); a <= Math.floor(X1 / CEL); a++) for (let b = Math.floor(Y0 / CEL); b <= Math.floor(Y1 / CEL); b++) for (const n of IDX.get(a + ':' + b) || []) wid.add(n);
         const lista = [...wid].map(n => OB[n]).filter(o => o.x1 >= X0 && o.x0 <= X1 && o.y1 >= Y0 && o.y0 <= Y1 && (o.k !== 'bud' || z >= 15));
+        for (const o of lista) if (o.raw) { o.r = [dek(o.raw)]; o.raw = null; }
         const sciezka = r => { for (let i = 0; i < r.length; i += 2) { const x = r[i] * sk - ox, y = r[i + 1] * sk - oy; i ? g.lineTo(x, y) : g.moveTo(x, y); } };
         for (const k of KOLEJ) {
           const ob = lista.filter(o => o.k === k); if (!ob.length) continue;
@@ -78,16 +97,27 @@
         return t;
       }
     });
-    return new W({maxZoom: 20, keepBuffer: 2, updateWhenZooming: false});
+    const w = new W({maxZoom: 20, keepBuffer: 2, updateWhenZooming: false});
+    wW = w;
+    if (pobrana()) setTimeout(() => laduj(() => { przygotujPD(); w.redraw(); }), 300);   // najpierw same drogi, po chwili lasy, wody, budynki
+    return w;
   }
   // nazwy miejscowości (osobna warstwa znaczników – tekst nie urywa się na krawędziach kafelków)
   function nazwy(L, map) {
     const g = L.layerGroup();
-    for (const [la, lo, n, r] of (PD && PD.nazwy) || []) g.addLayer(L.marker([la, lo], {interactive: false, keyboard: false, pane: 'nazwy',
-      icon: L.divIcon({className: 'pn r' + r, html: n.replace(/[&<>]/g, ''), iconSize: null})}));
     const pokaz = () => { const z = map.getZoom(); g.eachLayer(m => { const r = +m.options.icon.options.className.slice(-1); m.getElement() && (m.getElement().style.display = (r <= 2 && z >= 11) || (r === 3 && z >= 13) || z >= 15 ? '' : 'none'); }); };
     map.on('zoomend', pokaz); g.on('add', () => setTimeout(pokaz, 0));
+    let jest = false;
+    wypelnijNazwy = () => { if (jest || !PD) return; jest = true; for (const [la, lo, n, r] of PD.nazwy || []) g.addLayer(L.marker([la, lo], {interactive: false, keyboard: false, pane: 'nazwy',
+      icon: L.divIcon({className: 'pn r' + r, html: n.replace(/[&<>]/g, ''), iconSize: null})})); setTimeout(pokaz, 0); };
+    if (pobrana()) laduj(wypelnijNazwy);
     return g;
   }
-  Object.assign(JZ, {podklad: {jest: !!PD, warstwa, nazwy}});
+  // pobranie mapy offline (przycisk w Jedź): wczytuje plik (w przeglądarce zapisze go service worker, w aplikacji jest w środku)
+  function pobierz(ok, zle) {
+    laduj(() => { if (!PD) return zle && zle(); LS.set('mapaPobrana', true); przygotujPD(); if (wW) wW.redraw(); wypelnijNazwy(); ok && ok(); });
+    setTimeout(() => { if (!PD) zle && zle(); }, 30000);
+  }
+  function usun() { LS.set('mapaPobrana', false); }
+  Object.assign(JZ, {podklad: {warstwa, nazwy, pobierz, usun, pobrana}});
 })();

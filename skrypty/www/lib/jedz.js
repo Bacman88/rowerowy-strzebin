@@ -10,6 +10,8 @@
   // aplikacja na Androida (Capacitor): GPS z usługą w tle (jazda na zgaszonym ekranie) i głos z syntezatora telefonu
   const CAP = window.Capacitor;
   const NAT = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
+  // BAZA musi być przed wszystkim, co z niej korzysta (zgłoszenia w aplikacji)
+  const BAZA = NAT ? 'https://rowerowy-strzebin.smart-ant.pl/' : './';
   const wtyczka = n => { try { return (CAP.Plugins && CAP.Plugins[n]) || (window.capacitorExports && window.capacitorExports.registerPlugin(n)) || (CAP.registerPlugin && CAP.registerPlugin(n)) || null; } catch (e) { return null; } };
   const PL = NAT ? {BackgroundGeolocation: wtyczka('BackgroundGeolocation'), TextToSpeech: wtyczka('TextToSpeech'), LocalNotifications: wtyczka('LocalNotifications')} : {};
   const diag = {};
@@ -24,12 +26,8 @@
   // mapa offline: informacja i przełącznik „zawsze offline” (oszczędza internet; w lesie bez zasięgu przełącza się sama)
   setTimeout(() => {
     const el = document.querySelector('#s-cel .stopka'); if (!el || !JZ.podklad) return;
-    const d = document.createElement('label'); d.className = 'moff';
-    d.innerHTML = `<input type="checkbox" id="moff"${mapaOffline ? ' checked' : ''}> <span><b>Mapa offline ${JZ.podklad.jest ? 'gotowa' : '(same drogi)'}</b> – działa bez zasięgu. Zaznacz, żeby używać jej zawsze (bez pobierania mapy z internetu).</span>`;
-    el.prepend(d);
-    $('moff').onchange = e => { mapaOffline = e.target.checked; LS.set('mapaOffline', mapaOffline); if (mapaUstaw) mapaUstaw(mapaOffline); };
+    const d = document.createElement('div'); d.className = 'moff-w'; el.prepend(d); mapaOfflinePanel();
   }, 0);
-  const BAZA = NAT ? 'https://rowerowy-strzebin.smart-ant.pl/' : './';
   // ===================== wyszukiwanie celu =====================
   const CELE = (H.cele || []).map(c => ({n: c.n, s: c.cat === 'blue' ? 'Miejscowość' : 'Cel z drogowskazów', lat: c.lat, lon: c.lon, typ: 'm'}));
   const MIEJSCOWOSCI = (H.cele || []).filter(c => c.cat === 'blue');
@@ -86,7 +84,22 @@
                 T: null, M: [], wybor: null, jazda: false, glos: LS.get('glos', true)};
   JZ.stan = stan;
   let map = null, warstwa = null, jaM = null, celM = null, sledz = true;
-  let mapaOffline = LS.get('mapaOffline', false), mapaUstaw = null;
+  let mapaOffline = LS.get('mapaOffline', false) && LS.get('mapaPobrana', false), mapaUstaw = null;
+  // mapa offline na życzenie: przycisk „Pobierz” (2,8 MB), po pobraniu – „używaj zawsze” i „usuń”
+  function mapaOfflinePanel() {
+    const box = document.querySelector('.moff-w'); if (!box) return;
+    if (!JZ.podklad.pobrana()) {
+      box.innerHTML = `<div class="moff"><span><b>Mapa offline</b> – lasy, wody, budynki i nazwy także bez zasięgu. <button type="button" class="moff-b" id="moff-p">Pobierz mapę offline (2,8 MB)</button></span></div>`;
+      $('moff-p').onclick = () => { $('moff-p').disabled = true; $('moff-p').textContent = 'Pobieram…';
+        JZ.podklad.pobierz(() => { mapaOfflinePanel(); podpowiedzOffline(); }, () => { const b = $('moff-p'); if (b) { b.disabled = false; b.textContent = 'Nie udało się – spróbuj ponownie'; } }); };
+    } else {
+      box.innerHTML = `<label class="moff"><input type="checkbox" id="moff"${mapaOffline ? ' checked' : ''}> <span><b>Mapa offline pobrana ✓</b> – włącza się sama bez zasięgu. Zaznacz, żeby używać jej zawsze (bez pobierania mapy z internetu). <a href="#" id="moff-u">Usuń</a></span></label>`;
+      $('moff').onchange = e => { mapaOffline = e.target.checked; LS.set('mapaOffline', mapaOffline); if (mapaUstaw) mapaUstaw(mapaOffline); };
+      $('moff-u').onclick = e => { e.preventDefault(); JZ.podklad.usun(); mapaOffline = false; LS.set('mapaOffline', false); if (mapaUstaw) mapaUstaw(false); mapaOfflinePanel(); };
+    }
+  }
+  // podpowiedź w podglądzie trasy, gdy mapa offline nie jest pobrana
+  function podpowiedzOffline() { const p = $('p-offline'); if (p) p.hidden = JZ.podklad.pobrana(); }
   function mapa() {
     if (map) return map;
     map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: true}).setView([50.615, 18.9], 13);
@@ -283,6 +296,7 @@
       <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a>${NAT ? '' : '<button type="button" class="btn2" id="b-gpx">GPX</button>'}</div>
       <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
       <div class="sek">Po drodze</div><div class="manew">${lista}</div>
+      <div class="moff p-off" id="p-offline"${JZ.podklad.pobrana() ? ' hidden' : ''}><span>Jedziesz przez las albo tam, gdzie słaby zasięg? <button type="button" class="moff-b" id="p-offline-b">Pobierz mapę offline (2,8 MB)</button></span></div>
       <button type="button" class="btn2" id="b-zglos" style="border-style:dashed">Coś nie tak z tą trasą? Zgłoś błąd / sugestię</button>`;
     $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
     // zmiana roweru: tylko czas jazdy (prędkości na nawierzchniach, podjazdy, vmax) – trasa i suwak tempa bez zmian
@@ -298,6 +312,8 @@
     });
     $('b-jedz').onclick = () => startJazdy(false);
     $('b-zglos').onclick = () => zglos(true);
+    $('p-offline-b').onclick = () => { const b = $('p-offline-b'); b.disabled = true; b.textContent = 'Pobieram…';
+      JZ.podklad.pobierz(() => { podpowiedzOffline(); mapaOfflinePanel(); }, () => { b.disabled = false; b.textContent = 'Nie udało się – spróbuj ponownie'; }); };
     $('b-symstart').onclick = () => startJazdy(true);
     if ($('b-gpx')) $('b-gpx').onclick = () => gpx(T);
     $('b-google').href = linkGoogle(T);

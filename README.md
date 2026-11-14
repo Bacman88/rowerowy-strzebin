@@ -114,7 +114,9 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
   z OpenStreetMap (workflow „Podklad” na gałęzi `wysokosci` → wydanie `podklad`; `skrypty/podklad.py` w rebuild) + nasze drogi. Leży pod kafelkami OSM:
   bez zasięgu widać ją sama, można też wybrać „zawsze offline”. Kafelków OSM nie pobieramy hurtowo (zakazują tego zasady serwerów OSM).
 - **Kod**: `lib/jedz/wspolne.js` → `graf.js` (trasowanie) → `profil.js` (rower, tempo, wysokości, czas, wykres) → `manewry.js` → `podklad.js` → `lib/jedz.js` (interfejs);
-  wspólna przestrzeń `window.JZ`. Testy tras bez przeglądarki: `node skrypty/test_jedz.js out/strona` (uruchamiane też na końcu rebuild.sh).
+  wspólna przestrzeń `window.JZ`. Testy tras bez przeglądarki: `node skrypty/test_jedz.js out/strona` (koniec rebuild.sh), interfejsu w trybie strony
+  i udawanej aplikacji: `skrypty/test_jedz_ui.js` (Playwright) – oba uruchamia `publikuj_strone.sh` i przerywa publikację przy błędzie.
+- Mapa offline jest **na życzenie**: przycisk „Pobierz mapę offline (2,8 MB)” na ekranie startowym i w podglądzie trasy; bez tego rysujemy tylko nasze drogi.
 
 - **Zgłoś błąd / sugestię**: `lib/uwagi.js` (okienko wspólne dla strony i Jedź, także w aplikacji) → `api/uwagi.php` (CORS dla aplikacji) → tabela `uwagi`,
   zakładka „Uwagi i błędy” w panelu i e-mail (bez kontaktu i bez trasy). Trasa (start/cel/tryb/rower) tylko po zaznaczeniu „Dołącz tę trasę”.
