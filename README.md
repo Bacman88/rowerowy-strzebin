@@ -104,6 +104,7 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
   `skrypty/wysokosci.py` (po `jedz_dane.py`) → `stan/wysokosci.js`: wysokości co 25 m wzdłuż odcinków z NMT GUGiK (siatka 5 m).
   Model terenu (`dane/nmt.npz`, poza repo) pobiera się sam z wydania `nmt` – tworzy je workflow NMT na gałęzi `wysokosci` (WCS GUGiK).
 - Czas jazdy: prędkość zależna od nawierzchni (17 km/h utwardzona, 13 średnia/bez oceny, 9 trudna) i nachylenia (pod górę wolniej, z górki szybciej);
+  suwak „Twoje tempo na płaskim” (8–40 km/h, domyślnie 17, zapamiętany w telefonie) skaluje te prędkości;
   w trakcie jazdy czas dojazdu i godzina przyjazdu dopasowują się do Twojego tempa (postoje się nie liczą).
 
 ## Aplikacja na Androida (`aplikacja/`)

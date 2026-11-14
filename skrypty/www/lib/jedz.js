@@ -164,11 +164,13 @@
   // prędkość na płaskim (km/h) – spokojna jazda rekreacyjna; ścieżki piesze i drogi bez oceny wolniej
   const V0 = {osm: 17, dobra: 17, srednia: 13, trudna: 9, nieprzejezdna: 4, brak: 13};
   // wpływ nachylenia: pod górę wyraźnie wolniej (5% ≈ o połowę), z górki szybciej, ale z umiarem i nie po wertepach
+  // tempo rowerzysty na płaskim, po dobrej drodze (suwak w podglądzie trasy, zapamiętane w telefonie): 17 km/h = rekreacyjnie
+  let VU = Math.max(8, Math.min(40, +LS.get('vplaska', 17) || 17));
   function predkosc(st, g) {
-    let v = V0[st] ?? 13;
+    let v = (V0[st] ?? 13) * VU / 17;
     if (g > 0) v /= 1 + 14 * g;                       // g – nachylenie jako ułamek: 2% → ok. 13 km/h, 5% → ok. 10 km/h
     else v *= Math.min(st === 'trudna' || st === 'srednia' ? 1.15 : 1.45, 1 - 7 * g);
-    return Math.max(4, Math.min(32, v));
+    return Math.max(4, Math.min(Math.max(32, VU * 1.7), v));
   }
   const wysC = new Map();
   function wysOdc(s) {
@@ -464,6 +466,15 @@
     T.prof = profil(T);
     return T;
   }
+  const tempoNazwa = v => v < 13 ? 'spacerowo' : v < 20 ? 'rekreacyjnie' : v < 27 ? 'sportowo' : 'wyczynowo';
+  function tempoSuwak(T) {
+    const r = $('p-tempo'); if (!r) return;
+    r.oninput = () => {
+      VU = +r.value; LS.set('vplaska', VU); T.prof = profil(T);
+      $('p-v').textContent = VU + ' km/h · ' + tempoNazwa(VU); $('p-czas').textContent = czasTxt(T.prof.czas);
+      clearTimeout(tempoSuwak.t); tempoSuwak.t = setTimeout(() => wykresInterakcja(T), 150);   // podpowiedzi wykresu z nowym czasem
+    };
+  }
   function wykresBlok(T) {
     const P = T.prof, ile = {};
     for (let i = 1; i < P.d.length; i++) ile[P.st[i]] = (ile[P.st[i]] || 0) + P.d[i] - P.d[i - 1];
@@ -510,7 +521,10 @@
         <button type="button" role="radio" data-t="bezp" aria-checked="${stan.tryb === 'bezp'}"><b>Bezpieczna</b><span>${kmTxt(kmB)} · omija DW i DK</span></button>
         <button type="button" role="radio" data-t="krotko" aria-checked="${stan.tryb === 'krotko'}"><b>Najkrótsza</b><span>${kmTxt(kmK)}</span></button>
       </div>
-      <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b>${czasTxt(T.prof.czas)}</b><span>jazdy spokojnym tempem</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
+      <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b id="p-czas">${czasTxt(T.prof.czas)}</b><span>czasu jazdy</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
+      <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${VU} km/h · ${tempoNazwa(VU)}</b></div>
+        <input type="range" id="p-tempo" min="8" max="40" step="1" value="${VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
+        <div class="tskala"><span>spacerowo</span><span>rekreacyjnie</span><span>sportowo</span><span>wyczynowo</span></div></div>
       ${wykresBlok(T)}
       <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich i krajowych: ${kmTxt(T.km.dw)}.` : 'Bez dróg wojewódzkich i krajowych.'}</div>
       <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}Jedź</button>
@@ -522,7 +536,7 @@
     $('b-symstart').onclick = () => startJazdy(true);
     if ($('b-gpx')) $('b-gpx').onclick = () => gpx(T);
     $('b-google').href = linkGoogle(T);
-    if (kursorM) { kursorM.remove(); kursorM = null; } wykresInterakcja(T);
+    if (kursorM) { kursorM.remove(); kursorM = null; } wykresInterakcja(T); tempoSuwak(T);
     atryb();
     map.fitBounds(L.polyline(T.ll).getBounds(), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(window.innerHeight * .55, 420)]});
   }
