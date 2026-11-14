@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Allow: /
+
+Sitemap: https://rowerowy-strzebin.smart-ant.pl/sitemap.xml

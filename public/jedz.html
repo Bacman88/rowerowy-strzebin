@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jedź – nawigacja rowerowa HUB Strzebiń (beta)</title>
+<meta name="description" content="Nawigacja rowerowa po drogach i trasach HUB rowerowego Strzebiń – prowadzi kierunkami z drogowskazów.">
+<meta name="theme-color" content="#00737e">
+<link rel="manifest" href="jedz.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jedź">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lib/leaflet.css">
+<style>
+@font-face{font-family:'Fira Sans Condensed';font-weight:600;src:url(lib/fonts/FiraSansCondensed-SemiBold.ttf) format('truetype')}
+:root{--bg:#f7f4ec;--card:#fffdf8;--line:#e3dccb;--ink:#1d2a23;--muted:#56665c;--teal:#00737e;--teal2:#00838F;--green:#1d3b30;--blue:#0759A7;--red:#8f1d1d}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.4 Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.ekran{position:fixed;inset:0;display:none;flex-direction:column}
+.ekran.on{display:flex}
+.hide{display:none!important}
+/* ekran 1: dokąd */
+.top{background:var(--green);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;align-items:center;gap:12px}
+.top .logo{width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;flex:none}
+.top b{font-size:17px;font-weight:800;display:block}.top small{font-size:12.5px;opacity:.85}
+.top .beta{margin-left:auto;background:#f2b705;color:#1d2a23;font-weight:800;font-size:11px;padding:3px 8px;border-radius:999px;letter-spacing:.05em}
+.tresc{padding:18px;display:flex;flex-direction:column;gap:14px;overflow:auto;flex:1}
+h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
+.pola{background:var(--card);border:1px solid var(--line);border-radius:14px}
+.pole{display:flex;align-items:center;gap:12px;padding:11px 14px}
+.pole+.pole{border-top:1px solid var(--line)}
+.pole .lab{font-size:12px;color:var(--muted)}
+.pole .w{flex:1;min-width:0;display:flex;flex-direction:column}
+.pole input{border:0;outline:0;padding:0;background:transparent;font-weight:600;font-size:16px;width:100%}
+.pole .val{font-weight:600;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kropka{width:14px;height:14px;border-radius:50%;background:#1d4ed8;box-shadow:0 0 0 4px rgba(29,78,216,.18);flex:none}
+.mini{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 10px;font-size:13px;font-weight:600;flex:none}
+.lista{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.lista button{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
+.lista button:first-child{border-top:0}
+.lista button:hover,.lista button:focus-visible{background:#eef6f6}
+.lista .ik{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;font-weight:800;font-size:13px}
+.lista .t{font-weight:700;font-size:15px}.lista .s{font-size:13px;color:var(--muted)}
+.sek{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.chipy{display:flex;flex-wrap:wrap;gap:8px}
+.chipy button{border:0;padding:9px 13px;border-radius:999px;background:var(--blue);color:#fff;font-weight:600;font-size:14px}
+.chipy button.g{background:#1E6B3A}.chipy button.s{background:#505C66}
+.btn2{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:14.5px;width:100%}
+.stopka{padding:12px 18px calc(14px + env(safe-area-inset-bottom));font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+.stopka a{color:var(--teal)}
+/* mapa i panele */
+#mapa{position:absolute;inset:0;background:#f4f1e8}
+#s-mapa .gora{position:absolute;left:0;right:0;top:0;z-index:600}
+#s-mapa .dol{position:absolute;left:0;right:0;bottom:0;z-index:600;background:var(--card);border-radius:20px 20px 0 0;box-shadow:0 -2px 14px rgba(0,0,0,.12);padding:10px 18px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;max-height:62vh;overflow:auto}
+#s-mapa .dol>*{flex-shrink:0}   /* panel przewija się w całości – elementy nie mogą się zgniatać (lista „Po drodze”) */
+.uchwyt{width:40px;height:4px;border-radius:2px;background:#d6cfbd;align-self:center}
+.okr{position:absolute;z-index:650;width:46px;height:46px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 6px rgba(0,0,0,.22);display:grid;place-items:center}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;height:54px;border-radius:14px;background:var(--teal2);color:#fff;border:0;font-weight:800;font-size:18px;width:100%}
+.btn:disabled{opacity:.5}
+.rzad{display:flex;gap:10px}.rzad>*{flex:1}
+.staty{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.staty div{background:var(--bg);border-radius:12px;padding:9px 11px;display:flex;flex-direction:column}
+.staty b{font-size:19px;font-weight:800}.staty span{font-size:12px;color:var(--muted)}
+.tryb{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;background:#efe9da;border-radius:12px;padding:4px}
+.tryb.t3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tryb button{border:0;background:transparent;border-radius:9px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.tryb button b{font-size:14.5px}.tryb button span{font-size:12px;color:var(--muted)}
+.tryb button[aria-checked=true]{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tryb button[aria-checked=true] b{color:var(--teal)}
+.chk{display:flex;align-items:center;gap:10px;font-size:14px}
+.chk input{width:20px;height:20px;accent-color:var(--teal2);margin:0}
+.moff-b{display:inline-block;margin-top:6px;font:inherit;font-weight:700;font-size:13.5px;padding:7px 12px;border-radius:10px;border:1px solid var(--teal);background:#fff;color:var(--teal);cursor:pointer}.moff-b:disabled{opacity:.6}
+.p-off{background:var(--bg);border-radius:12px;padding:9px 11px;font-size:13.5px}.p-off[hidden]{display:none}
+.moff{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;cursor:pointer}.moff input{margin-top:3px;accent-color:var(--teal)}
+.pn{white-space:nowrap;font-weight:700;color:#3d4a42;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;transform:translate(-50%,-50%);font-size:12px;pointer-events:none}
+.pn.r1{font-size:16px}.pn.r2{font-size:13.5px}.pn.r4{font-size:11px;font-weight:600;color:#5a665e}
+.rower{flex:none;display:flex;flex-wrap:wrap;gap:6px}.rower::-webkit-scrollbar{display:none}
+.rower button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;padding:7px 12px;border-radius:999px;cursor:pointer}
+.rower button[aria-checked="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.ostrz{background:#fff4d6;border:1px solid #f0d58a;color:#5c4400;border-radius:12px;padding:8px 11px;font-size:13.5px;line-height:1.4}
+.ostrz[hidden]{display:none}
+.tempo{background:var(--bg);border-radius:12px;padding:9px 11px 6px}
+.tnag{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted)}.tnag b{color:var(--ink);font-size:14px}
+.tempo input{width:100%;accent-color:var(--teal,#00737e);margin:6px 0 2px;height:28px}
+.tskala{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.wykres{background:var(--bg);border-radius:12px;padding:9px 11px 8px}
+.wnag{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}.wg{font-size:13px;font-weight:700}
+.profil{display:block;touch-action:none;cursor:crosshair;overflow:visible}.profil text{font-size:10px;fill:#56665c;font-family:inherit}.profil .zl{font-weight:700}
+.wpod{font-size:12px;color:var(--muted);min-height:16px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:12px}.leg span{display:inline-flex;align-items:center;gap:5px}.leg i{width:12px;height:8px;border-radius:2px;display:inline-block}
+.manew{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.manew div{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
+.manew div:first-child{border-top:0}
+.manew .km{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap}
+.msg{font-size:13.5px;line-height:1.45;color:var(--muted)}
+.msg.err{color:var(--red)}
+/* jazda */
+.pasek{background:var(--teal);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.pasek .r1{display:flex;align-items:center;gap:14px}
+.pasek .strz{width:64px;height:64px;border-radius:16px;background:#fff;display:grid;place-items:center;flex:none}
+.pasek .lab{font-size:13.5px;opacity:.88}
+.pasek .odl{font-size:34px;font-weight:800;line-height:1}
+.pasek .co{font-size:16px;font-weight:700;line-height:1.25}
+.pasek .tab{background:rgba(255,255,255,.14);border-radius:12px;padding:6px 8px;display:flex;justify-content:center}
+.pasek .tab svg{width:100%;max-width:280px;height:auto}
+.jdol{display:flex;align-items:center;gap:12px}
+.jdol .w{flex:1}.jdol b{font-size:22px;font-weight:800}.jdol small{display:block;font-size:13px;color:var(--muted)}
+.stop{height:48px;padding:0 18px;border-radius:12px;background:#f9e3e3;color:var(--red);font-weight:700;border:0}
+.status{position:absolute;left:12px;z-index:650;background:#fff;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;box-shadow:0 1px 6px rgba(0,0,0,.18);display:flex;align-items:center;gap:6px}
+.status i{width:9px;height:9px;border-radius:50%;background:#2e9e5b}
+.status.zle i{background:#d97706}
+/* ekran kierunku (4b) */
+#s-kier{background:var(--bg);z-index:900}
+#s-kier .k1{padding:calc(40px + env(safe-area-inset-top)) 22px 0;display:flex;flex-direction:column;gap:18px;flex:1}
+#s-kier .duzy{display:flex;align-items:center;gap:12px}
+#s-kier .duzy b{font-size:32px;font-weight:800;line-height:1.1}
+#s-kier svg.tb{width:100%;height:auto}
+#s-kier .potem{margin:auto 18px calc(18px + env(safe-area-inset-bottom));background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14.5px}
+#s-kier .auto{text-align:center;font-size:13px;color:var(--muted);padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+.leaflet-container{font-family:Inter,system-ui,sans-serif}
+.ja{width:30px;height:30px}
+.cel-m{width:26px;height:26px;border-radius:50%;background:var(--green);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);display:grid;place-items:center}
+.km-m{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--teal2);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sym{position:absolute;right:12px;z-index:650;background:#f2b705;color:#1d2a23;border:0;border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:800}
+</style>
+</head>
+<body>
+
+<!-- 1. Dokąd jedziesz? -->
+<section class="ekran on" id="s-cel" aria-label="Wybór celu">
+  <div class="top">
+    <div class="logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0759A7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M5.5 17 9 8h6l3.5 9M9 8l3 9h6.5M14 5h2.5"/></svg></div>
+    <div><b>Jedź</b><small>HUB rowerowy Strzebiń</small></div>
+    <span class="beta">BETA</span>
+  </div>
+  <div class="tresc">
+    <h1>Dokąd jedziesz?</h1>
+    <div class="pola">
+      <div class="pole">
+        <span class="kropka"></span>
+        <div class="w"><span class="lab">Skąd</span><span class="val" id="skad-t">Twoja lokalizacja</span></div>
+        <button type="button" class="mini" id="skad-zmien">Zmień</button>
+      </div>
+      <label class="pole">
+        <svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true"><path d="M2 17V1l10 4-10 4" fill="none" stroke="#1d3b30" stroke-width="2.2" stroke-linejoin="round"/></svg>
+        <span class="w"><span class="lab">Dokąd</span><input id="szukaj" type="search" autocomplete="off" placeholder="miejscowość, ulica, miejsce…" enterkeyhint="search"></span>
+      </label>
+    </div>
+    <div class="lista hide" id="wyniki" role="listbox" aria-label="Wyniki wyszukiwania"></div>
+    <div id="szybkie">
+      <div class="sek" style="margin-bottom:8px">Szybki wybór</div>
+      <div class="chipy" id="chipy"></div>
+    </div>
+    <button type="button" class="btn2" id="cel-mapa"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Wskaż cel na mapie</button>
+    <p class="msg" id="msg-cel"></p>
+    <button type="button" class="btn2 hide" id="b-instaluj" style="background:#e6f2f2;border-color:#b9dcdc;color:#00737e"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3M10 18h4"/></svg>Zainstaluj na telefonie</button>
+  </div>
+  <div class="stopka">Wersja testowa. Prowadzimy tylko po drogach z mapy HUB (Koszęcin i okolice) – drogowskazów w terenie jeszcze nie ma, apka pokazuje, jak będą wyglądać. <a href="#" id="b-uwagi">Zgłoś błąd / sugestię</a> · <a href="./">← Strona projektu</a> · <a href="polityka-prywatnosci.html">Prywatność</a> · Wysokości: NMT, źródło: <a href="https://www.geoportal.gov.pl" target="_blank" rel="noopener">GUGiK</a></div>
+</section>
+
+<!-- instrukcja instalacji na iPhonie -->
+<div class="hide" id="ios" role="dialog" aria-modal="true" aria-labelledby="ios-t" style="position:fixed;inset:0;z-index:2000;background:rgba(20,30,25,.55);display:flex;align-items:flex-end">
+  <div style="background:var(--card);width:100%;border-radius:20px 20px 0 0;padding:18px 20px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px">
+    <div class="uchwyt"></div>
+    <b id="ios-t" style="font-size:20px">Dodaj „Jedź” do ekranu początkowego</b>
+    <ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:12px;font-size:15.5px">
+      <li>Otwórz tę stronę w <b>Safari</b>.</li>
+      <li>Stuknij <b>Udostępnij</b> <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-5px" aria-label="ikona Udostępnij"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M7 10H5v11h14V10h-2"/></svg> na dolnym pasku (na iPadzie – u góry).</li>
+      <li>Przewiń listę i wybierz <b>„Do ekranu początkowego”</b> <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2" stroke-linecap="round" style="vertical-align:-5px" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>, potem <b>Dodaj</b>.</li>
+    </ol>
+    <p class="msg" style="margin:0">Ikona „Jedź” pojawi się obok innych aplikacji i otworzy nawigację na pełnym ekranie.</p>
+    <button type="button" class="btn" id="ios-ok" style="height:48px;font-size:16px">Rozumiem</button>
+  </div>
+</div>
+
+<!-- 2./3. Mapa: wybór punktu, podgląd trasy, jazda -->
+<section class="ekran" id="s-mapa" aria-label="Mapa">
+  <div id="mapa"></div>
+  <div class="gora" id="gora"></div>
+  <button type="button" class="okr hide" id="wstecz" aria-label="Wróć" style="top:calc(14px + env(safe-area-inset-top));left:14px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <div id="prawe" style="position:absolute;right:12px;z-index:650;display:flex;flex-direction:column;gap:8px">
+    <button type="button" class="okr hide" id="b-glos" aria-label="Komunikaty głosowe" style="position:static"></button>
+    <button type="button" class="okr hide" id="b-kurs" aria-label="Obracaj mapę w kierunku jazdy" style="position:static"></button>
+    <button type="button" class="okr hide" id="b-3d" aria-label="Widok pochylony (3D)" style="position:static">3D</button>
+    <button type="button" class="okr hide" id="b-srodek" aria-label="Wyśrodkuj na mnie" style="position:static"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+  </div>
+  <div class="status hide" id="status"><i></i><span>Na trasie</span></div>
+  <button type="button" class="sym hide" id="b-sym">Symulacja: ×1</button>
+  <div class="dol" id="dol"></div>
+  <div id="atryb" style="position:absolute;right:6px;z-index:590;font-size:10.5px;color:#56665c;background:rgba(255,255,255,.75);padding:1px 6px;border-radius:4px;bottom:4px">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">OpenStreetMap</a></div>
+</section>
+
+<!-- 4b. Przy drogowskazie -->
+<section class="ekran" id="s-kier" aria-live="assertive" aria-label="Kierunek">
+  <div class="k1">
+    <div class="duzy"><span id="k-strz"></span><b id="k-tekst"></b></div>
+    <div id="k-tab"></div>
+    <p class="msg" id="k-opis"></p>
+  </div>
+  <div class="potem" id="k-potem"></div>
+  <div class="auto">Ekran sam wróci do mapy, gdy odjedziesz od skrzyżowania</div>
+</section>
+
+<script src="lib/leaflet.js"></script>
+<script src="stan/odcinki.js"></script>
+<script src="stan/jedz.js"></script>
+<script src="stan/wysokosci.js"></script>
+<script src="data.js"></script>
+<script src="lib/ikony.js"></script>
+<script src="lib/tabliczka-dane.js"></script>
+<script src="lib/tabliczka.js"></script>
+<script src="lib/jedz/wspolne.js"></script>
+<script src="lib/jedz/graf.js"></script>
+<script src="lib/jedz/profil.js"></script>
+<script src="lib/jedz/manewry.js"></script>
+<script src="lib/jedz/podklad.js"></script>
+<script src="lib/uwagi.js"></script>
+<script src="lib/jedz.js"></script>
+</body>
+</html>
