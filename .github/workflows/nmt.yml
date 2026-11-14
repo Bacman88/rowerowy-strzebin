@@ -1,0 +1,24 @@
+name: NMT
+on:
+  push:
+    branches: [wysokosci]
+permissions:
+  contents: write
+jobs:
+  nmt:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install rasterio pyproj requests numpy
+      - run: python pobierz_nmt.py
+        timeout-minutes: 40
+      - name: Wydanie z danymi
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la
+          gh release delete nmt -y --cleanup-tag || true
+          gh release create nmt --target wysokosci --title "Model terenu (dane robocze)" --notes "Dane robocze: NMT GUGiK (siatka 5 m) dla okolic Koszęcina – do profili wysokości w nawigacji Jedź." --prerelease log.txt $(ls nmt.npz cop.npz gugik_cap*.xml 2>/dev/null)
