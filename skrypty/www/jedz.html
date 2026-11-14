@@ -72,6 +72,11 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .tryb button[aria-checked=true] b{color:var(--teal)}
 .chk{display:flex;align-items:center;gap:10px;font-size:14px}
 .chk input{width:20px;height:20px;accent-color:var(--teal2);margin:0}
+.wykres{background:var(--bg);border-radius:12px;padding:9px 11px 8px}
+.wnag{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}.wg{font-size:13px;font-weight:700}
+.profil{display:block;touch-action:none;cursor:crosshair;overflow:visible}.profil text{font-size:10px;fill:#56665c;font-family:inherit}.profil .zl{font-weight:700}
+.wpod{font-size:12px;color:var(--muted);min-height:16px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:12px}.leg span{display:inline-flex;align-items:center;gap:5px}.leg i{width:12px;height:8px;border-radius:2px;display:inline-block}
 .manew{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .manew div{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
 .manew div:first-child{border-top:0}
@@ -139,7 +144,7 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
     <p class="msg" id="msg-cel"></p>
     <button type="button" class="btn2 hide" id="b-instaluj" style="background:#e6f2f2;border-color:#b9dcdc;color:#00737e"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3M10 18h4"/></svg>Zainstaluj na telefonie</button>
   </div>
-  <div class="stopka">Wersja testowa. Prowadzimy tylko po drogach z mapy HUB (Koszęcin i okolice) – drogowskazów w terenie jeszcze nie ma, apka pokazuje, jak będą wyglądać. <a href="./">← Strona projektu</a> · <a href="polityka-prywatnosci.html">Prywatność</a></div>
+  <div class="stopka">Wersja testowa. Prowadzimy tylko po drogach z mapy HUB (Koszęcin i okolice) – drogowskazów w terenie jeszcze nie ma, apka pokazuje, jak będą wyglądać. <a href="./">← Strona projektu</a> · <a href="polityka-prywatnosci.html">Prywatność</a> · Wysokości: NMT, źródło: <a href="https://www.geoportal.gov.pl" target="_blank" rel="noopener">GUGiK</a></div>
 </section>
 
 <!-- instrukcja instalacji na iPhonie -->
@@ -188,6 +193,7 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 <script src="lib/leaflet.js"></script>
 <script src="stan/odcinki.js"></script>
 <script src="stan/jedz.js"></script>
+<script src="stan/wysokosci.js"></script>
 <script src="data.js"></script>
 <script src="lib/ikony.js"></script>
 <script src="lib/tabliczka-dane.js"></script>

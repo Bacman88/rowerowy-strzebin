@@ -100,6 +100,11 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
 - `skrypty/jedz_dane.py` (po `odcinki.py`) → `stan/jedz.js`: odcinki na trasach i odcinki DW z ciągiem pieszo-rowerowym (z pomiarów uMap).
 - Prowadzenie „następny kierunek”: przy przyszłych drogowskazach – tabliczka tak, jak widzi ją nadjeżdżający; poza nimi – skręty z nazwami ulic. Zejście z trasy → przeliczenie od bieżącej pozycji.
 - Kierunek tabliczki: pole `g` (azymut) w `data.js` (strona.py). Symulacja przejazdu do testów w domu.
+- Profil trasy: wykres wysokości (pole w kolorach nawierzchni) i pasek nawierzchni; przeciąganie palcem pokazuje miejsce na mapie.
+  `skrypty/wysokosci.py` (po `jedz_dane.py`) → `stan/wysokosci.js`: wysokości co 25 m wzdłuż odcinków z NMT GUGiK (siatka 5 m).
+  Model terenu (`dane/nmt.npz`, poza repo) pobiera się sam z wydania `nmt` – tworzy je workflow NMT na gałęzi `wysokosci` (WCS GUGiK).
+- Czas jazdy: prędkość zależna od nawierzchni (17 km/h utwardzona, 13 średnia/bez oceny, 9 trudna) i nachylenia (pod górę wolniej, z górki szybciej);
+  w trakcie jazdy czas dojazdu i godzina przyjazdu dopasowują się do Twojego tempa (postoje się nie liczą).
 
 ## Aplikacja na Androida (`aplikacja/`)
 Capacitor opakowuje stronę „Jedź” w aplikację z lokalizacją w tle (usługa z powiadomieniem – nawigacja na zgaszonym ekranie) i głosem (syntezator telefonu).

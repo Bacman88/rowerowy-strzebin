@@ -11,6 +11,7 @@ cp "$SRC"/lib/{jedz.js,leaflet.js,leaflet.css,ikony.js,tabliczka-dane.js,tablicz
 cp "$SRC/lib/fonts/FiraSansCondensed-SemiBold.ttf" "$DST/lib/fonts/"
 [ -d "$SRC/lib/images" ] && cp -r "$SRC/lib/images" "$DST/lib/"
 cp "$SRC/stan/odcinki.js" "$SRC/stan/jedz.js" "$DST/stan/"
+[ -f "$SRC/stan/wysokosci.js" ] && cp "$SRC/stan/wysokosci.js" "$DST/stan/" || echo "window.WYS=null;" > "$DST/stan/wysokosci.js"
 STRONA="https://rowerowy-strzebin.smart-ant.pl/"
 sed -i -e "s|href=\"\./\"|href=\"$STRONA\"|g" -e "s|href=\"polityka-prywatnosci.html\"|href=\"${STRONA}polityka-prywatnosci.html\"|g" \
        -e 's|<link rel="manifest" href="jedz.webmanifest">||' "$DST/index.html"

@@ -4,7 +4,7 @@
 // poza słupkami – skręty z nazwami ulic.
 (() => {
   'use strict';
-  const H = window.HUB, ODC = window.ODC || [], J = window.JEDZ || {trasy: [], rower: []}, TB = window.TABLICZKA;
+  const H = window.HUB, ODC = window.ODC || [], J = window.JEDZ || {trasy: [], rower: []}, TB = window.TABLICZKA, WYS = window.WYS || null;
   const $ = id => document.getElementById(id);
   const rad = Math.PI / 180, RZ = 6371000;
   const dist = (a, b) => { const x = (b[1] - a[1]) * rad * Math.cos((a[0] + b[0]) / 2 * rad), y = (b[0] - a[0]) * rad; return Math.hypot(x, y) * RZ; };
@@ -12,7 +12,8 @@
   const kat = (a, b) => ((a - b + 540) % 360) - 180;       // a względem b, -180..180 (+ = w prawo)
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
   const kmTxt = m => m < 950 ? (Math.round(m / 10) * 10) + ' m' : (m / 1000).toFixed(m < 9950 ? 1 : 0).replace('.', ',') + ' km';
-  const minTxt = m => { const t = Math.max(1, Math.round(m / 1000 / 15 * 60)); return t < 60 ? '~' + t + ' min' : '~' + Math.floor(t / 60) + ' h ' + (t % 60) + ' min'; };
+  const czasTxt = sek => { const t = Math.max(1, Math.round(sek / 60)); return t < 60 ? '~' + t + ' min' : '~' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + ' h'; };
+  const godz = sek => { const d = new Date(Date.now() + sek * 1000); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
   const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
   // aplikacja na Androida (Capacitor): GPS z usługą w tle (jazda na zgaszonym ekranie) i głos z syntezatora telefonu
   const CAP = window.Capacitor;
@@ -150,6 +151,111 @@
     let lo = 0, hi = T.cum.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (T.cum[m] <= d) lo = m; else hi = m; }
     const a = T.ll[lo], b = T.ll[hi], L = T.cum[hi] - T.cum[lo] || 1, t = (d - T.cum[lo]) / L;
     return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  }
+
+  // ===================== wysokości, nawierzchnia i czas jazdy =====================
+  // stan/wysokosci.js: window.WYS = {k: krok (m), z: {id odcinka: [wysokość w dm, różnice…]}} – próbki co ~k m wzdłuż odcinka
+  //   (numeryczny model terenu GUGiK). Bez pliku: profil płaski, czas tylko z nawierzchni.
+  const KOLST = {osm: '#8fcf9c', dobra: '#2b9348', srednia: '#e0a800', trudna: '#d62828', nieprzejezdna: '#111', brak: '#9aa3a8'};
+  const NAZST = {osm: 'utwardzona', dobra: 'dobra', srednia: 'średnia', trudna: 'trudna', nieprzejezdna: 'nieprzejezdna', brak: 'bez oceny'};
+  const UTW = /asfalt|kostka|beton|płyty|plyty|paved|asphalt|concrete/i;
+  // rodzaj nawierzchni do wykresu i prędkości: ocena mieszkańców / pomiar, a bez niej – utwardzona wg OSM albo „bez oceny”
+  const stOdc = s => !s ? null : s[4] && s[4] !== 'osm' ? s[4] : (s[4] === 'osm' || UTW.test(s[3] || '')) ? 'osm' : 'brak';
+  // prędkość na płaskim (km/h) – spokojna jazda rekreacyjna; ścieżki piesze i drogi bez oceny wolniej
+  const V0 = {osm: 17, dobra: 17, srednia: 13, trudna: 9, nieprzejezdna: 4, brak: 13};
+  // wpływ nachylenia: pod górę wyraźnie wolniej (5% ≈ o połowę), z górki szybciej, ale z umiarem i nie po wertepach
+  function predkosc(st, g) {
+    let v = V0[st] ?? 13;
+    if (g > 0) v /= 1 + 14 * g;                       // g – nachylenie jako ułamek: 2% → ok. 13 km/h, 5% → ok. 10 km/h
+    else v *= Math.min(st === 'trudna' || st === 'srednia' ? 1.15 : 1.45, 1 - 7 * g);
+    return Math.max(4, Math.min(32, v));
+  }
+  const wysC = new Map();
+  function wysOdc(s) {
+    if (wysC.has(s)) return wysC.get(s);
+    const a = WYS && WYS.z[s[0]]; let w = null;
+    if (a && a.length) {
+      const z = []; let v = 0; for (const d of a) { v += d; z.push(v / 10); }
+      const c = s[7], ll = [], cum = [0]; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
+      for (let i = 1; i < ll.length; i++) cum.push(cum[i - 1] + dist(ll[i - 1], ll[i]));
+      w = {z, ll, cum, L: cum[cum.length - 1]};
+    }
+    wysC.set(s, w); return w;
+  }
+  // wysokość punktu leżącego na odcinku s (rzut na linię odcinka → odległość wzdłuż → interpolacja próbek)
+  function wysPkt(s, p) {
+    const w = s && wysOdc(s); if (!w) return null;
+    const n = w.z.length - 1; if (n < 1) return w.z[0];
+    let bd = Infinity, pos = 0; const kx = Math.cos(p[0] * rad);
+    for (let i = 0; i < w.ll.length - 1; i++) {
+      const A = w.ll[i], B = w.ll[i + 1], ax = (A[1] - p[1]) * kx, ay = A[0] - p[0], vx = (B[1] - A[1]) * kx, vy = B[0] - A[0], L2 = vx * vx + vy * vy;
+      const t = L2 ? Math.max(0, Math.min(1, -(ax * vx + ay * vy) / L2)) : 0, d = Math.hypot(ax + t * vx, ay + t * vy);
+      if (d < bd) { bd = d; pos = w.cum[i] + t * (w.cum[i + 1] - w.cum[i]); }
+    }
+    const f = w.L ? pos / w.L * n : 0, i = Math.min(n - 1, Math.floor(f));
+    return w.z[i] + (w.z[i + 1] - w.z[i]) * (f - i);
+  }
+  // profil trasy co ~20 m: odległość, wysokość (wygładzona), rodzaj nawierzchni, czas od startu (s)
+  function profil(T) {
+    const d = [], z = [], st = [];
+    for (let i = 0; i < T.ll.length - 1; i++) {
+      const s = T.seg[i], a = T.ll[i], b = T.ll[i + 1], L = T.cum[i + 1] - T.cum[i], n = Math.max(1, Math.round(L / 20));
+      for (let k = (i ? 1 : 0); k <= n; k++) {
+        const t = k / n, p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+        d.push(T.cum[i] + L * t); z.push(wysPkt(s, p)); st.push(stOdc(s) || stOdc(T.seg[i - 1]) || stOdc(T.seg[i + 1]) || 'brak');
+      }
+    }
+    // dziury (dojazd do drogi, odcinki bez danych) – interpolacja między znanymi wysokościami
+    const zn = z.map((v, i) => v == null ? -1 : i).filter(i => i >= 0);
+    const jest = zn.length > 0;
+    if (jest) for (let i = 0, k = 0; i < z.length; i++) {
+      if (z[i] != null) continue;
+      while (k < zn.length - 1 && zn[k + 1] < i) k++;
+      const lo = zn[k] < i ? zn[k] : null, hi = zn.find(j => j > i);
+      z[i] = lo == null ? z[hi] : hi == null ? z[lo] : z[lo] + (z[hi] - z[lo]) * (d[i] - d[lo]) / (d[hi] - d[lo]);
+    } else z.fill(0);
+    // wygładzenie ~±40 m (nasypy, rowy i szum modelu nie mogą udawać podjazdów)
+    const zs = z.map((_, i) => { let a = 0, c = 0; for (let j = i; j >= 0 && d[i] - d[j] <= 40; j--) { a += z[j]; c++; } for (let j = i + 1; j < z.length && d[j] - d[i] <= 40; j++) { a += z[j]; c++; } return a / c; });
+    const tc = [0]; let up = 0, down = 0, ref = zs[0];
+    for (let i = 1; i < d.length; i++) {
+      const L = d[i] - d[i - 1]; if (L <= 0) { tc.push(tc[i - 1]); continue; }
+      const g = (zs[i] - zs[i - 1]) / L;
+      tc.push(tc[i - 1] + L / (predkosc(st[i], Math.max(-0.12, Math.min(0.12, g))) / 3.6));
+      if (zs[i] - ref > 2) { up += zs[i] - ref; ref = zs[i]; } else if (ref - zs[i] > 2) { down += ref - zs[i]; ref = zs[i]; }
+    }
+    return {d, z: zs, st, tc, czas: tc[tc.length - 1], up, down, wys: jest};
+  }
+  // czas (s) od startu do punktu trasy w odległości w (m)
+  function czasDo(T, w) {
+    const P = T.prof; if (!P) return w / (15 / 3.6);
+    let lo = 0, hi = P.d.length - 1; if (w >= P.d[hi]) return P.tc[hi];
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (P.d[m] <= w) lo = m; else hi = m; }
+    return P.tc[lo] + (P.tc[hi] - P.tc[lo]) * (w - P.d[lo]) / ((P.d[hi] - P.d[lo]) || 1);
+  }
+  // wykres: wysokość (pole kolorowane rodzajem nawierzchni) + pasek nawierzchni pod spodem
+  function wykresSVG(P, W = 340) {
+    const H1 = 92, H2 = 12, G = 6, top = 8, Hh = H1 + G + H2 + 16, M = P.d[P.d.length - 1] || 1;
+    let zmin = Math.min(...P.z), zmax = Math.max(...P.z); if (zmax - zmin < 20) { const s = (20 - (zmax - zmin)) / 2; zmin -= s; zmax += s; }
+    const X = d => (d / M * W).toFixed(1), Y = z => (top + (H1 - top) * (1 - (z - zmin) / (zmax - zmin))).toFixed(1);
+    let pola = '', pasek = '', i0 = 0;
+    for (let i = 1; i <= P.d.length; i++) {
+      if (i < P.d.length && P.st[i] === P.st[i0]) continue;
+      const a = i0, b = Math.min(i, P.d.length - 1), kol = KOLST[P.st[i0]] || KOLST.brak;
+      let pts = `${X(P.d[a])},${H1} `; for (let j = a; j <= b; j++) pts += `${X(P.d[j])},${Y(P.z[j])} `; pts += `${X(P.d[b])},${H1}`;
+      pola += `<polygon points="${pts}" fill="${kol}" fill-opacity=".38"/>`;
+      pasek += `<rect x="${X(P.d[a])}" y="${H1 + G}" width="${Math.max(1, X(P.d[b]) - X(P.d[a])).toFixed(1)}" height="${H2}" fill="${kol}"/>`;
+      i0 = i;
+    }
+    const linia = P.z.map((z, i) => `${i ? 'L' : 'M'}${X(P.d[i])},${Y(z)}`).join('');
+    const km = M / 1000, krok = km > 20 ? 5 : km > 8 ? 2 : km > 3 ? 1 : .5;
+    let os = ''; for (let k = krok; k < km - krok * .3; k += krok) os += `<text x="${X(k * 1000)}" y="${Hh - 2}" text-anchor="middle">${String(+k.toFixed(1)).replace('.', ',')}</text><line x1="${X(k * 1000)}" x2="${X(k * 1000)}" y1="${H1 + G + H2}" y2="${H1 + G + H2 + 3}" stroke="#9aa3a8"/>`;
+    const zTxt = z => Math.round(z) + ' m';
+    return `<svg class="profil" viewBox="0 0 ${W} ${Hh}" width="100%" height="${Hh}" role="img" aria-label="Profil wysokości i nawierzchnia trasy">
+      <line x1="0" x2="${W}" y1="${Y(zmax)}" y2="${Y(zmax)}" stroke="#e3dccb" stroke-dasharray="3 3"/><line x1="0" x2="${W}" y1="${H1}" y2="${H1}" stroke="#e3dccb"/>
+      ${P.wys ? pola + `<path d="${linia}" fill="none" stroke="#1d2a23" stroke-width="1.6" vector-effect="non-scaling-stroke"/>` : ''}
+      <text x="3" y="${+Y(zmax) - 2}" class="zl">${P.wys ? zTxt(zmax) : ''}</text><text x="3" y="${H1 - 3}" class="zl">${P.wys ? zTxt(zmin) : ''}</text>
+      ${pasek}${os}<text x="${W - 2}" y="${Hh - 2}" text-anchor="end">km</text>
+      <line class="kursor" x1="0" x2="0" y1="0" y2="${H1 + G + H2}" stroke="#1d4ed8" stroke-width="2" vector-effect="non-scaling-stroke" style="display:none"/></svg>`;
   }
 
   // ===================== manewry =====================
@@ -355,7 +461,33 @@
     const T = trasuj(stan.start, stan.cel, opc);
     if (T.blad) return T;
     T.km = {dw: 0, trasy: 0}; for (let i = 0; i < T.seg.length; i++) { const s = T.seg[i]; if (!s) continue; const d = T.cum[i + 1] - T.cum[i]; if (DW(s) && !ROWER.has(s[0])) T.km.dw += d; if (TRASY.has(s[0])) T.km.trasy += d; }
+    T.prof = profil(T);
     return T;
+  }
+  function wykresBlok(T) {
+    const P = T.prof, ile = {};
+    for (let i = 1; i < P.d.length; i++) ile[P.st[i]] = (ile[P.st[i]] || 0) + P.d[i] - P.d[i - 1];
+    const leg = ['osm', 'dobra', 'srednia', 'trudna', 'brak', 'nieprzejezdna'].filter(k => ile[k] > 30)
+      .map(k => `<span><i style="background:${KOLST[k]}"></i>${NAZST[k]} ${kmTxt(ile[k])}</span>`).join('');
+    return `<div class="wykres"><div class="wnag"><span class="sek">Profil i nawierzchnia</span>${P.wys ? `<span class="wg">↑ ${Math.round(P.up)} m · ↓ ${Math.round(P.down)} m</span>` : ''}</div>
+      <div id="wyk">${wykresSVG(P)}</div><div class="wpod" id="wpod">${P.wys ? 'Przesuń palcem po wykresie, żeby zobaczyć miejsce na mapie.' : 'Brak danych o wysokości – pokazujemy samą nawierzchnię.'}</div>
+      <div class="leg">${leg}</div></div>`;
+  }
+  let kursorM = null;
+  function wykresInterakcja(T) {
+    const box = $('wyk'); if (!box) return; box.innerHTML = wykresSVG(T.prof, Math.max(200, Math.round(box.clientWidth))); const svg = box.querySelector('svg'), kur = svg.querySelector('.kursor'), P = T.prof, M = P.d[P.d.length - 1];
+    const pokaz = e => {
+      const r = svg.getBoundingClientRect(), x = Math.max(0, Math.min(1, ((e.touches ? e.touches[0].clientX : e.clientX) - r.left) / r.width)), w = x * M;
+      let i = 0; while (i < P.d.length - 1 && P.d[i + 1] < w) i++;
+      const vb = svg.viewBox.baseVal.width; kur.setAttribute('x1', x * vb); kur.setAttribute('x2', x * vb); kur.style.display = '';
+      const p = wDal(T, w);
+      if (!kursorM) kursorM = L.circleMarker(p, {radius: 7, color: '#fff', weight: 3, fillColor: '#1d4ed8', fillOpacity: 1, interactive: false}).addTo(map); else kursorM.setLatLng(p);
+      $('wpod').textContent = `${kmTxt(w)} od startu${P.wys ? ' · ' + Math.round(P.z[i]) + ' m n.p.m.' : ''} · ${NAZST[P.st[i]]} · ${czasTxt(P.tc[i])}`;
+    };
+    const ukryj = () => { kur.style.display = 'none'; if (kursorM) { kursorM.remove(); kursorM = null; } };
+    svg.addEventListener('pointermove', pokaz); svg.addEventListener('pointerdown', pokaz);
+    svg.addEventListener('touchmove', e => { pokaz(e); e.preventDefault(); }, {passive: false});
+    svg.addEventListener('pointerleave', ukryj);
   }
   function podglad() {
     mapa(); ekran('s-mapa'); panele('podglad'); stan.wybor = null;
@@ -378,7 +510,8 @@
         <button type="button" role="radio" data-t="bezp" aria-checked="${stan.tryb === 'bezp'}"><b>Bezpieczna</b><span>${kmTxt(kmB)} · omija DW i DK</span></button>
         <button type="button" role="radio" data-t="krotko" aria-checked="${stan.tryb === 'krotko'}"><b>Najkrótsza</b><span>${kmTxt(kmK)}</span></button>
       </div>
-      <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b>${minTxt(T.m)}</b><span>przy 15 km/h</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
+      <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b>${czasTxt(T.prof.czas)}</b><span>jazdy spokojnym tempem</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
+      ${wykresBlok(T)}
       <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich i krajowych: ${kmTxt(T.km.dw)}.` : 'Bez dróg wojewódzkich i krajowych.'}</div>
       <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}Jedź</button>
       <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a>${NAT ? '' : '<button type="button" class="btn2" id="b-gpx">GPX</button>'}</div>
@@ -389,6 +522,7 @@
     $('b-symstart').onclick = () => startJazdy(true);
     if ($('b-gpx')) $('b-gpx').onclick = () => gpx(T);
     $('b-google').href = linkGoogle(T);
+    if (kursorM) { kursorM.remove(); kursorM = null; } wykresInterakcja(T);
     atryb();
     map.fitBounds(L.polyline(T.ll).getBounds(), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(window.innerHeight * .55, 420)]});
   }
@@ -428,7 +562,7 @@
     $('b-kurs').style.background = obrocona ? '#00737e' : '#fff'; $('b-kurs').style.boxShadow = obrocona ? '0 0 0 3px #fff, 0 1px 6px rgba(0,0,0,.3)' : '';
     $('b-kurs').querySelector('svg path:last-of-type').setAttribute('fill', obrocona ? '#cfe6e6' : '#9aa3a8'); }
   function startJazdy(symulacja) {
-    stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; zapowiedz = new Set(); kierPokaz = null; sledz = true;
+    stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; Object.assign(tempo, {real: 0, mod: 0, t: 0, v: 0, k: 1}); zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
     $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
     $('b-stop').onclick = koniecJazdy;
@@ -485,8 +619,19 @@
       return;
     }
     poza = 0; $('status').className = 'status'; $('status').querySelector('span').textContent = acc > 40 ? 'Słaby GPS (±' + Math.round(acc) + ' m)' : 'Na trasie';
-    if (r.w >= wzdluz - 30) { wzdluz = Math.max(wzdluz, r.w); idx = r.i; }
+    if (r.w >= wzdluz - 30) { const przed = wzdluz; wzdluz = Math.max(wzdluz, r.w); idx = r.i; tempoAkt(przed, wzdluz); }
     odswiez();
+  }
+  // tempo rowerzysty: porównujemy faktyczny czas jazdy z czasem z modelu (postoje na skrzyżowaniach pomijamy);
+  // na starcie zakładamy tempo z modelu, a im dłużej jedziesz, tym bardziej czas dojazdu opiera się na Twoim tempie
+  const tempo = {real: 0, mod: 0, t: 0, v: 0, k: 1};
+  function tempoAkt(w1, w2) {
+    const t = Date.now(), dt = tempo.t ? (t - tempo.t) / 1000 : 0; tempo.t = t;
+    if (!dt || dt > 30 || w2 <= w1) { if (dt > 3) tempo.v *= .5; return; }
+    const v = (w2 - w1) / dt; tempo.v = tempo.v ? tempo.v * .6 + v * .4 : v;
+    if (v < 0.8) return;                                   // stoisz / prowadzisz rower – nie liczymy
+    tempo.real += dt; tempo.mod += czasDo(stan.T, w2) - czasDo(stan.T, w1);
+    tempo.k = Math.max(0.6, Math.min(2, (tempo.real + 120) / (tempo.mod + 120)));
   }
   function przelicz(p) {
     stan.start = p; const T = policz(); if (T.blad) return;
@@ -515,10 +660,11 @@
     if ($('gora').dataset.h !== html) { $('gora').innerHTML = html; $('gora').dataset.h = html; }
     const g = $('gora').getBoundingClientRect().height;
     $('prawe').style.top = (g + 12) + 'px'; $('status').style.top = (g + 12) + 'px'; $('b-sym').style.top = (g + 12) + 'px'; $('b-sym').style.right = '70px';
-    $('j-zost').textContent = kmTxt(zost) + ' · ' + minTxt(zost);
+    const pozost = Math.max(0, (czasDo(T, T.m) - czasDo(T, wzdluz)) * tempo.k);
+    $('j-zost').textContent = kmTxt(zost) + ' · ' + czasTxt(pozost) + ' · ' + godz(pozost);
     if (!odswiez.at) { odswiez.at = 1; atryb(); }
     const nTab = M.filter(m => m.typ === 'tab' && m.c > wzdluz).length;
-    $('j-opis').textContent = 'do: ' + stan.celN + (nTab ? ' · ' + nTab + ' drogowsk' + (nTab === 1 ? 'az' : nTab < 5 ? 'azy' : 'azów') + ' po drodze' : '');
+    $('j-opis').textContent = (tempo.v > 0.8 ? Math.round(tempo.v * 3.6) + ' km/h · ' : '') + 'do: ' + stan.celN + (nTab ? ' · ' + nTab + ' drogowsk' + (nTab === 1 ? 'az' : nTab < 5 ? 'azy' : 'azów') + ' po drodze' : '');
     // zapowiedzi głosowe: ~150 m przed i na miejscu
     if (nast.typ !== 'cel') {
       const k = M.indexOf(nast);

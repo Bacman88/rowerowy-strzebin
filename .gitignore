@@ -4,3 +4,4 @@ skrypty/signs_prop.json
 skrypty/kierunki_raport.json
 __pycache__/
 *.pyc
+dane/nmt.npz

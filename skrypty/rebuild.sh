@@ -33,4 +33,5 @@ python3 -I kontrola_tabliczek.py signs_prop.json $O/drogowskazy_trasy.geojson | 
 python3 strona.py
 python3 -I -W ignore odcinki.py $D/osm_gmina.geojson "$SV" signs_prop.json $O/strona
 python3 -I jedz_dane.py "$SV" $O/strona
+python3 -I wysokosci.py $D/nmt.npz $O/strona
 echo "Gotowe – wyniki w $(cd $O && pwd)"
