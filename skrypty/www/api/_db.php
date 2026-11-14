@@ -54,6 +54,12 @@ function hub_db(): PDO {
         id $ai, utworzono VARCHAR(19) NOT NULL, nazwa VARCHAR(80) NOT NULL, opis TEXT, punkty TEXT NOT NULL, geom TEXT NOT NULL,
         km DOUBLE PRECISION NOT NULL DEFAULT 0, nick VARCHAR(60) NOT NULL, kontakt VARCHAR(120) NOT NULL DEFAULT '',
         moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
+    // uwagi, błędy i sugestie do strony i nawigacji „Jedź” (14.11.2026): rodzaj (blad/sugestia), gdzie (nawigacja/strona/aplikacja),
+    // info – dane techniczne (urządzenie, przeglądarka, wersja) i – tylko gdy użytkownik zaznaczył – trasa (start, cel, tryb, rower)
+    $db->exec("CREATE TABLE IF NOT EXISTS uwagi (
+        id $ai, utworzono VARCHAR(19) NOT NULL, rodzaj VARCHAR(10) NOT NULL, gdzie VARCHAR(12) NOT NULL, tresc TEXT NOT NULL,
+        nick VARCHAR(60) NOT NULL DEFAULT '', kontakt VARCHAR(120) NOT NULL DEFAULT '', info TEXT,
+        moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '')");
     // korekty miejsc z panelu (12.11.2026): przesunięcie, zmiana rodzaju/nazwy/opisu albo ukrycie dowolnego miejsca na mapie
     $db->exec("CREATE TABLE IF NOT EXISTS korekty_miejsc (
         klucz VARCHAR(80) NOT NULL PRIMARY KEY, ukryj INT NOT NULL DEFAULT 0, typ VARCHAR(12), nazwa VARCHAR(80), opis TEXT,
@@ -95,6 +101,7 @@ function hub_zrzut(): array {
         'miejsca' => $db->query('SELECT * FROM miejsca ORDER BY id')->fetchAll(),
         'wezly' => $db->query('SELECT * FROM wezly ORDER BY id')->fetchAll(),
         'trasy' => $db->query('SELECT * FROM trasy ORDER BY id')->fetchAll(),
+        'uwagi' => $db->query('SELECT * FROM uwagi ORDER BY id')->fetchAll(),
         'korekty_miejsc' => $db->query('SELECT * FROM korekty_miejsc ORDER BY klucz')->fetchAll(),
     ];
 }
@@ -109,7 +116,7 @@ function hub_dobowo(): void {
     @touch($znacznik);
     try {
         $db = hub_db();
-        foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy'] as $t) {
+        foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $t) {
             $db->prepare("UPDATE $t SET kontakt = '' WHERE kontakt <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-1 year'))]);
             $db->prepare("UPDATE $t SET ip = '' WHERE ip <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-30 days'))]);
         }

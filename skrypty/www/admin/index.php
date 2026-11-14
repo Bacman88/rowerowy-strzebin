@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nowy = ['zatwierdz' => 'zatwierdzone', 'odrzuc' => 'odrzucone', 'wycofaj' => 'wycofane', 'przywroc' => 'oczekuje'][$_POST['akcja'] ?? ''] ?? null;
     $ids = array_filter(array_map('intval', (array)($_POST['id'] ?? [])));
     if ($nowy && $ids) {
-        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy'][$_POST['t'] ?? ''] ?? 'zgloszenia';
+        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'][$_POST['t'] ?? ''] ?? 'zgloszenia';
         $u = $db->prepare("UPDATE $tab SET moderacja = ?, moderowano = ? WHERE id = ?");
         foreach ($ids as $i) {
             $u->execute([$nowy, hub_teraz(), $i]);
@@ -138,11 +138,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $k = in_array($_GET['k'] ?? '', ['oczekuje', 'zatwierdzone', 'odrzucone', 'wycofane'], true) ? $_GET['k'] : 'oczekuje';
-$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy', 'mapa'], true) ? $_GET['t'] : 'drogi';
-$tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy'][$tryb] ?? 'zgloszenia';
+$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy', 'uwagi', 'mapa'], true) ? $_GET['t'] : 'drogi';
+$tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'][$tryb] ?? 'zgloszenia';
 $licz = []; $czeka = [];
 foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja") as $r) $licz[$r['moderacja']] = (int)$r['n'];
-foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
+foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
 $q = $db->prepare("SELECT * FROM $tab WHERE moderacja = ? ORDER BY utworzono " . ($k === 'oczekuje' ? 'ASC' : 'DESC') . ' LIMIT 200');
 $q->execute([$k]); $lista = $q->fetchAll();
 $odc = [];
@@ -159,6 +159,8 @@ $AKCJE = ['oczekuje' => [['zatwierdz', 'Zatwierdź', 'ok'], ['odrzuc', 'Odrzuć'
           'zatwierdzone' => [['wycofaj', 'Wycofaj z mapy', 'no']],
           'odrzucone' => [['przywroc', 'Przywróć do oczekujących', '']],
           'wycofane' => [['przywroc', 'Przywróć do oczekujących', '']]];
+if ($tryb === 'uwagi') $AKCJE = ['oczekuje' => [['zatwierdz', 'Załatwione', 'ok'], ['odrzuc', 'Odrzuć', 'no']],
+    'zatwierdzone' => [['przywroc', 'Wróć do nowych', '']], 'odrzucone' => [['przywroc', 'Wróć do nowych', '']], 'wycofane' => [['przywroc', 'Wróć do nowych', '']]];
 $csrf = $h($_SESSION['csrf']);
 ?><!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -200,7 +202,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <header>
   <h1>Panel</h1>
   <nav class="tabs tryb">
-    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy', 'mapa' => 'Miejsca na mapie – edycja'] as $tt => $t): ?>
+    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy', 'uwagi' => 'Uwagi i błędy', 'mapa' => 'Miejsca na mapie – edycja'] as $tt => $t): ?>
       <a href="?t=<?= $tt ?>" class="<?= $tryb === $tt ? 'on' : '' ?>"><?= $t ?><?= ($czeka[$tt] ?? 0) ? '<i>' . $czeka[$tt] . '</i>' : '' ?></a>
     <?php endforeach ?>
   </nav>
@@ -245,6 +247,15 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
            <?php foreach ($zm['dodaj'] ?? [] as $c): ?><span style="color:#1b5e20">+ <?= $h($c['n']) ?> <?= $h($c['km']) ?> <?= $c['d'] === 'left' ? '←' : '→' ?><?= $c['rts'] ? ' (trasy ' . $h(implode(', ', $c['rts'])) . ')' : '' ?></span><br><?php endforeach ?></p>
         <?php if ((string)$r['komentarz'] !== ''): ?><p><?= $h($r['komentarz']) ?></p><?php endif ?>
         <div class="wzp"></div>
+      <?php elseif ($tryb === 'uwagi'): $inf = json_decode((string)$r['info'], true) ?: []; $tr = $inf['trasa'] ?? null; ?>
+      <div class="z" data-id="<?= (int)$r['id'] ?>" data-uw="1"<?= $tr && $tr['start'] && $tr['cel'] ? ' data-start="' . $h(implode(',', $tr['start'])) . '" data-cel="' . $h(implode(',', $tr['cel'])) . '"' : '' ?>>
+        <div><span class="chip" style="background:<?= $r['rodzaj'] === 'sugestia' ? '#0759A7' : '#b45309' ?>"><?= $r['rodzaj'] === 'sugestia' ? 'sugestia' : 'błąd' ?></span>
+          <b><?= $h(['nawigacja' => 'nawigacja Jedź', 'strona' => 'strona', 'aplikacja' => 'aplikacja Android'][$r['gdzie']] ?? $r['gdzie']) ?></b><?= $r['nick'] !== '' ? ' · ' . $h($r['nick']) : '' ?></div>
+        <div class="m">#<?= (int)$r['id'] ?> · <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <p><?= $h($r['tresc']) ?></p>
+        <?php if ($tr): ?><div class="m">Trasa: <?= $h($tr['celN'] ?: 'cel') ?> · <?= $h($tr['tryb']) ?> · rower: <?= $h($tr['rower']) ?> · <?= number_format((float)$tr['km'], 1, ',', '') ?> km
+          (start <?= $h(implode(', ', $tr['start'] ?? [])) ?> → cel <?= $h(implode(', ', $tr['cel'] ?? [])) ?>) – kliknij kartę, żeby zobaczyć na mapie</div><?php endif ?>
+        <div class="m"><?= $h(implode(' · ', array_filter([$inf['wersja'] ?? '', $inf['ekran'] ?? '', $inf['adres'] ?? '']))) ?><?= isset($inf['urzadzenie']) ? '<br>' . $h($inf['urzadzenie']) : '' ?></div>
       <?php elseif ($tryb === 'trasy'): ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-trasa="1">
         <div><span class="chip" style="background:#0f766e">trasa · <?= number_format((float)$r['km'], 1, ',', '') ?> km</span> <b><?= $h($r['nick']) ?></b></div>
@@ -318,6 +329,12 @@ document.querySelectorAll('.z').forEach(el => el.addEventListener('click', e => 
     const ln = L.polyline(t.g, {color:'#0f766e', weight:5}).addTo(sel);
     t.p.forEach((p, i) => L.circleMarker(p, {radius:6, color:'#fff', weight:2, fillColor: i ? (i === t.p.length - 1 ? '#b00020' : '#0f766e') : '#2b9348', fillOpacity:1}).addTo(sel));
     map.fitBounds(ln.getBounds(), {padding:[40, 40]});
+  } else if (el.dataset.uw) {
+    sel.clearLayers(); if (!el.dataset.start) return;
+    const a = el.dataset.start.split(',').map(Number), c = el.dataset.cel.split(',').map(Number);
+    L.circleMarker(a, {radius: 8, color: '#fff', weight: 3, fillColor: '#2b9348', fillOpacity: 1}).bindTooltip('start').addTo(sel);
+    L.circleMarker(c, {radius: 8, color: '#fff', weight: 3, fillColor: '#b00020', fillOpacity: 1}).bindTooltip('cel').addTo(sel);
+    map.fitBounds([a, c], {padding: [60, 60], maxZoom: 16});
   } else if (el.dataset.zm) {
     sel.clearLayers(); const ll = [+el.dataset.lat, +el.dataset.lon];
     L.circle(ll, {radius: 30, color: '#1d4ed8', weight: 3, fill: false}).addTo(sel); map.setView(ll, 16);

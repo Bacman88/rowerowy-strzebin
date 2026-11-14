@@ -60,8 +60,8 @@ wstaw("jedz.html", og("jedz.html", TJ, DJ) + "\n" + ld({"@context": "https://sch
       "description": DJ, "isAccessibleForFree": True, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "PLN"},
       "downloadUrl": "https://github.com/Bacman88/rowerowy-strzebin/releases/latest/download/jedz-hub-strzebin.apk",
       "author": {"@type": "Organization", "name": "Bartosz Maniura Smart Ant", "url": "https://smart-ant.pl"}}), TJ, DJ)
-TT = "Zostań testerem aplikacji „Jedź” – nawigacja rowerowa na Androida | HUB rowerowy Strzebiń"
-DT = "Przetestuj darmową nawigację rowerową „Jedź” po Strzebiniu i okolicy: zapisz się do testów w Google Play albo pobierz plik APK z GitHuba."
+TT = "Pobierz nawigację rowerową „Jedź” na telefon (Android) | HUB rowerowy Strzebiń"
+DT = "Darmowa nawigacja rowerowa „Jedź” po Strzebiniu i okolicy na Androida: pobierz od razu albo zapisz się do testów w Google Play."
 wstaw("testuj.html", og("testuj.html", TT, DT), TT, DT)
 TP = "Polityka prywatności – HUB rowerowy Strzebiń i nawigacja „Jedź”"
 wstaw("polityka-prywatnosci.html", og("polityka-prywatnosci.html", TP, "Jakie dane zbiera strona HUB rowerowy Strzebiń i nawigacja „Jedź”, po co i jak długo je przechowujemy."))

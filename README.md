@@ -116,6 +116,9 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
 - **Kod**: `lib/jedz/wspolne.js` → `graf.js` (trasowanie) → `profil.js` (rower, tempo, wysokości, czas, wykres) → `manewry.js` → `podklad.js` → `lib/jedz.js` (interfejs);
   wspólna przestrzeń `window.JZ`. Testy tras bez przeglądarki: `node skrypty/test_jedz.js out/strona` (uruchamiane też na końcu rebuild.sh).
 
+- **Zgłoś błąd / sugestię**: `lib/uwagi.js` (okienko wspólne dla strony i Jedź, także w aplikacji) → `api/uwagi.php` (CORS dla aplikacji) → tabela `uwagi`,
+  zakładka „Uwagi i błędy” w panelu i e-mail (bez kontaktu i bez trasy). Trasa (start/cel/tryb/rower) tylko po zaznaczeniu „Dołącz tę trasę”.
+
 ## Aplikacja na Androida (`aplikacja/`)
 Capacitor opakowuje stronę „Jedź” w aplikację z lokalizacją w tle (usługa z powiadomieniem – nawigacja na zgaszonym ekranie) i głosem (syntezator telefonu).
 - Budowanie: GitHub Actions (`.github/workflows/apk.yml`) po każdej publikacji strony; pliki brane z gałęzi `strona` (`aplikacja/przygotuj.sh`), APK trafia do wydań („Releases”).

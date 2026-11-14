@@ -16,6 +16,11 @@
   const pokazDiag = () => { if (!NAT) return; const el = document.querySelector('#s-cel .stopka'); if (!el) return; let d = document.getElementById('diag'); if (!d) { d = document.createElement('div'); d.id = 'diag'; d.style.cssText = 'margin-top:6px;font-size:11px;opacity:.7'; el.appendChild(d); }
     d.textContent = 'Aplikacja · GPS w tle: ' + (PL.BackgroundGeolocation ? (diag.bg || 'gotowy') : 'brak') + ' · głos: ' + (PL.TextToSpeech ? 'tak' : 'brak') + ' · powiadomienia: ' + (PL.LocalNotifications ? 'tak' : 'brak'); };
   setTimeout(pokazDiag, 500);
+  // zgłoszenia błędów i sugestii (lib/uwagi.js) – w aplikacji pod pełny adres strony
+  if (NAT) { window.UWAGI_API = BAZA + 'api/uwagi.php'; window.UWAGI_BAZA = BAZA; }
+  const zglos = zTrasa => window.UWAGI && UWAGI.otworz({gdzie: NAT ? 'aplikacja' : 'nawigacja', wersja: NAT ? 'aplikacja Android' : 'Jedź w przeglądarce',
+    trasa: zTrasa && stan.T ? {start: stan.T.ll[0], cel: stan.T.ll[stan.T.ll.length - 1], celN: stan.celN, tryb: stan.tryb, rower: ST.RT, km: stan.T.m / 1000} : null});
+  if ($('b-uwagi')) $('b-uwagi').onclick = e => { e.preventDefault(); zglos(false); };
   // mapa offline: informacja i przełącznik „zawsze offline” (oszczędza internet; w lesie bez zasięgu przełącza się sama)
   setTimeout(() => {
     const el = document.querySelector('#s-cel .stopka'); if (!el || !JZ.podklad) return;
@@ -277,7 +282,8 @@
       <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}Jedź</button>
       <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a>${NAT ? '' : '<button type="button" class="btn2" id="b-gpx">GPX</button>'}</div>
       <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
-      <div class="sek">Po drodze</div><div class="manew">${lista}</div>`;
+      <div class="sek">Po drodze</div><div class="manew">${lista}</div>
+      <button type="button" class="btn2" id="b-zglos" style="border-style:dashed">Coś nie tak z tą trasą? Zgłoś błąd / sugestię</button>`;
     $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
     // zmiana roweru: tylko czas jazdy (prędkości na nawierzchniach, podjazdy, vmax) – trasa i suwak tempa bez zmian
     $('dol').querySelectorAll('.rower button').forEach(b => b.onclick = () => {
@@ -291,6 +297,7 @@
       const o = ostrzezenie(T, inne); $('p-ostrz').textContent = o; $('p-ostrz').hidden = !o;
     });
     $('b-jedz').onclick = () => startJazdy(false);
+    $('b-zglos').onclick = () => zglos(true);
     $('b-symstart').onclick = () => startJazdy(true);
     if ($('b-gpx')) $('b-gpx').onclick = () => gpx(T);
     $('b-google').href = linkGoogle(T);

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zostań testerem aplikacji „Jedź” – HUB rowerowy Strzebiń</title>
+<title>Pobierz nawigację „Jedź” na telefon – HUB rowerowy Strzebiń</title>
 <meta name="description" content="Pomóż przetestować aplikację „Jedź” – nawigację rowerową po Strzebiniu i okolicy – z Google Play.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
@@ -29,8 +29,15 @@ a{color:var(--teal)}
 </style>
 </head>
 <body>
-<header><div><a href="./">← HUB rowerowy Strzebiń</a><h1>Zostań testerem aplikacji „Jedź”</h1><p>Nawigacja rowerowa po Strzebiniu i okolicy – na Androida, z Google Play albo z pliku APK.</p></div></header>
+<header><div><a href="./">← HUB rowerowy Strzebiń</a><h1>Nawigacja „Jedź” na telefon</h1><p>Nawigacja rowerowa po Strzebiniu i okolicy na Androida. Wybierz <b>jeden</b> sposób: pobranie od razu albo testy w Google Play.</p></div></header>
 <main>
+  <h2 style="margin-top:0">Sposób 1: pobierz nawigację na telefon – od razu</h2>
+  <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+    <p style="margin:0">Najnowsza wersja, budowana automatycznie przy każdej aktualizacji. Po pobraniu otwórz plik i zezwól telefonowi na instalację z tego źródła.</p>
+    <a class="btn g" href="https://github.com/Bacman88/rowerowy-strzebin/releases/latest/download/jedz-hub-strzebin.apk">Pobierz nawigację na telefon</a>
+    <p class="muted" style="margin:8px 0 0">Ta wersja nie aktualizuje się sama – co jakiś czas pobierz ją ponownie (wejdź tu i kliknij jeszcze raz). <a href="https://github.com/Bacman88/rowerowy-strzebin/releases" target="_blank" rel="noopener">Wszystkie wersje</a>.</p>
+  </div>
+  <h2>Sposób 2: zostań testerem w Google Play – aktualizacje przyjdą same</h2>
   <ol>
     <li><b>Wyślij nam swój adres Gmail</b>
       Ten, na który jest zalogowany Sklep Play w Twoim telefonie. Dopiszemy Cię do listy testerów – zwykle tego samego dnia.
@@ -46,12 +53,7 @@ a{color:var(--teal)}
     </li>
   </ol>
 
-  <div style="margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
-    <b style="font-size:17px">Wolisz bez Sklepu Play? Pobierz plik APK</b>
-    <p style="margin:4px 0 0">Najnowsza wersja prosto z GitHuba – budowana automatycznie przy każdej aktualizacji strony. Po pobraniu otwórz plik i zezwól telefonowi na instalację z tego źródła.</p>
-    <a class="btn" href="https://github.com/Bacman88/rowerowy-strzebin/releases/latest/download/jedz-hub-strzebin.apk">Pobierz APK (najnowsza)</a>
-    <p class="muted" style="margin:8px 0 0">Wersja z pliku nie aktualizuje się sama – co jakiś czas pobierz nową. Nie instaluj jej obok wersji ze Sklepu Play (to ta sama aplikacja, ale inny podpis – najpierw odinstaluj jedną). <a href="https://github.com/Bacman88/rowerowy-strzebin/releases" target="_blank" rel="noopener">Wszystkie wersje</a>.</p>
-  </div>
+  <p class="muted" style="margin-top:14px"><b>Jeden albo drugi sposób, nie oba naraz:</b> to ta sama aplikacja, ale z innym podpisem – telefon nie zainstaluje wersji ze Sklepu Play na wersję z pliku (i odwrotnie). Zmieniasz zdanie? Najpierw odinstaluj „Jedź”, potem zainstaluj drugim sposobem.</p>
   <h2>Co sprawdzać?</h2>
   <ul>
     <li>czy trasa prowadzi sensownie (tryb <b>Bezpieczna</b> omija drogi wojewódzkie i krajowe),</li>
