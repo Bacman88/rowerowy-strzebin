@@ -68,6 +68,14 @@
   function koszt(s, opc) {
     const st = s[4] || 'brak';
     if (opc.tryb === 'krotko') return s[6] * (st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 1.4 : 1);
+    // szosa – „prawie jak autem”: asfalt i drogi główne (wojewódzkie i krajowe bez kary, nawet lekko preferowane),
+    // drogi nieutwardzone / bez oceny / leśne – mocno omijane; autostrad i ekspresówek nie ma w sieci dróg (odcinki.py)
+    if (opc.tryb === 'szosa') {
+      let f = {osm: 1, dobra: 1, srednia: 3, trudna: 10, nieprzejezdna: 50, brak: 4}[stOdc(s)] ?? 4;
+      if (s[1] === 'ścieżka piesza' || s[1] === 'ścieżka' || s[1] === 'droga leśna/polna') f = Math.max(f, f === 1 ? 2 : 5);
+      if (DW(s) || ROWER.has(s[0])) f *= 0.9;
+      return s[6] * f;
+    }
     let f = F[st] ?? 1.25;
     if (TRASY.has(s[0])) f = Math.min(f, 1) * 0.9;   // drogi tras HUB są sprawdzone – bez kary „brak oceny”
     if (ROWER.has(s[0])) f = Math.min(f, 0.85);
@@ -374,7 +382,7 @@
   }
 
   // ===================== stan i mapa =====================
-  const stan = {start: null, startN: 'Twoja lokalizacja', startGPS: true, cel: null, celN: '', celS: '', tryb: LS.get('tryb', 'bezp') === 'krotko' ? 'krotko' : 'bezp',
+  const stan = {start: null, startN: 'Twoja lokalizacja', startGPS: true, cel: null, celN: '', celS: '', tryb: ['krotko', 'szosa'].includes(LS.get('tryb', 'bezp')) ? LS.get('tryb', 'bezp') : 'bezp',
                 T: null, M: [], wybor: null, jazda: false, glos: LS.get('glos', true)};
   let map = null, warstwa = null, jaM = null, celM = null, sledz = true;
   function mapa() {
@@ -484,9 +492,11 @@
       if (st === 'srednia' || st === 'trudna' || st === 'brak') o.nu += d; if (st === 'trudna') o.tr += d; }
     return o;
   }
-  function ostrzezenie(T, inny) {
-    const a = nieutw(T), b = nieutw(inny), drugi = stan.tryb === 'bezp' ? 'Najkrótsza' : 'Bezpieczna';
-    const lepiej = inny && !inny.blad && b.nu < a.nu - 200 ? ` Trasa „${drugi}” ma ich mniej (${kmTxt(b.nu)}).` : '';
+  const TRYBY = {bezp: 'Bezpieczna', krotko: 'Najkrótsza', szosa: 'Szosowa'};
+  function ostrzezenie(T, inne) {
+    const a = nieutw(T); let alt = null;
+    for (const [k, X] of Object.entries(inne || {})) { const b = nieutw(X); if (X && !X.blad && b.nu < a.nu - 200 && (!alt || b.nu < alt.nu)) alt = {k, nu: b.nu}; }
+    const lepiej = alt ? ` Trasa „${TRYBY[alt.k]}” ma ich mniej (${kmTxt(alt.nu)}).` : '';
     if (RT === 'szosa' && a.nu > 300) return `⚠ Szosówką może być ciężko: ${kmTxt(a.nu)} trasy to drogi nieutwardzone, leśne albo bez oceny.${lepiej}`;
     if (RT !== 'gorski' && RT !== 'gravel' && a.tr > 200) return `⚠ Na trasie ${kmTxt(a.tr)} dróg ocenionych jako trudne (piach, korzenie, dziury).${lepiej}`;
     return '';
@@ -526,6 +536,7 @@
     svg.addEventListener('pointerleave', ukryj);
   }
   function podglad() {
+    if (stan.tryb === 'szosa' && RT !== 'szosa') stan.tryb = 'bezp';
     mapa(); ekran('s-mapa'); panele('podglad'); stan.wybor = null;
     $('gora').innerHTML = '';
     const T = policz();
@@ -536,19 +547,21 @@
     }
     stan.T = T; stan.M = manewry(T); rysuj(T, stan.M);
     // porównanie z drugim trybem (do przełącznika)
-    const inny = trasuj(stan.start, stan.cel, {tryb: stan.tryb === 'bezp' ? 'krotko' : 'bezp'});
-    const kmB = stan.tryb === 'bezp' ? T.m : inny.m, kmK = stan.tryb === 'krotko' ? T.m : inny.m;
+    // pozostałe tryby (do przełącznika i podpowiedzi w ostrzeżeniu); „Szosowa” tylko przy rowerze szosowym
+    const tryby = RT === 'szosa' ? ['bezp', 'krotko', 'szosa'] : ['bezp', 'krotko'];
+    const inne = {}; for (const k of tryby) if (k !== stan.tryb) inne[k] = trasuj(stan.start, stan.cel, {tryb: k});
+    const km = k => k === stan.tryb ? T.m : inne[k].m;
+    const opisT = {bezp: ' · omija DW i DK', krotko: '', szosa: ' · asfalt, główne drogi'};
     const nTab = stan.M.filter(m => m.typ === 'tab').length;
     const lista = stan.M.slice(0, 40).map(m => `<div>${strzalkaSVG(m.k, m.typ === 'tab' ? '#0759A7' : m.typ === 'cel' ? '#1d3b30' : '#1d2a23', 22)}<span>${esc(mTekst(m))}</span><span class="km">${kmTxt(m.c)}</span></div>`).join('');
     $('dol').innerHTML = `<div class="uchwyt"></div>
       <div><div class="msg">${esc(stan.startGPS ? 'Z Twojej lokalizacji' : stan.startN)} →</div><div style="font-size:21px;font-weight:800">${esc(stan.celN)}</div>${stan.celS ? `<div class="msg">${esc(stan.celS)}</div>` : ''}</div>
-      <div class="tryb" role="radiogroup" aria-label="Rodzaj trasy">
-        <button type="button" role="radio" data-t="bezp" aria-checked="${stan.tryb === 'bezp'}"><b>Bezpieczna</b><span>${kmTxt(kmB)} · omija DW i DK</span></button>
-        <button type="button" role="radio" data-t="krotko" aria-checked="${stan.tryb === 'krotko'}"><b>Najkrótsza</b><span>${kmTxt(kmK)}</span></button>
+      <div class="tryb${tryby.length > 2 ? ' t3' : ''}" role="radiogroup" aria-label="Rodzaj trasy">
+        ${tryby.map(k => `<button type="button" role="radio" data-t="${k}" aria-checked="${stan.tryb === k}"><b>${TRYBY[k]}</b><span>${kmTxt(km(k))}${opisT[k]}</span></button>`).join('')}
       </div>
       <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b id="p-czas">${czasTxt(T.prof.czas)}</b><span>czasu jazdy</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
       <div class="rower" role="radiogroup" aria-label="Rodzaj roweru">${Object.entries(ROWERY).map(([k, r]) => `<button type="button" role="radio" data-r="${k}" aria-checked="${k === RT}">${r.n}</button>`).join('')}</div>
-      <div class="msg ostrz" id="p-ostrz"${ostrzezenie(T, inny) ? '' : ' hidden'}>${esc(ostrzezenie(T, inny))}</div>
+      <div class="msg ostrz" id="p-ostrz"${ostrzezenie(T, inne) ? '' : ' hidden'}>${esc(ostrzezenie(T, inne))}</div>
       <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${VU} km/h · ${tempoNazwa(VU)}</b></div>
         <input type="range" id="p-tempo" min="8" max="40" step="1" value="${VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
         <div class="tskala"><span>spacerowo</span><span>rekreacyjnie</span><span>sportowo</span><span>wyczynowo</span></div></div>
@@ -561,10 +574,14 @@
     $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
     // zmiana roweru: tylko czas jazdy (prędkości na nawierzchniach, podjazdy, vmax) – trasa i suwak tempa bez zmian
     $('dol').querySelectorAll('.rower button').forEach(b => b.onclick = () => {
-      RT = b.dataset.r; R = ROWERY[RT]; LS.set('rower', RT); T.prof = profil(T);
+      const zSzosy = RT === 'szosa'; RT = b.dataset.r; R = ROWERY[RT]; LS.set('rower', RT);
+      // szosówka: od razu tryb „Szosowa”; przesiadka z szosówki – z trybu szosowego wracamy do „Bezpieczna”
+      if (RT === 'szosa' || (zSzosy && stan.tryb === 'szosa')) { stan.tryb = RT === 'szosa' ? 'szosa' : 'bezp'; LS.set('tryb', stan.tryb); const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; return; }
+      if (zSzosy) { const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; return; }   // znika trzeci przycisk trybu
+      T.prof = profil(T);
       $('dol').querySelectorAll('.rower button').forEach(x => x.setAttribute('aria-checked', x === b));
       $('p-czas').textContent = czasTxt(T.prof.czas); wykresInterakcja(T);
-      const o = ostrzezenie(T, inny); $('p-ostrz').textContent = o; $('p-ostrz').hidden = !o;
+      const o = ostrzezenie(T, inne); $('p-ostrz').textContent = o; $('p-ostrz').hidden = !o;
     });
     $('b-jedz').onclick = () => startJazdy(false);
     $('b-symstart').onclick = () => startJazdy(true);

@@ -104,6 +104,7 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
   `skrypty/wysokosci.py` (po `jedz_dane.py`) → `stan/wysokosci.js`: wysokości co 25 m wzdłuż odcinków z NMT GUGiK (siatka 5 m).
   Model terenu (`dane/nmt.npz`, poza repo) pobiera się sam z wydania `nmt` – tworzy je workflow NMT na gałęzi `wysokosci` (WCS GUGiK).
 - Czas jazdy: prędkość zależna od nawierzchni (17 km/h utwardzona, 13 średnia/bez oceny, 9 trudna) i nachylenia (pod górę wolniej, z górki szybciej);
+  tryb **Szosowa** (pojawia się przy rowerze szosowym): „prawie jak autem” – asfalt i drogi główne, także wojewódzkie i krajowe; nieutwardzone mocno omija (autostrad i ekspresówek nie ma w sieci dróg);
   rodzaj roweru (miejski – domyślny, trekkingowy, szosowy, gravel, górski, elektryczny) zmienia tylko czas: prędkość na gorszych nawierzchniach,
   podjazdy i prędkość maksymalną – trasy nie zmienia; szosówka dostaje ostrzeżenie o odcinkach nieutwardzonych, inne rowery (poza górskim i gravelem) o trudnych;
   suwak „Twoje tempo na płaskim” (8–40 km/h, domyślnie 16, zapamiętany w telefonie) skaluje te prędkości;
