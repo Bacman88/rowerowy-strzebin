@@ -6,6 +6,9 @@ Q = f"""[out:json][timeout:300];
 (
   nwr["emergency"="defibrillator"]({BB});
   nwr["amenity"="pharmacy"]({BB});
+  nwr["railway"~"^(station|halt)$"]({BB});
+  node["highway"="bus_stop"]({BB});
+  node["public_transport"="platform"]["bus"="yes"]({BB});
   nwr["shop"~"^(convenience|supermarket|greengrocer|bakery|butcher|general|farm|deli|food)$"]({BB});
 );
 out center tags;"""
@@ -24,7 +27,7 @@ out = []
 for e in dane["elements"]:
     t = e.get("tags", {}); lat = e.get("lat") or e.get("center", {}).get("lat"); lon = e.get("lon") or e.get("center", {}).get("lon")
     if lat is None: continue
-    keep = {k: v for k, v in t.items() if k in ("emergency", "amenity", "dispensing", "shop", "name", "brand", "opening_hours", "defibrillator:location", "access", "indoor", "operator", "addr:street", "addr:housenumber", "addr:city", "addr:place")}
+    keep = {k: v for k, v in t.items() if k in ("emergency", "amenity", "railway", "highway", "public_transport", "bus", "train", "local_ref", "network", "route_ref", "dispensing", "shop", "name", "brand", "opening_hours", "defibrillator:location", "access", "indoor", "operator", "addr:street", "addr:housenumber", "addr:city", "addr:place")}
     out.append(dict(id=f"{e['type']}/{e['id']}", lat=round(lat, 6), lon=round(lon, 6), **keep))
 json.dump(out, open("poi.json", "w"), ensure_ascii=False, indent=0)
 print("punktów:", len(out), "AED:", sum(1 for o in out if o.get("emergency")), "aptek:", sum(1 for o in out if o.get("amenity") == "pharmacy"), "sklepów:", sum(1 for o in out if o.get("shop")))
