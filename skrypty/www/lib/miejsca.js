@@ -27,6 +27,8 @@ window.MIEJSCA = (() => {
     aed:      {n:'Defibrylator AED', i:'aed', c:C.aed, g:'serwis'},
     apteczka: {n:'Pierwsza pomoc', i:'firstaid', c:C.grafit, g:'serwis'},
     apteka:   {n:'Apteka', i:'apteka', c:C.zielony, g:'serwis'},
+    pkp:      {n:'Kolej (PKP)', i:'train', c:'#1F4E8C', g:'serwis'},
+    autobus:  {n:'Przystanek autobusowy', i:'bus', c:'#1F4E8C', g:'serwis'},
     info:     {n:'Tablica informacyjna', i:'information', c:C.grafit, g:'serwis'},
     jedzenie: {n:'Restauracja / jedzenie', i:'restaurant', c:C.czerwony, g:'ciekawe'},
     kawa:     {n:'Kawiarnia', i:'coffee', c:C.czerwony, g:'ciekawe'},
@@ -42,7 +44,7 @@ window.MIEJSCA = (() => {
   // kolejność i grupy w formularzu
   const GRUPY = [
     ['Odpoczynek', ['lawka', 'wiata', 'piknik', 'widok', 'zabawa', 'woda']],
-    ['Rower i udogodnienia', ['serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'aed', 'apteczka', 'apteka', 'info']],
+    ['Rower i udogodnienia', ['serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'aed', 'apteczka', 'apteka', 'pkp', 'autobus', 'info']],
     ['Jedzenie i nocleg', ['jedzenie', 'kawa', 'bar', 'sklep', 'nocleg']],
     ['Ciekawe miejsca', ['ciekawe', 'zabytek', 'kosciol', 'przyroda', 'sport']],
   ];

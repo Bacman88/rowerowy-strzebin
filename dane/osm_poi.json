@@ -9,6 +9,30 @@
 "shop": "bakery"
 },
 {
+"id": "node/243797124",
+"lat": 50.720844,
+"lon": 18.791065,
+"name": "Lisów",
+"operator": "PKP Polskie Linie Kolejowe",
+"public_transport": "station",
+"railway": "station"
+},
+{
+"id": "node/262915235",
+"lat": 50.543308,
+"lon": 18.954165,
+"highway": "bus_stop"
+},
+{
+"id": "node/313085196",
+"lat": 50.622991,
+"lon": 18.835858,
+"name": "Koszęcin",
+"operator": "PKP Polskie Linie Kolejowe",
+"public_transport": "station",
+"railway": "station"
+},
+{
 "id": "node/548658001",
 "lat": 50.562924,
 "lon": 18.888545,
@@ -16,6 +40,30 @@
 "name": "Biedronka",
 "operator": "Jeronimo Martins Polska S.A.",
 "shop": "supermarket"
+},
+{
+"id": "node/598953776",
+"lat": 50.487607,
+"lon": 18.920856,
+"name": "Miasteczko Śląskie Wąskotorowe",
+"railway": "halt"
+},
+{
+"id": "node/652833635",
+"lat": 50.561594,
+"lon": 18.893145,
+"bus": "yes",
+"highway": "bus_stop",
+"public_transport": "platform"
+},
+{
+"id": "node/652833663",
+"lat": 50.566349,
+"lon": 18.888261,
+"name": "Kalety",
+"operator": "PKP Polskie Linie Kolejowe",
+"public_transport": "station",
+"railway": "station"
 },
 {
 "id": "node/694196914",
@@ -42,6 +90,44 @@
 "name": "Delikatesy Centrum",
 "opening_hours": "Mo-Fr 06:00-21:00; Sa 06:00-20:00",
 "shop": "convenience"
+},
+{
+"id": "node/836612753",
+"lat": 50.605214,
+"lon": 19.000094,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubsza Skrzyżowanie",
+"public_transport": "stop_position"
+},
+{
+"id": "node/836612800",
+"lat": 50.495549,
+"lon": 18.927712,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Miasteczko Śląskie Droga do Huty [nż]",
+"public_transport": "stop_position"
+},
+{
+"id": "node/973681559",
+"lat": 50.699542,
+"lon": 18.748637,
+"name": "Kochanowice",
+"network": "Koleje Śląskie;Polregio",
+"operator": "PKP Polskie Linie Kolejowe",
+"public_transport": "station",
+"railway": "station"
+},
+{
+"id": "node/998173380",
+"lat": 50.609882,
+"lon": 18.95949,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Psary",
+"public_transport": "stop_position"
 },
 {
 "id": "node/1254468886",
@@ -110,6 +196,43 @@
 "shop": "convenience"
 },
 {
+"id": "node/1509286809",
+"lat": 50.64901,
+"lon": 18.763773,
+"name": "Rusinowice",
+"railway": "halt"
+},
+{
+"id": "node/1619854123",
+"lat": 50.500273,
+"lon": 18.925963,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Miasteczko Śląskie Huta",
+"public_transport": "stop_position"
+},
+{
+"id": "node/1619854222",
+"lat": 50.499383,
+"lon": 18.941081,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Żyglinek Karpacka",
+"public_transport": "stop_position"
+},
+{
+"id": "node/1619862475",
+"lat": 50.494559,
+"lon": 18.944167,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Żyglinek",
+"public_transport": "stop_position"
+},
+{
 "id": "node/1646893958",
 "lat": 50.549921,
 "lon": 18.96748,
@@ -157,11 +280,60 @@
 "shop": "convenience"
 },
 {
+"id": "node/1658763845",
+"lat": 50.567788,
+"lon": 18.879918,
+"highway": "bus_stop"
+},
+{
+"id": "node/1658763848",
+"lat": 50.557745,
+"lon": 18.881914,
+"bus": "yes",
+"highway": "bus_stop",
+"public_transport": "platform"
+},
+{
 "id": "node/1738271396",
 "lat": 50.564422,
 "lon": 18.884162,
 "name": "Ela Nelka",
 "shop": "bakery"
+},
+{
+"id": "node/1805035846",
+"lat": 50.681299,
+"lon": 19.006917,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Hutki",
+"public_transport": "platform"
+},
+{
+"id": "node/1828267615",
+"lat": 50.606373,
+"lon": 18.712599,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Posmyk Wieś",
+"public_transport": "platform"
+},
+{
+"id": "node/1829947963",
+"lat": 50.548488,
+"lon": 18.936422,
+"bus": "yes",
+"highway": "bus_stop",
+"public_transport": "platform"
+},
+{
+"id": "node/1853369173",
+"lat": 50.574905,
+"lon": 18.968439,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Woźniki Sośnica",
+"public_transport": "stop_position"
 },
 {
 "id": "node/1854109000",
@@ -170,6 +342,70 @@
 "brand": "Lewiatan",
 "name": "Lewiatan",
 "shop": "supermarket"
+},
+{
+"id": "node/1900398939",
+"lat": 50.59744,
+"lon": 18.978336,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Piasek Spółdzielnia",
+"public_transport": "stop_position"
+},
+{
+"id": "node/1907381280",
+"lat": 50.612876,
+"lon": 18.966865,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Psary Główna I",
+"public_transport": "stop_position"
+},
+{
+"id": "node/1907381628",
+"lat": 50.614891,
+"lon": 18.970972,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Psary Skrzyżowanie",
+"public_transport": "platform"
+},
+{
+"id": "node/1907381852",
+"lat": 50.618073,
+"lon": 18.969326,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Psary Główna II",
+"public_transport": "stop_position"
+},
+{
+"id": "node/1907382108",
+"lat": 50.6175,
+"lon": 18.969264,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Psary Główna II",
+"public_transport": "stop_position"
+},
+{
+"id": "node/1907382854",
+"lat": 50.609039,
+"lon": 18.957794,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Psary Poznańska",
+"public_transport": "platform"
+},
+{
+"id": "node/1953301792",
+"lat": 50.494885,
+"lon": 18.822418,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pniowiec Pętla",
+"network": "Transport GZM",
+"public_transport": "stop_position"
 },
 {
 "id": "node/1996117639",
@@ -187,6 +423,26 @@
 "addr:street": "Tarnogórska",
 "name": "Elban",
 "shop": "convenience"
+},
+{
+"id": "node/2108670576",
+"lat": 50.563376,
+"lon": 18.670491,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Potępa Zalew [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/2109412053",
+"lat": 50.551066,
+"lon": 18.700057,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Koty",
+"public_transport": "platform"
 },
 {
 "id": "node/2154541992",
@@ -218,6 +474,51 @@
 "shop": "convenience"
 },
 {
+"id": "node/2183586936",
+"lat": 50.665381,
+"lon": 18.901425,
+"name": "Boronów",
+"operator": "PKP Polskie Linie Kolejowe",
+"public_transport": "station",
+"railway": "station"
+},
+{
+"id": "node/2184363205",
+"lat": 50.507647,
+"lon": 18.760684,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Hanusek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/2184363213",
+"lat": 50.507927,
+"lon": 18.759854,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Hanusek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/2184383098",
+"lat": 50.509225,
+"lon": 18.754294,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Hanusek PKP n/ż",
+"public_transport": "stop_position"
+},
+{
+"id": "node/2184383100",
+"lat": 50.509388,
+"lon": 18.753184,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Hanusek PKP n/ż",
+"public_transport": "stop_position"
+},
+{
 "id": "node/2186035761",
 "lat": 50.558587,
 "lon": 18.879618,
@@ -229,6 +530,54 @@
 "lat": 50.557512,
 "lon": 18.882349,
 "shop": "convenience"
+},
+{
+"id": "node/2299693819",
+"lat": 50.497609,
+"lon": 18.900235,
+"name": "Miasteczko Śląskie",
+"railway": "halt"
+},
+{
+"id": "node/2323597243",
+"lat": 50.673583,
+"lon": 18.682615,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Rondo Władysława Opolczyka",
+"public_transport": "platform"
+},
+{
+"id": "node/2325494187",
+"lat": 50.550867,
+"lon": 18.955842,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kalety Miotek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/2325494195",
+"lat": 50.580226,
+"lon": 18.858879,
+"highway": "bus_stop"
+},
+{
+"id": "node/2325494232",
+"lat": 50.550392,
+"lon": 18.954938,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kalety Miotek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/2326813985",
+"lat": 50.563829,
+"lon": 18.88389,
+"bus": "yes",
+"highway": "bus_stop",
+"public_transport": "platform"
 },
 {
 "id": "node/2347303781",
@@ -286,10 +635,55 @@
 "shop": "convenience"
 },
 {
+"id": "node/2686997657",
+"lat": 50.516293,
+"lon": 18.760124,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Hanusek Cegielnia",
+"public_transport": "stop_position"
+},
+{
+"id": "node/2891519851",
+"lat": 50.702413,
+"lon": 18.735387,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochanowice Kochcicka",
+"public_transport": "platform"
+},
+{
+"id": "node/2891519853",
+"lat": 50.704051,
+"lon": 18.722128,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochcice Kochanowicka",
+"public_transport": "platform"
+},
+{
 "id": "node/2891519854",
 "lat": 50.712572,
 "lon": 18.75499,
 "shop": "bakery"
+},
+{
+"id": "node/2891519856",
+"lat": 50.729805,
+"lon": 18.791311,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lisów Centrum",
+"public_transport": "platform"
+},
+{
+"id": "node/2891519857",
+"lat": 50.73006,
+"lon": 18.791155,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lisów Centrum",
+"public_transport": "platform"
 },
 {
 "id": "node/3074815299",
@@ -301,12 +695,234 @@
 "shop": "convenience"
 },
 {
+"id": "node/3205261568",
+"lat": 50.61842,
+"lon": 18.900035,
+"name": "Strzebiń",
+"operator": "PKP Polskie Linie Kolejowe",
+"railway": "halt"
+},
+{
+"id": "node/3362495146",
+"lat": 50.726484,
+"lon": 19.008419,
+"highway": "bus_stop",
+"name": "Kopaniska rynek"
+},
+{
+"id": "node/3362506235",
+"lat": 50.72667,
+"lon": 19.007822,
+"highway": "bus_stop",
+"name": "Kopaniska rynek"
+},
+{
+"id": "node/3487315240",
+"lat": 50.672558,
+"lon": 18.691044,
+"name": "Lubliniec",
+"network": "Koleje Śląskie;Polregio;PKP Intercity",
+"operator": "PKP Polskie Linie Kolejowe",
+"public_transport": "station",
+"railway": "station",
+"train": "yes"
+},
+{
 "id": "node/3648876130",
 "lat": 50.549215,
 "lon": 18.9374,
 "name": "Delikatesy",
 "opening_hours": "Mo-Sa 06:00-21:00",
 "shop": "convenience"
+},
+{
+"id": "node/3702957565",
+"lat": 50.713787,
+"lon": 18.657646,
+"name": "Kochcice-Glinica",
+"operator": "PKP Polskie Linie Kolejowe",
+"public_transport": "station",
+"railway": "halt"
+},
+{
+"id": "node/3729831244",
+"lat": 50.576547,
+"lon": 18.980307,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Woźniki Dyrdy I",
+"public_transport": "stop_position"
+},
+{
+"id": "node/3729831261",
+"lat": 50.576817,
+"lon": 19.004035,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Woźniki Leśniczówka",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4040262905",
+"lat": 50.495542,
+"lon": 18.814616,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pniowiec Gospoda",
+"network": "Transport GZM",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4040264622",
+"lat": 50.491359,
+"lon": 18.811116,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pniowiec Dom Nauczyciela",
+"network": "Transport GZM",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4040269387",
+"lat": 50.491166,
+"lon": 18.811472,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pniowiec Dom Nauczyciela",
+"network": "Transport GZM",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4042209480",
+"lat": 50.503913,
+"lon": 19.012126,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Bibiela Kościół",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4042216326",
+"lat": 50.495157,
+"lon": 19.000982,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Bibiela Droga do Żyglina n/ż",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4042225991",
+"lat": 50.492021,
+"lon": 19.000301,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Bibiela Leśniczówka",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4044376221",
+"lat": 50.48824,
+"lon": 18.703004,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Połomia Skrzyżowanie n/ż",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4045610743",
+"lat": 50.487373,
+"lon": 18.812835,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pniowiec Zalew n/ż",
+"network": "Transport GZM",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4078144055",
+"lat": 50.487314,
+"lon": 18.672432,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Wojska Powstańców Śląskich n/ż",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4092271198",
+"lat": 50.495473,
+"lon": 18.927207,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Miasteczko Śląskie Droga do Huty [nż]",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4092290500",
+"lat": 50.494451,
+"lon": 18.944235,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Żyglinek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4129642659",
+"lat": 50.505235,
+"lon": 18.76728,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Boruszowice Hanusek",
+"network": "Transport GZM",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4129642660",
+"lat": 50.504584,
+"lon": 18.767537,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Boruszowice Hanusek",
+"network": "Transport GZM",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4129650226",
+"lat": 50.509598,
+"lon": 18.767185,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Hanusek Bar",
+"public_transport": "stop_position"
+},
+{
+"id": "node/4339630737",
+"lat": 50.675247,
+"lon": 18.906872,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Szkoła",
+"public_transport": "platform"
+},
+{
+"id": "node/4339630738",
+"lat": 50.675287,
+"lon": 18.907052,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Szkoła",
+"public_transport": "platform"
+},
+{
+"id": "node/4339667374",
+"lat": 50.67116,
+"lon": 18.901992,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Wojska Polskiego",
+"public_transport": "platform"
 },
 {
 "id": "node/4359924281",
@@ -317,6 +933,16 @@
 "name": "Delikatesy Centrum",
 "opening_hours": "Mo-Sa 06:00-21:30",
 "shop": "supermarket"
+},
+{
+"id": "node/4379600192",
+"lat": 50.563102,
+"lon": 18.670818,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Potępa Zalew [nż]",
+"public_transport": "platform"
 },
 {
 "id": "node/4618015823",
@@ -398,6 +1024,15 @@
 "opening_hours": "Mo-Fr 08:00-20:00; Sa 08:00-14:00"
 },
 {
+"id": "node/5035712211",
+"lat": 50.729105,
+"lon": 18.883893,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kalina",
+"public_transport": "stop_position"
+},
+{
 "id": "node/5300885205",
 "lat": 50.679696,
 "lon": 18.678564,
@@ -457,6 +1092,445 @@
 "dispensing": "yes",
 "name": "Zdrowit",
 "opening_hours": "Mo-Fr 07:00-20:00; Sa 08:00-20:00"
+},
+{
+"id": "node/5495711717",
+"lat": 50.727171,
+"lon": 19.008291,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Konopiska Rynek",
+"network": "Konopiska",
+"public_transport": "platform"
+},
+{
+"id": "node/5560548958",
+"lat": 50.698972,
+"lon": 18.659823,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubecko Skrzyżowanie",
+"public_transport": "platform"
+},
+{
+"id": "node/5560548959",
+"lat": 50.699068,
+"lon": 18.660822,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubecko Skrzyżowanie",
+"public_transport": "platform"
+},
+{
+"id": "node/5560548960",
+"lat": 50.698137,
+"lon": 18.660642,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubecko Skrzyżowanie",
+"public_transport": "platform"
+},
+{
+"id": "node/5563143429",
+"lat": 50.689908,
+"lon": 18.711704,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Jawornica",
+"public_transport": "platform"
+},
+{
+"id": "node/5563143430",
+"lat": 50.690533,
+"lon": 18.712591,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Jawornica",
+"public_transport": "platform"
+},
+{
+"id": "node/5563188220",
+"lat": 50.654482,
+"lon": 18.687758,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Zakład Głuchych",
+"public_transport": "platform"
+},
+{
+"id": "node/5563189421",
+"lat": 50.653817,
+"lon": 18.687829,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Zakład Głuchych",
+"public_transport": "platform"
+},
+{
+"id": "node/5563189519",
+"lat": 50.664678,
+"lon": 18.687219,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Stalmacha",
+"public_transport": "platform"
+},
+{
+"id": "node/5563189520",
+"lat": 50.664312,
+"lon": 18.687508,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Stalmacha",
+"public_transport": "platform"
+},
+{
+"id": "node/5563189650",
+"lat": 50.596176,
+"lon": 18.702257,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kokotek",
+"public_transport": "platform"
+},
+{
+"id": "node/5563189651",
+"lat": 50.59612,
+"lon": 18.702458,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kokotek",
+"public_transport": "platform"
+},
+{
+"id": "node/5563189665",
+"lat": 50.585955,
+"lon": 18.705352,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pusta Kuźnica",
+"public_transport": "platform"
+},
+{
+"id": "node/5563189666",
+"lat": 50.586604,
+"lon": 18.704584,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pusta Kuźnica",
+"public_transport": "platform"
+},
+{
+"id": "node/5563223723",
+"lat": 50.605801,
+"lon": 18.697997,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Posmyk",
+"public_transport": "platform"
+},
+{
+"id": "node/5563223724",
+"lat": 50.604985,
+"lon": 18.698425,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Posmyk",
+"public_transport": "platform"
+},
+{
+"id": "node/5563223747",
+"lat": 50.598614,
+"lon": 18.657194,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kokotek Dworzec"
+},
+{
+"id": "node/5563223750",
+"lat": 50.591325,
+"lon": 18.707002,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pusta Kuźnica ZHP"
+},
+{
+"id": "node/5563223751",
+"lat": 50.598815,
+"lon": 18.70459,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kokotek Szkoła"
+},
+{
+"id": "node/5564512286",
+"lat": 50.662237,
+"lon": 18.682048,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Liceum",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512319",
+"lat": 50.666905,
+"lon": 18.679785,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Grunwaldzka",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512522",
+"lat": 50.669576,
+"lon": 18.679423,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Aleja Solidarności 2",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512523",
+"lat": 50.670146,
+"lon": 18.679713,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Aleja Solidarności 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512525",
+"lat": 50.668494,
+"lon": 18.688349,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Przedszkole",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512548",
+"lat": 50.670032,
+"lon": 18.704882,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Powstańców Śląskich 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512549",
+"lat": 50.669963,
+"lon": 18.704445,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Powstańców Śląskich 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512550",
+"lat": 50.670903,
+"lon": 18.723232,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Powstańców Śląskich 2",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512551",
+"lat": 50.672043,
+"lon": 18.706916,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Klonowa 2",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512552",
+"lat": 50.672418,
+"lon": 18.707047,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Klonowa 2",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512553",
+"lat": 50.684234,
+"lon": 18.703514,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Klonowa 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512554",
+"lat": 50.680897,
+"lon": 18.69585,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Częstochowska",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512555",
+"lat": 50.680483,
+"lon": 18.694876,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Częstochowska",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512556",
+"lat": 50.67178,
+"lon": 18.740925,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Sadów Przedszkole",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512557",
+"lat": 50.671619,
+"lon": 18.747971,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Sadów Szkoła",
+"public_transport": "platform"
+},
+{
+"id": "node/5564512558",
+"lat": 50.669841,
+"lon": 18.760393,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Sadów Skrzyżowanie",
+"public_transport": "platform"
+},
+{
+"id": "node/5564519648",
+"lat": 50.669096,
+"lon": 18.688355,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Plebiscytowa",
+"public_transport": "platform"
+},
+{
+"id": "node/5564693675",
+"lat": 50.67104,
+"lon": 18.668016,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Zachodnia",
+"public_transport": "platform"
+},
+{
+"id": "node/5564693706",
+"lat": 50.67445,
+"lon": 18.680626,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Zwycięstwa 2",
+"public_transport": "platform"
+},
+{
+"id": "node/5564693707",
+"lat": 50.67511,
+"lon": 18.680288,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Zwycięstwa 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5564693708",
+"lat": 50.682231,
+"lon": 18.674495,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Steblów 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5564693709",
+"lat": 50.682929,
+"lon": 18.674107,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Steblów 3",
+"public_transport": "platform"
+},
+{
+"id": "node/5564696656",
+"lat": 50.690621,
+"lon": 18.66763,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Steblów 4",
+"public_transport": "platform"
+},
+{
+"id": "node/5564696657",
+"lat": 50.690059,
+"lon": 18.668032,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Steblów 2",
+"public_transport": "platform"
+},
+{
+"id": "node/5567996820",
+"lat": 50.673321,
+"lon": 18.685689,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Tysiąclecia",
+"public_transport": "platform"
+},
+{
+"id": "node/5567998121",
+"lat": 50.67009,
+"lon": 18.687465,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Karola Miarki",
+"public_transport": "platform"
+},
+{
+"id": "node/5567998122",
+"lat": 50.667193,
+"lon": 18.673474,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec M. Skłodowskiej-Curie 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5567998123",
+"lat": 50.667091,
+"lon": 18.673452,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec M. Skłodowskiej-Curie 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5567998124",
+"lat": 50.665346,
+"lon": 18.66047,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec M. Skłodowskiej-Curie 2",
+"public_transport": "platform"
+},
+{
+"id": "node/5567998125",
+"lat": 50.665201,
+"lon": 18.659426,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec M. Skłodowskiej-Curie 2",
+"public_transport": "platform"
 },
 {
 "id": "node/5567998162",
@@ -576,6 +1650,78 @@
 "shop": "convenience"
 },
 {
+"id": "node/5616043652",
+"lat": 50.665902,
+"lon": 18.685149,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Szkoła Podstawowa 1",
+"public_transport": "platform"
+},
+{
+"id": "node/5620834959",
+"lat": 50.663975,
+"lon": 18.693126,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Szkoła Podstawowa 2",
+"public_transport": "platform"
+},
+{
+"id": "node/5620834961",
+"lat": 50.663826,
+"lon": 18.691447,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Przedszkole 6",
+"public_transport": "platform"
+},
+{
+"id": "node/5620918843",
+"lat": 50.704019,
+"lon": 18.720676,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochcice Kochanowicka",
+"public_transport": "platform"
+},
+{
+"id": "node/5620918855",
+"lat": 50.702788,
+"lon": 18.734615,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochanowice Kochcicka",
+"public_transport": "platform"
+},
+{
+"id": "node/5620918856",
+"lat": 50.701451,
+"lon": 18.737442,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochanowice Rondo",
+"public_transport": "platform"
+},
+{
+"id": "node/5620918861",
+"lat": 50.708684,
+"lon": 18.751427,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochanowice Centrum kierunek Częstochowa",
+"public_transport": "platform"
+},
+{
+"id": "node/5620918863",
+"lat": 50.708329,
+"lon": 18.752461,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochanowice Szkoła",
+"public_transport": "platform"
+},
+{
 "id": "node/5782035296",
 "lat": 50.670855,
 "lon": 18.91477,
@@ -584,10 +1730,148 @@
 "shop": "convenience"
 },
 {
+"id": "node/6194115888",
+"lat": 50.591741,
+"lon": 18.701421,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Pusta Kuźnica Sklep"
+},
+{
+"id": "node/6328004935",
+"lat": 50.72459,
+"lon": 18.957731,
+"bus": "yes",
+"highway": "bus_stop",
+"public_transport": "platform"
+},
+{
 "id": "node/6373755846",
 "lat": 50.728775,
 "lon": 18.793839,
 "shop": "convenience"
+},
+{
+"id": "node/6583853015",
+"lat": 50.503881,
+"lon": 19.012382,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Bibiela Kościół",
+"public_transport": "stop_position"
+},
+{
+"id": "node/6586149702",
+"lat": 50.532752,
+"lon": 18.729576,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Tworóg Szkoła",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149706",
+"lat": 50.529791,
+"lon": 18.74257,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Nowa Wieś Spółdzielnia",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149709",
+"lat": 50.529918,
+"lon": 18.742485,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Nowa Wieś Spółdzielnia",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149712",
+"lat": 50.527255,
+"lon": 18.752636,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Nowa Wieś Pętla",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149729",
+"lat": 50.551832,
+"lon": 18.698825,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Koty",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149732",
+"lat": 50.558952,
+"lon": 18.687454,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Osiedle Wesoła [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149742",
+"lat": 50.566107,
+"lon": 18.661739,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Potępa",
+"network": "Transport GZM",
+"public_transport": "platform",
+"route_ref": "138553;138561;138564;138568;160663;160664;160666;160671;160672;160673;160674"
+},
+{
+"id": "node/6586149762",
+"lat": 50.51468,
+"lon": 18.735138,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Brynek Technikum",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149763",
+"lat": 50.515009,
+"lon": 18.734289,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Brynek Technikum",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149764",
+"lat": 50.522079,
+"lon": 18.723043,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Brynek [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/6586149769",
+"lat": 50.551541,
+"lon": 18.699887,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Koty Szkolna",
+"public_transport": "platform"
 },
 {
 "id": "node/6587927139",
@@ -695,6 +1979,79 @@
 "shop": "supermarket"
 },
 {
+"id": "node/6631121404",
+"lat": 50.511101,
+"lon": 18.772786,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Boruszowice Szkoła",
+"public_transport": "stop_position"
+},
+{
+"id": "node/6631121436",
+"lat": 50.505865,
+"lon": 18.767358,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Boruszowice Hanusek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/6631121437",
+"lat": 50.509055,
+"lon": 18.774262,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Boruszowice Sklep",
+"public_transport": "stop_position"
+},
+{
+"id": "node/6631121438",
+"lat": 50.513136,
+"lon": 18.775166,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Boruszowice Traugutta",
+"public_transport": "stop_position"
+},
+{
+"id": "node/6631121441",
+"lat": 50.536445,
+"lon": 18.825631,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Mikołeska",
+"public_transport": "stop_position"
+},
+{
+"id": "node/6637133367",
+"lat": 50.516046,
+"lon": 18.72884,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Brynek Kolejowa",
+"public_transport": "stop_position"
+},
+{
+"id": "node/6637133370",
+"lat": 50.512032,
+"lon": 18.73508,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Brynek Osiedle Zakładowe",
+"public_transport": "stop_position"
+},
+{
+"id": "node/6637133373",
+"lat": 50.517431,
+"lon": 18.733104,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Brynek Zamkowa 1",
+"public_transport": "stop_position"
+},
+{
 "id": "node/6668094503",
 "lat": 50.663207,
 "lon": 18.68838,
@@ -735,6 +2092,132 @@
 "shop": "convenience"
 },
 {
+"id": "node/6710375752",
+"lat": 50.665506,
+"lon": 18.679944,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Grunwaldzka",
+"public_transport": "platform"
+},
+{
+"id": "node/6721916428",
+"lat": 50.706385,
+"lon": 18.749355,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochanowice Przedszkole",
+"public_transport": "platform"
+},
+{
+"id": "node/6812926919",
+"lat": 50.650156,
+"lon": 18.810713,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Irki",
+"public_transport": "platform"
+},
+{
+"id": "node/6812927614",
+"lat": 50.675203,
+"lon": 18.756635,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Sadów Leśna",
+"public_transport": "platform"
+},
+{
+"id": "node/6812927615",
+"lat": 50.665438,
+"lon": 18.774957,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Wierzbie ul. Główna",
+"public_transport": "platform"
+},
+{
+"id": "node/6812927616",
+"lat": 50.665393,
+"lon": 18.774799,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Wierzbie ul. Główna",
+"public_transport": "platform"
+},
+{
+"id": "node/6812927625",
+"lat": 50.641051,
+"lon": 18.832992,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Koszęcin Lubliniecka",
+"public_transport": "platform"
+},
+{
+"id": "node/6812927626",
+"lat": 50.636165,
+"lon": 18.841118,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Koszęcin Rynek",
+"public_transport": "platform"
+},
+{
+"id": "node/6923644083",
+"lat": 50.627452,
+"lon": 18.758491,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Piłka",
+"public_transport": "platform"
+},
+{
+"id": "node/6923644092",
+"lat": 50.643978,
+"lon": 18.765272,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Rusinowice Straż",
+"public_transport": "platform"
+},
+{
+"id": "node/6923644099",
+"lat": 50.649367,
+"lon": 18.763689,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Rusinowice Dworzec PKP",
+"public_transport": "platform"
+},
+{
+"id": "node/6923644109",
+"lat": 50.689449,
+"lon": 18.714798,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Jawornica Szkoła",
+"public_transport": "platform"
+},
+{
+"id": "node/6923644110",
+"lat": 50.677901,
+"lon": 18.721105,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Sadów Podlesie",
+"public_transport": "platform"
+},
+{
+"id": "node/6923644115",
+"lat": 50.671621,
+"lon": 18.724394,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Sadów Kopce",
+"public_transport": "platform"
+},
+{
 "id": "node/6986045908",
 "lat": 50.664874,
 "lon": 18.685588,
@@ -753,6 +2236,36 @@
 "addr:street": "Ignacego Jana Paderewskiego",
 "opening_hours": "Mo-Fr 06:00-17:00; Sa 06:00-13:00",
 "shop": "convenience"
+},
+{
+"id": "node/7005149683",
+"lat": 50.566203,
+"lon": 18.661885,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Potępa",
+"network": "Transport GZM",
+"public_transport": "platform",
+"route_ref": "138559;138569;138572;138573;160667;160668;160670;160675;160676;160677;160678"
+},
+{
+"id": "node/7055133899",
+"lat": 50.724953,
+"lon": 18.780916,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lisów Bruk",
+"public_transport": "platform"
+},
+{
+"id": "node/7055133900",
+"lat": 50.72469,
+"lon": 18.780121,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lisów Bruk",
+"public_transport": "platform"
 },
 {
 "id": "node/7600564064",
@@ -774,6 +2287,15 @@
 "name": "Moya",
 "opening_hours": "Mo-Su 05:00-23:00",
 "shop": "convenience"
+},
+{
+"id": "node/7646510540",
+"lat": 50.662728,
+"lon": 18.68206,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubliniec Liceum",
+"public_transport": "platform"
 },
 {
 "id": "node/7732016465",
@@ -863,6 +2385,33 @@
 "lon": 18.911671,
 "name": "Majchrzyk Piekarnia Ciastkarnia Ł.M-Maj",
 "shop": "bakery"
+},
+{
+"id": "node/8274973316",
+"lat": 50.67328,
+"lon": 18.689104,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "1",
+"public_transport": "platform"
+},
+{
+"id": "node/8275002017",
+"lat": 50.67336,
+"lon": 18.688978,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "2",
+"public_transport": "platform"
+},
+{
+"id": "node/8275002018",
+"lat": 50.673434,
+"lon": 18.688859,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "3",
+"public_transport": "platform"
 },
 {
 "id": "node/8371713015",
@@ -964,6 +2513,51 @@
 "name": "Żabka",
 "opening_hours": "Mo-Sa 06:00-23:00",
 "shop": "convenience"
+},
+{
+"id": "node/9203576013",
+"lat": 50.709908,
+"lon": 18.683864,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochcice Skrzyżowanie",
+"public_transport": "platform"
+},
+{
+"id": "node/9203583821",
+"lat": 50.708487,
+"lon": 18.686794,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochcice Szkoła",
+"public_transport": "platform"
+},
+{
+"id": "node/9203583822",
+"lat": 50.709438,
+"lon": 18.67971,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochcice Sanatorium",
+"public_transport": "platform"
+},
+{
+"id": "node/9203583977",
+"lat": 50.714183,
+"lon": 18.67863,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kochcice PGR",
+"public_transport": "platform"
+},
+{
+"id": "node/9203583982",
+"lat": 50.728276,
+"lon": 18.677897,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Biały Ług",
+"public_transport": "platform"
 },
 {
 "id": "node/9244020850",
@@ -1074,6 +2668,215 @@
 "name": "Mariańska"
 },
 {
+"id": "node/9658337361",
+"lat": 50.551758,
+"lon": 18.956302,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kalety Miotek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9658378729",
+"lat": 50.575332,
+"lon": 18.968669,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Woźniki Sośnica",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9658394451",
+"lat": 50.595049,
+"lon": 18.96747,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Piasek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9658435527",
+"lat": 50.601658,
+"lon": 18.954404,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Psary Skrzyżowanie",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9658435528",
+"lat": 50.601898,
+"lon": 18.95376,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Psary Skrzyżowanie",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9659068065",
+"lat": 50.665404,
+"lon": 18.774895,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Wierzbie",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9659987369",
+"lat": 50.530882,
+"lon": 18.715468,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Tworóg Dworzec PKP",
+"public_transport": "platform"
+},
+{
+"id": "node/9660505234",
+"lat": 50.57687,
+"lon": 19.003245,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Woźniki Leśniczówka",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9660505248",
+"lat": 50.576759,
+"lon": 18.991032,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Woźniki Dyrdy",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9660505249",
+"lat": 50.576744,
+"lon": 18.989927,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Woźniki Dyrdy",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9660505253",
+"lat": 50.576564,
+"lon": 18.981272,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Woźniki Dyrdy I",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661309734",
+"lat": 50.628159,
+"lon": 18.978446,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Babienica Główna I",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661309735",
+"lat": 50.627413,
+"lon": 18.977771,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Babienica Główna I",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661309736",
+"lat": 50.624411,
+"lon": 18.973329,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Babienica Główna",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661338552",
+"lat": 50.633004,
+"lon": 18.992563,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kamienica",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661338553",
+"lat": 50.634263,
+"lon": 18.99259,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kamienica",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661338554",
+"lat": 50.634574,
+"lon": 18.991944,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kamienica",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661352205",
+"lat": 50.604443,
+"lon": 19.003764,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubsza Ligocka",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661352206",
+"lat": 50.604907,
+"lon": 19.00014,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubsza Skrzyżowanie",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661352207",
+"lat": 50.610241,
+"lon": 19.00037,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubsza",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661352208",
+"lat": 50.611019,
+"lon": 19.000416,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Lubsza",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9661638556",
+"lat": 50.585628,
+"lon": 18.811494,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Brusiek",
+"public_transport": "stop_position"
+},
+{
+"id": "node/9704392964",
+"lat": 50.49937,
+"lon": 18.941089,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Żyglinek Karpacka",
+"public_transport": "stop_position"
+},
+{
 "id": "node/9713842305",
 "lat": 50.707579,
 "lon": 18.751259,
@@ -1154,6 +2957,65 @@
 "shop": "convenience"
 },
 {
+"id": "node/10162035865",
+"lat": 50.528626,
+"lon": 18.707986,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Tworóg Gminny Ośrodek Kultury",
+"public_transport": "platform"
+},
+{
+"id": "node/10162035866",
+"lat": 50.528592,
+"lon": 18.708062,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Tworóg Gminny Ośrodek Kultury",
+"public_transport": "platform"
+},
+{
+"id": "node/10162060623",
+"lat": 50.529789,
+"lon": 18.715211,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "4",
+"name": "Tworóg Dworzec PKP",
+"public_transport": "platform"
+},
+{
+"id": "node/10162060624",
+"lat": 50.52972,
+"lon": 18.715251,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "3",
+"name": "Tworóg Dworzec PKP",
+"public_transport": "platform"
+},
+{
+"id": "node/10162130019",
+"lat": 50.505881,
+"lon": 18.767296,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Boruszowice Hanusek",
+"public_transport": "platform"
+},
+{
+"id": "node/10162130020",
+"lat": 50.505837,
+"lon": 18.767416,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Boruszowice Hanusek",
+"network": "Transport GZM",
+"public_transport": "platform"
+},
+{
 "id": "node/10227047517",
 "lat": 50.717796,
 "lon": 18.803836,
@@ -1161,6 +3023,204 @@
 "defibrillator:location": "Samochód ratowniczo-gaśniczy",
 "emergency": "defibrillator",
 "indoor": "yes"
+},
+{
+"id": "node/10302069325",
+"lat": 50.560948,
+"lon": 18.678767,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Tworóg Graniczny [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069326",
+"lat": 50.560932,
+"lon": 18.678496,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Tworóg Graniczny [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069327",
+"lat": 50.558862,
+"lon": 18.68738,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Osiedle Wesoła [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069328",
+"lat": 50.55147,
+"lon": 18.699943,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Koty Szkolna",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069329",
+"lat": 50.540319,
+"lon": 18.708767,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Tworóg [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069330",
+"lat": 50.540294,
+"lon": 18.708637,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Tworóg [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069331",
+"lat": 50.532239,
+"lon": 18.720123,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Tworóg Zamek",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069332",
+"lat": 50.532123,
+"lon": 18.720044,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Tworóg Zamek",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069333",
+"lat": 50.529366,
+"lon": 18.716316,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Tworóg Dworzec PKP",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069334",
+"lat": 50.516896,
+"lon": 18.662338,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Świniowice Skrzyżowanie",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069335",
+"lat": 50.51681,
+"lon": 18.662321,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Świniowice Skrzyżowanie",
+"public_transport": "platform"
+},
+{
+"id": "node/10302069337",
+"lat": 50.532654,
+"lon": 18.729552,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Tworóg Szkoła",
+"public_transport": "platform"
+},
+{
+"id": "node/10304714770",
+"lat": 50.531907,
+"lon": 18.722642,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Tworóg Kościół",
+"public_transport": "platform"
+},
+{
+"id": "node/10304714771",
+"lat": 50.522544,
+"lon": 18.757992,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Nowa Wieś Domki Letniskowe [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/10304714772",
+"lat": 50.516309,
+"lon": 18.760167,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Hanusek Cegielnia",
+"public_transport": "platform"
+},
+{
+"id": "node/10304714773",
+"lat": 50.516853,
+"lon": 18.774042,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Boruszowice Cmentarz",
+"public_transport": "platform"
+},
+{
+"id": "node/10304714774",
+"lat": 50.521932,
+"lon": 18.779514,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Kolonia Osiek",
+"public_transport": "platform"
+},
+{
+"id": "node/10304714785",
+"lat": 50.517868,
+"lon": 18.733486,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Brynek Zamkowa",
+"public_transport": "platform"
+},
+{
+"id": "node/10304714787",
+"lat": 50.521828,
+"lon": 18.723716,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Brynek [nż]",
+"public_transport": "platform"
+},
+{
+"id": "node/10923986699",
+"lat": 50.669954,
+"lon": 18.718249,
+"bus": "yes",
+"highway": "bus_stop",
+"public_transport": "platform"
 },
 {
 "id": "node/11016962528",
@@ -1178,6 +3238,60 @@
 "brand": "Delikatesy Centrum",
 "name": "Delikatesy Centrum",
 "shop": "supermarket"
+},
+{
+"id": "node/11047397012",
+"lat": 50.606644,
+"lon": 18.706972,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Posmyk Ośrodek Silesiana",
+"public_transport": "platform"
+},
+{
+"id": "node/11071155124",
+"lat": 50.6427,
+"lon": 18.995226,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kamienica Śląska ul. Częstochowska (Szkoła)",
+"public_transport": "platform"
+},
+{
+"id": "node/11071155125",
+"lat": 50.694291,
+"lon": 19.011417,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Hutki I",
+"public_transport": "platform"
+},
+{
+"id": "node/11071155204",
+"lat": 50.655557,
+"lon": 19.002291,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Drogobycza",
+"public_transport": "platform"
+},
+{
+"id": "node/11071174205",
+"lat": 50.655595,
+"lon": 19.002503,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Drogobycza",
+"public_transport": "platform"
+},
+{
+"id": "node/11389767040",
+"lat": 50.486954,
+"lon": 18.919293,
+"name": "Miasteczko Śląskie Centrum",
+"public_transport": "station",
+"railway": "halt",
+"train": "yes"
 },
 {
 "id": "node/11468157719",
@@ -1239,6 +3353,15 @@
 "shop": "bakery"
 },
 {
+"id": "node/12177999104",
+"lat": 50.711729,
+"lon": 18.84875,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Kierzki",
+"public_transport": "platform"
+},
+{
 "id": "node/12302404692",
 "lat": 50.630779,
 "lon": 18.84236,
@@ -1273,6 +3396,84 @@
 "access": "yes",
 "emergency": "defibrillator",
 "indoor": "yes"
+},
+{
+"id": "node/12458770381",
+"lat": 50.488096,
+"lon": 18.9215,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Miasteczko Śląskie Stacja Kolejowa [nż]",
+"network": "Transport GZM",
+"operator": "Zarząd Transportu Metropolitalnego",
+"public_transport": "platform"
+},
+{
+"id": "node/12458770385",
+"lat": 50.487389,
+"lon": 18.920886,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Miasteczko Śląskie Stacja Kolejowa [nż]",
+"network": "Transport GZM",
+"operator": "Zarząd Transportu Metropolitalnego",
+"public_transport": "platform"
+},
+{
+"id": "node/12585003587",
+"lat": 50.493802,
+"lon": 18.912956,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Miasteczko Śląskie Osiedle",
+"public_transport": "platform"
+},
+{
+"id": "node/12653846163",
+"lat": 50.491139,
+"lon": 18.922761,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Miasteczko Śląskie Rynek",
+"network": "Transport GZM",
+"operator": "Zarząd Transportu Metropolitalnego",
+"public_transport": "platform"
+},
+{
+"id": "node/12653846164",
+"lat": 50.491282,
+"lon": 18.922539,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Miasteczko Śląskie Rynek",
+"network": "Transport GZM",
+"operator": "Zarząd Transportu Metropolitalnego",
+"public_transport": "platform"
+},
+{
+"id": "node/12653846168",
+"lat": 50.492633,
+"lon": 18.921119,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "1",
+"name": "Miasteczko Śląskie Szkoła",
+"public_transport": "platform"
+},
+{
+"id": "node/12653846170",
+"lat": 50.492495,
+"lon": 18.920594,
+"bus": "yes",
+"highway": "bus_stop",
+"local_ref": "2",
+"name": "Miasteczko Śląskie Szkoła",
+"public_transport": "platform"
 },
 {
 "id": "node/12658500501",
@@ -1370,6 +3571,24 @@
 "emergency": "defibrillator"
 },
 {
+"id": "node/13446940041",
+"lat": 50.495172,
+"lon": 19.001032,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Bibiela Droga do Żyglina nż",
+"public_transport": "platform"
+},
+{
+"id": "node/13446940042",
+"lat": 50.495147,
+"lon": 19.000916,
+"bus": "yes",
+"highway": "bus_stop",
+"name": "Bibiela Droga do Żyglina nż",
+"public_transport": "platform"
+},
+{
 "id": "node/13582210085",
 "lat": 50.726432,
 "lon": 19.010238,
@@ -1447,6 +3666,14 @@
 "operator": "Napkins Sp. z o.o."
 },
 {
+"id": "node/14142732687",
+"lat": 50.624162,
+"lon": 18.872494,
+"bus": "yes",
+"highway": "bus_stop",
+"public_transport": "platform"
+},
+{
 "id": "node/14203822801",
 "lat": 50.586044,
 "lon": 18.70598,
@@ -1464,6 +3691,21 @@
 "indoor": "no",
 "opening_hours": "24/7",
 "operator": "Ochotnicza Straż Pożarna w Kochcicach"
+},
+{
+"id": "node/14272988001",
+"lat": 50.708087,
+"lon": 18.750927,
+"highway": "bus_stop",
+"name": "Kochanowice Centrum kierunek Lubliniec"
+},
+{
+"id": "node/14284441570",
+"lat": 50.691381,
+"lon": 18.901819,
+"bus": "yes",
+"highway": "bus_stop",
+"public_transport": "platform"
 },
 {
 "id": "node/14309932126",

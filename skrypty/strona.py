@@ -78,6 +78,7 @@ for f in json.load(open("../dane/osm_gmina.geojson"))["features"]:
 # 15.11.2026: AED i sklepy spożywcze z OSM (../dane/osm_poi.json – workflow „POI AED i sklepy” na gałęzi wysokosci); bez AED w wozach strażackich (access=private)
 if os.path.exists("../dane/osm_poi.json"):
     _SKL = {"convenience": "sklep spożywczy", "supermarket": "supermarket", "bakery": "piekarnia", "butcher": "mięsny", "greengrocer": "warzywniak", "general": "sklep", "deli": "delikatesy", "farm": "sklep z gospodarstwa", "food": "sklep spożywczy"}
+    _BUS = []
     for q in json.load(open("../dane/osm_poi.json")):
         if not hull.contains(Point(q["lon"], q["lat"])): continue
         adr = " ".join(x for x in [q.get("addr:street") or q.get("addr:place"), q.get("addr:housenumber")] if x)
@@ -88,12 +89,23 @@ if os.path.exists("../dane/osm_poi.json"):
             opis = "\n".join(x for x in [gdzie, ("wewnątrz budynku" if q.get("indoor") == "yes" else "na zewnątrz" if q.get("indoor") == "no" else ""),
                                          (q.get("operator") or "")] if x)
             places.append(dict(k=f"osm:{q['id']}", typ="aed", nazwa="AED" + (" – " + q["name"] if q.get("name") and "AED" not in q["name"] and "efibryl" not in q["name"] else ""), opis=opis, lat=q["lat"], lon=q["lon"], osm=1, **({"h": godz} if godz else {})))
+        elif q.get("railway") in ("station", "halt"):
+            nz = q.get("name") or "Kolej"
+            places.append(dict(k=f"osm:{q['id']}", typ="pkp", nazwa=("Stacja kolejowa " if q["railway"] == "station" else "Przystanek kolejowy ") + nz, opis="", lat=q["lat"], lon=q["lon"], osm=1))
+        elif q.get("highway") == "bus_stop" or q.get("bus") == "yes":
+            nz = q.get("name") or ""
+            # dwa słupki po obu stronach drogi (ta sama nazwa, do 150 m) – jeden znacznik pośrodku
+            bliz = next((p for p in _BUS if p["_n"] == nz and nz and abs(p["lat"] - q["lat"]) < 0.0014 and abs(p["lon"] - q["lon"]) < 0.0022), None)
+            if bliz: bliz["lat"] = round((bliz["lat"] + q["lat"]) / 2, 6); bliz["lon"] = round((bliz["lon"] + q["lon"]) / 2, 6); continue
+            _BUS.append(dict(k=f"osm:{q['id']}", typ="autobus", nazwa="Przystanek " + nz if nz else "Przystanek autobusowy",
+                             opis=("linie: " + q["route_ref"].replace(";", ", ")) if q.get("route_ref") else "", lat=q["lat"], lon=q["lon"], osm=1, _n=nz))
         elif q.get("amenity") == "pharmacy":
             places.append(dict(k=f"osm:{q['id']}", typ="apteka", nazwa=q.get("name") or "Apteka", opis=adr, lat=q["lat"], lon=q["lon"], osm=1, **({"h": godz} if godz else {})))
         elif q.get("shop"):
             nz = q.get("name") or q.get("brand") or _SKL.get(q["shop"], "sklep").capitalize()
             opis = "\n".join(x for x in [_SKL.get(q["shop"], "sklep").capitalize() if (q.get("name") or q.get("brand")) else "", adr] if x)
             places.append(dict(k=f"osm:{q['id']}", typ="sklep", nazwa=nz, opis=opis, lat=q["lat"], lon=q["lon"], osm=1, **({"h": godz} if godz else {})))
+    places.extend({k: v for k, v in b.items() if k != "_n"} for b in _BUS)
 # wspólne odcinki tras: każda trasa dzielona na kawałki o stałym zestawie tras; na stronie rysowane obok siebie (przesunięcie)
 import re as _re, collections as _col
 _ord = lambda i: (int(_re.match(r"\d+", i).group()), i)

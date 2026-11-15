@@ -58,7 +58,7 @@
     }
     return [...m.values()];
   })();
-  const TYPM = {stacja: 'Stacja napraw rowerów', serwis: 'Serwis rowerowy', wiata: 'Wiata', lawka: 'Ławka', piknik: 'Piknik / ognisko', widok: 'Punkt widokowy', woda: 'Woda', jedzenie: 'Jedzenie', kawa: 'Kawiarnia', bar: 'Bar', nocleg: 'Nocleg', kosciol: 'Kościół / kapliczka', zabytek: 'Zabytek', przyroda: 'Przyroda', sport: 'Sport', zabawa: 'Plac zabaw', wc: 'WC', aed: 'Defibrylator AED', apteka: 'Apteka', sklep: 'Sklep spożywczy', parking: 'Parking', ciekawe: 'Ciekawe miejsce'};
+  const TYPM = {stacja: 'Stacja napraw rowerów', serwis: 'Serwis rowerowy', wiata: 'Wiata', lawka: 'Ławka', piknik: 'Piknik / ognisko', widok: 'Punkt widokowy', woda: 'Woda', jedzenie: 'Jedzenie', kawa: 'Kawiarnia', bar: 'Bar', nocleg: 'Nocleg', kosciol: 'Kościół / kapliczka', zabytek: 'Zabytek', przyroda: 'Przyroda', sport: 'Sport', zabawa: 'Plac zabaw', wc: 'WC', aed: 'Defibrylator AED', apteka: 'Apteka', pkp: 'Kolej', autobus: 'Przystanek autobusowy', sklep: 'Sklep spożywczy', parking: 'Parking', ciekawe: 'Ciekawe miejsce'};
   const MIEJSCA = (H.places || []).filter(p => p.nazwa && p.typ !== 'lawka').map(p => ({n: p.nazwa, s: (TYPM[p.typ] || 'Miejsce') + (najblizszaMiejscowosc([p.lat, p.lon]) ? ' · ' + najblizszaMiejscowosc([p.lat, p.lon]) : ''), lat: p.lat, lon: p.lon, typ: 'p'}));
   const WSZYSTKO = [...CELE, ...MIEJSCA, ...ULICE].map(x => ({...x, q: norm(x.n + ' ' + x.s)}));
   function szukaj(q) {
@@ -98,7 +98,7 @@
   fetch(BAZA + 'api/miejsca.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => { if (j && j.miejsca) { LS.set('miejsca', j); ladujMSC(j); } }).catch(() => {});
   // „W pobliżu”: 5 najbliższych miejsc danego rodzaju, odległość i czas liczone po drogach (nie w linii prostej)
   const POBL = [['aed', 'AED', ['aed']], ['apteka', 'Apteka', ['apteka']], ['sklep', 'Sklep', ['sklep']], ['jedzenie', 'Jedzenie', ['jedzenie', 'kawa', 'bar']],
-                ['wc', 'WC', ['wc']], ['stacja', 'Serwis rowerowy', ['stacja', 'serwis', 'wypozycz']], ['wiata', 'Wiata / odpoczynek', ['wiata', 'piknik']]];
+                ['wc', 'WC', ['wc']], ['pkp', 'Pociąg', ['pkp']], ['autobus', 'Autobus', ['autobus']], ['stacja', 'Serwis rowerowy', ['stacja', 'serwis', 'wypozycz']], ['wiata', 'Wiata / odpoczynek', ['wiata', 'piknik']]];
   if (MJ) {
     $('pobl-chipy').innerHTML = POBL.map(([t, n]) => `<button type="button" data-k="${t}" aria-pressed="false" style="background:${MJ.TYP[t].c}"><span class="mj">${MJ.svg(t, '#fff', 15)}</span>${n}</button>`).join('');
     $('pobl-chipy').querySelectorAll('button').forEach(b => b.onclick = () => {
