@@ -89,6 +89,65 @@
     if (n === 'Leśno Rajza') { const best = najblizszyPunktTrasy('7'); if (best) ustawCel(best, 'Leśno Rajza', 'najbliższy punkt szlaku'); return; }
     const c = (H.cele || []).find(c => c.n === n); if (c) ustawCel([c.lat, c.lon], c.n, 'Miejscowość');
   });
+  // ---- miejsca (POI): stałe z data.js + zatwierdzone z mapy wspólnej (api/miejsca.php) z poprawkami administratora
+  const MJ = window.MIEJSCA;
+  let MSC = (H.places || []).slice();
+  function ladujMSC(j) { if (!j || !MJ) return; const K = j.korekty || {};
+    MSC = (H.places || []).map(m => MJ.popraw(m, K)).concat((j.miejsca || []).map(m => MJ.popraw(m, K))).filter(Boolean); setTimeout(rysujPOI, 0); }
+  ladujMSC(LS.get('miejsca', null));
+  fetch(BAZA + 'api/miejsca.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => { if (j && j.miejsca) { LS.set('miejsca', j); ladujMSC(j); } }).catch(() => {});
+  // „W pobliżu”: 5 najbliższych miejsc danego rodzaju, odległość i czas liczone po drogach (nie w linii prostej)
+  const POBL = [['aed', 'AED', ['aed']], ['apteka', 'Apteka', ['apteka']], ['sklep', 'Sklep', ['sklep']], ['jedzenie', 'Jedzenie', ['jedzenie', 'kawa', 'bar']],
+                ['wc', 'WC', ['wc']], ['stacja', 'Serwis rowerowy', ['stacja', 'serwis', 'wypozycz']], ['wiata', 'Wiata / odpoczynek', ['wiata', 'piknik']]];
+  if (MJ) {
+    $('pobl-chipy').innerHTML = POBL.map(([t, n]) => `<button type="button" data-k="${t}" aria-pressed="false" style="background:${MJ.TYP[t].c}"><span class="mj">${MJ.svg(t, '#fff', 15)}</span>${n}</button>`).join('');
+    $('pobl-chipy').querySelectorAll('button').forEach(b => b.onclick = () => {
+      const on = b.getAttribute('aria-pressed') === 'true';
+      $('pobl-chipy').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+      if (on) { $('pobl-lista').classList.add('hide'); $('pobl-msg').hidden = true; return; }
+      b.setAttribute('aria-pressed', 'true'); wPoblizu(POBL.find(x => x[0] === b.dataset.k));
+    });
+  }
+  function godzTxt(m) { const g = MJ && MJ.godziny(m.h); if (!g) return '';
+    return `<div class="g">${g.otwarte === true ? `<b class="o">otwarte${esc(g.dopisek || '')}</b> · ` : g.otwarte === false ? '<b class="z">teraz zamknięte</b> · ' : ''}${esc(g.txt)}</div>`; }
+  function wPoblizu([kat, nazwa, typy]) {
+    const msg = t => { $('pobl-msg').textContent = t; $('pobl-msg').hidden = !t; };
+    const licz = ja => {
+      const kand = MSC.filter(m => typy.includes(m.typ)).map(m => ({m, d: dist(ja, [m.lat, m.lon])})).filter(x => x.d < 30000).sort((a, b) => a.d - b.d).slice(0, 10);
+      const w = [];
+      for (const x of kand) { const T = trasuj(ja, [x.m.lat, x.m.lon], {tryb: stan.tryb}); if (T.blad) continue; T.prof = profil(T); w.push({...x, T}); }
+      w.sort((a, b) => a.T.m - b.T.m); const top = w.slice(0, 5);
+      if (!top.length) { $('pobl-lista').classList.add('hide'); return msg(`Nie mamy na mapie ${nazwa.toLowerCase()} w promieniu 30 km.`); }
+      msg('');
+      $('pobl-lista').innerHTML = top.map((x, i) => { const t = MJ.TYP[x.m.typ];
+        return `<button type="button" data-i="${i}"><span class="ik" style="background:${t.c}">${MJ.svg(x.m.typ, '#fff', 18, x.m.ik)}</span><span style="flex:1;min-width:0"><span class="t">${esc(x.m.nazwa || t.n)}</span><br>
+          <span class="s">${kmTxt(x.T.m)} · ${czasTxt(x.T.prof.czas)} · ${esc(x.m.nazwa ? t.n : (najblizszaMiejscowosc([x.m.lat, x.m.lon]) || ''))}</span>${godzTxt(x.m)}</span></button>`; }).join('');
+      $('pobl-lista').classList.remove('hide');
+      $('pobl-lista').querySelectorAll('button').forEach(b => b.onclick = () => { const x = top[+b.dataset.i]; ustawCel([x.m.lat, x.m.lon], x.m.nazwa || MJ.TYP[x.m.typ].n, MJ.TYP[x.m.typ].n); });
+    };
+    if (stan.start) return licz(stan.start);
+    msg('Ustalam Twoją lokalizację…');
+    gps(p => { stan.start = p; opiszStart(); licz(p); }, e => msg(e));
+  }
+  // ---- miejsca na mapie nawigacji: AED, apteki i stacje napraw od przybliżenia 13, reszta od 15; dotknięcie – opis i „Jedź tutaj”.
+  //      Rysujemy tylko znaczniki w widocznym obszarze (z zapasem) – setki znaczników poza ekranem spowalniały by mapę na telefonie.
+  let poiL = null, poiKlucz = '';
+  const WAZNE = ['aed', 'apteka', 'stacja'];
+  function rysujPOI() {
+    if (!map || !MJ) return;
+    if (!poiL) { poiL = L.layerGroup().addTo(map); map.on('moveend zoomend', () => rysujPOI.widok());
+      map.on('popupopen', e => { const b = e.popup.getElement().querySelector('.jt'); if (b) b.onclick = () => { map.closePopup(); const m = MSC[+b.dataset.i]; if (m) { ekran('s-cel'); ustawCel([m.lat, m.lon], m.nazwa || MJ.TYP[m.typ].n, MJ.TYP[m.typ].n); } }; }); }
+    poiKlucz = ''; rysujPOI.widok();
+  }
+  rysujPOI.widok = () => {
+    if (!poiL) return;
+    const z = map.getZoom(), bb = map.getBounds().pad(0.3);
+    const wid = z < 13 ? [] : MSC.map((m, i) => [m, i]).filter(([m]) => MJ.TYP[m.typ] && (z >= 15 || WAZNE.includes(m.typ)) && bb.contains([m.lat, m.lon]));
+    const k = wid.map(x => x[1]).join(',') + '|' + stan.jazda; if (k === poiKlucz) return; poiKlucz = k;
+    poiL.clearLayers();
+    for (const [m, i] of wid) L.marker([m.lat, m.lon], {icon: MJ.icon(m), title: m.nazwa || MJ.TYP[m.typ].n, zIndexOffset: 100})
+      .bindPopup(() => MJ.popup(m).replace(/<\/div>\s*$/, '') + (stan.jazda ? '' : `<button type="button" class="jt" data-i="${i}">Jedź tutaj</button>`) + '</div>', {maxWidth: 260}).addTo(poiL);
+  };
   function najblizszyPunktTrasy(id) {
     const r = H.routes.find(r => String(r.id) === id); if (!r) return null;
     const ja = stan.start || [50.616, 18.897]; let b = null, bd = Infinity;
@@ -144,6 +203,7 @@
     // odblokowanie – tylko przyciskiem kompasu
     window.addEventListener('resize', () => { if (obrocona) obroc(true); });
     map.on('click', e => { if (stan.wybor) stan.wybor([e.latlng.lat, e.latlng.lng]); });
+    rysujPOI();
     return map;
   }
   function ekran(id) { document.querySelectorAll('.ekran').forEach(e => e.classList.toggle('on', e.id === id)); if (id === 's-mapa' && map) { map.invalidateSize({pan: false}); setTimeout(() => map && map.invalidateSize({pan: false}), 60); } }

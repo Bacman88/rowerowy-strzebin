@@ -65,11 +65,44 @@ window.MIEJSCA = (() => {
 
   const icon = m => L.divIcon({className:'', html:`<div class="mj${m.plan ? ' plan' : ''}" style="background:${(TYP[m.typ] || TYP.ciekawe).c}">${svg(m.typ, '#fff', 15, m.ik)}</div>`,
                                iconSize:[24, 24], iconAnchor:[12, 12], popupAnchor:[0, -10]});
+  // godziny otwarcia z OpenStreetMap (opening_hours) – prosty odczyt najczęstszych zapisów: „24/7”, „Mo-Fr 08:00-18:00; Sa 08:00-14:00; Su off”
+  const DNI = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'], DPL = ['pn', 'wt', 'śr', 'cz', 'pt', 'sob', 'nd'];
+  function godziny(h, teraz = new Date()) {
+    if (!h) return null; h = String(h).trim();
+    if (h === '24/7') return {txt: 'całą dobę', otwarte: true};
+    // dni bez godzin w zapisie OSM są nieczynne; „Su[-1]” – ostatnia niedziela miesiąca (niedziela handlowa)
+    const tyg = DNI.map(() => []), ost = {}; let ok = true;
+    const D = '(?:Mo|Tu|We|Th|Fr|Sa|Su)';
+    const RE = new RegExp(`^((?:${D}(?:\\[-1\\])?(?:-${D})?,?)+)\\s+(off|closed|(?:\\d{1,2}:\\d{2}-\\d{1,2}:\\d{2},?)+)$`);
+    for (const reg of h.split(/;|(?<=\d),\s*(?=(?:Mo|Tu|We|Th|Fr|Sa|Su)\b)/).filter(x => x && !/^(Mo|Tu|We|Th|Fr|Sa|Su)$/.test(x)).map(x => x.trim().replace(/,\s*PH\b|\bPH\s*,/g, '').replace(/,\s+/g, ',')).filter(Boolean)) {
+      const m = reg.match(RE);
+      if (!m) { if (/^PH\b/.test(reg)) continue; ok = false; break; }
+      const prz = /off|closed/.test(m[2]) ? [] : m[2].split(',').filter(Boolean).map(x => x.split('-').map(t => { const [g, mi] = t.split(':'); return +g * 60 + +mi; }));
+      for (const z of m[1].split(',').filter(Boolean)) {
+        if (/\[-1\]/.test(z)) { ost[DNI.indexOf(z.slice(0, 2))] = prz; continue; }
+        const [a, b] = z.split('-'); const i = DNI.indexOf(a), j = b ? DNI.indexOf(b) : i;
+        for (let k = i; ; k = (k + 1) % 7) { tyg[k] = prz; if (k === j) break; } }
+    }
+    const fmt = x => Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0');
+    if (!ok) return {txt: h, otwarte: null};
+    const opis = [], kl = d => tyg[d].map(p => fmt(p[0]) + '–' + fmt(p[1])).join(', ') || 'nieczynne';
+    for (let d = 0; d < 7;) { let e = d; while (e < 6 && kl(e + 1) === kl(d)) e++; opis.push((e > d ? DPL[d] + '–' + DPL[e] : DPL[d]) + ' ' + kl(d)); d = e + 1; }
+    for (const [d, p] of Object.entries(ost)) opis.push('ostatnia ' + DPL[d] + ' miesiąca ' + (p.map(q => fmt(q[0]) + '–' + fmt(q[1])).join(', ') || 'nieczynne'));
+    const dz = (teraz.getDay() + 6) % 7, min = teraz.getHours() * 60 + teraz.getMinutes();
+    const ostatni = teraz.getDate() + 7 > new Date(teraz.getFullYear(), teraz.getMonth() + 1, 0).getDate();
+    const dzis = ost[dz] && ostatni ? ost[dz] : tyg[dz];
+    const otw = dzis.some(([a, b]) => b > a ? min >= a && min < b : min >= a || min < b);
+    let dopisek = ''; if (otw) { const p = dzis.find(([a, b]) => min >= a && min < b); if (p && p[1] - min <= 60) dopisek = ' – zamyka o ' + fmt(p[1]); }
+    return {txt: opis.join(' · '), otwarte: otw, dopisek};
+  }
+  const godzHTML = m => { const g = godziny(m.h); if (!g) return '';
+    const st = g.otwarte === true ? `<b style="color:#1E6B3A">otwarte teraz${g.dopisek || ''}</b> · ` : g.otwarte === false ? '<b style="color:#902B38">teraz zamknięte</b> · ' : '';
+    return `<div class="k" style="font-size:12.5px;color:#3d4a43">${st}${esc(g.txt)}</div>`; };
   function popup(m) {
     const t = TYP[m.typ] || TYP.ciekawe;
     const zr = m.nick ? `dodał(a): ${esc(m.nick)}${m.data ? ', ' + esc(m.data) : ''}` : m.osm ? 'źródło: OpenStreetMap' : '';
     return `<div class="mjp"><div class="t" style="color:${t.c}">${t.n}</div>${m.nazwa ? `<h3>${esc(m.nazwa)}</h3>` : ''}
-      ${m.opis ? `<p>${esc(m.opis)}</p>` : ''}${zr ? `<div class="k">${zr}</div>` : ''}</div>`;
+      ${m.opis ? `<p>${esc(m.opis)}</p>` : ''}${godzHTML(m)}${zr ? `<div class="k">${zr}</div>` : ''}</div>`;
   }
 
   // Tworzy warstwy i wczytuje miejsca: stałe (data.js) + zatwierdzone zgłoszenia (api/miejsca.php).
@@ -90,5 +123,5 @@ window.MIEJSCA = (() => {
         (j.miejsca || []).forEach(m => dodaj(popraw(m, K))); }).catch(() => {});
     return L_;
   }
-  return {TYP, GRUPY, WARSTWY, svg, icon, popup, warstwy, popraw, esc};
+  return {TYP, GRUPY, WARSTWY, svg, icon, popup, warstwy, popraw, esc, godziny};
 })();

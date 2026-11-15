@@ -86,14 +86,14 @@ if os.path.exists("../dane/osm_poi.json"):
             if q.get("access") in ("private", "no"): continue
             gdzie = q.get("defibrillator:location", "")
             opis = "\n".join(x for x in [gdzie, ("wewnątrz budynku" if q.get("indoor") == "yes" else "na zewnątrz" if q.get("indoor") == "no" else ""),
-                                         ("dostępny: " + godz if godz else ""), (q.get("operator") or "")] if x)
-            places.append(dict(k=f"osm:{q['id']}", typ="aed", nazwa="AED" + (" – " + q["name"] if q.get("name") and "AED" not in q["name"] and "efibryl" not in q["name"] else ""), opis=opis, lat=q["lat"], lon=q["lon"], osm=1))
+                                         (q.get("operator") or "")] if x)
+            places.append(dict(k=f"osm:{q['id']}", typ="aed", nazwa="AED" + (" – " + q["name"] if q.get("name") and "AED" not in q["name"] and "efibryl" not in q["name"] else ""), opis=opis, lat=q["lat"], lon=q["lon"], osm=1, **({"h": godz} if godz else {})))
         elif q.get("amenity") == "pharmacy":
-            places.append(dict(k=f"osm:{q['id']}", typ="apteka", nazwa=q.get("name") or "Apteka", opis="\n".join(x for x in [adr, ("godziny: " + godz if godz else "")] if x), lat=q["lat"], lon=q["lon"], osm=1))
+            places.append(dict(k=f"osm:{q['id']}", typ="apteka", nazwa=q.get("name") or "Apteka", opis=adr, lat=q["lat"], lon=q["lon"], osm=1, **({"h": godz} if godz else {})))
         elif q.get("shop"):
             nz = q.get("name") or q.get("brand") or _SKL.get(q["shop"], "sklep").capitalize()
-            opis = "\n".join(x for x in [_SKL.get(q["shop"], "sklep").capitalize() if (q.get("name") or q.get("brand")) else "", adr, ("godziny: " + godz if godz else "")] if x)
-            places.append(dict(k=f"osm:{q['id']}", typ="sklep", nazwa=nz, opis=opis, lat=q["lat"], lon=q["lon"], osm=1))
+            opis = "\n".join(x for x in [_SKL.get(q["shop"], "sklep").capitalize() if (q.get("name") or q.get("brand")) else "", adr] if x)
+            places.append(dict(k=f"osm:{q['id']}", typ="sklep", nazwa=nz, opis=opis, lat=q["lat"], lon=q["lon"], osm=1, **({"h": godz} if godz else {})))
 # wspólne odcinki tras: każda trasa dzielona na kawałki o stałym zestawie tras; na stronie rysowane obok siebie (przesunięcie)
 import re as _re, collections as _col
 _ord = lambda i: (int(_re.match(r"\d+", i).group()), i)
