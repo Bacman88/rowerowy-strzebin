@@ -389,7 +389,9 @@
   function koniecJazdy() {
     stan.jazda = false; if (watch) watch(); watch = null;
     if (sym) clearInterval(sym.t); sym = null; try { wake && wake.release(); } catch (e) {} wake = null;
-    if (jaM) { jaM.remove(); jaM = null; } if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
+    // po zakończeniu start = miejsce, w którym jesteś teraz (a nie to, skąd ruszyłeś) – podgląd pokazuje resztę drogi od Ciebie
+    if (jaM) { const q = jaM.getLatLng(); stan.start = [q.lat, q.lng]; stan.startGPS = true; opiszStart(); jaM.remove(); jaM = null; }
+    if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
   }
   // rzut pozycji na trasę: szukamy w okolicy ostatniego znanego miejsca (żeby nie „przeskakiwać” na równoległy fragment)
   function rzut(T, p) {

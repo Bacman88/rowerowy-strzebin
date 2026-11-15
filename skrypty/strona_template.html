@@ -658,7 +658,9 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19,
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
   // jeden wspólny renderer canvas dla wszystkich linii (renderer: rnd) – drugi canvas na wierzchu przechwytywałby kliknięcia dróg
-  const rnd = L.canvas({tolerance: 7}); window.mapaW = map;
+  // na ekranach dotykowych większa strefa trafienia w cienką linię drogi (palec jest mniej precyzyjny niż mysz)
+  const DOTYK = L.Browser.touch || (window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  const rnd = L.canvas({tolerance: DOTYK ? 14 : 7}); window.mapaW = map;
 
   // odcinki: [id, typ, nazwa, nawierzchnia, stan_pomiar, data_pomiaru, dlugosc_m, [lat,lon,...]]
   const S = {};
@@ -1076,7 +1078,24 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   }
   function grafDrog() { const TR = window.TRASOWANIE; if (!TR._g) { TR.graf((id, pom) => { const s = S[id]; return s ? stanOf(s) : (pom || 'brak'); }); TR._g = 1; } }
   // kliknięcie mapy lub drogi – zależnie od trybu; przy wyłączonym zaznaczaniu tylko podgląd drogi
+  // stuknięcie obok drogi: najbliższy widoczny odcinek w promieniu ok. 24 px na ekranie (telefon)
+  function najblizszyOdc(ll, px) {
+    const p = map.latLngToContainerPoint(ll), m = map.distance(ll, map.containerPointToLatLng(p.add([px, 0]))), dl = m / 111000, dn = dl / Math.cos(ll.lat * Math.PI / 180);
+    let best = null, bd = px;
+    for (const id in S) {
+      const o = S[id]; if (!o.layers.length || !o.layers[0]._map) continue;
+      if (!o.bb) { let a = 90, b = 180, c = -90, d = -180; for (const q of o.ll) { a = Math.min(a, q[0]); c = Math.max(c, q[0]); b = Math.min(b, q[1]); d = Math.max(d, q[1]); } o.bb = [a, b, c, d]; }
+      if (ll.lat < o.bb[0] - dl || ll.lat > o.bb[2] + dl || ll.lng < o.bb[1] - dn || ll.lng > o.bb[3] + dn) continue;
+      for (let i = 0; i < o.ll.length - 1; i++) {
+        const A = map.latLngToContainerPoint(o.ll[i]), B = map.latLngToContainerPoint(o.ll[i + 1]), vx = B.x - A.x, vy = B.y - A.y, L2 = vx * vx + vy * vy;
+        const t = L2 ? Math.max(0, Math.min(1, ((p.x - A.x) * vx + (p.y - A.y) * vy) / L2)) : 0, d = Math.hypot(p.x - A.x - t * vx, p.y - A.y - t * vy);
+        if (d < bd) { bd = d; best = o; }
+      }
+    }
+    return best;
+  }
   function klikMapy(ll, s) {
+    if (!s && tryb === 'drogi') s = najblizszyOdc(ll, DOTYK ? 24 : 10);
     if (!klikOn) { if (s && tryb === 'drogi') info(s); return; }
     if (tryb === 'miejsce') pinezka(ll); else if (tryb === 'wezly') WZ.nowy(ll); else if (tryb === 'trasa') TRASA.dodaj(ll); else if (s) klik(s);
   }

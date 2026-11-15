@@ -27,6 +27,10 @@ const URL = (process.argv[2] || 'http://127.0.0.1:8799/') + 'jedz.html';
       document.querySelectorAll('.leaflet-overlay-pane path').forEach(el => { const L = el.getTotalLength(); if (L < 50) return; const m = el.getScreenCTM();
         for (let s = 0; s <= L; s += 4) { const q = el.getPointAtLength(s); best = Math.min(best, Math.hypot(m.a * q.x + m.c * q.y + m.e - cx, m.b * q.x + m.d * q.y + m.f - cy)); } }); return Math.round(best); });
     ok(odl <= 8, `trasa zgadza się z mapą po przybliżaniu w trakcie jazdy (${odl} px)`);
+    // po „Zakończ” podgląd ma liczyć trasę od miejsca, w którym jesteś (symulacja przejechała kawałek)
+    const km0 = await p.evaluate(() => JZ.stan.T.m); await p.click('#b-stop'); await p.waitForSelector('.staty');
+    const km1 = await p.evaluate(() => JZ.stan.T.m);
+    ok(km1 < km0 - 15, `po zakończeniu trasa od bieżącego miejsca (${Math.round(km0)} m → ${Math.round(km1)} m)`);
     ok(!err.length, 'bez błędów JavaScript' + (err.length ? ': ' + err.join(' | ') : ''));
     await c.close();
   }
