@@ -1,7 +1,7 @@
 // Service worker nawigacji „Jedź”: najpierw sieć, a bez zasięgu – ostatnia zapisana wersja.
 // Zapisujemy tylko pliki aplikacji i dane dróg (nie kafelki mapy), więc trasa liczy się też w lesie bez internetu.
-const C = 'jedz-v7';
-const PLIKI = ['jedz.html', 'lib/jedz/wspolne.js', 'lib/jedz/graf.js', 'lib/jedz/profil.js', 'lib/jedz/manewry.js', 'lib/jedz/podklad.js', 'lib/jedz/historia.js', 'lib/uwagi.js', 'lib/jedz.js', 'lib/leaflet.js', 'lib/leaflet.css', 'stan/odcinki.js', 'stan/jedz.js', 'stan/wysokosci.js', 'data.js',
+const C = 'jedz-v8';
+const PLIKI = ['jedz.html', 'lib/jedz/wspolne.js', 'lib/jedz/graf.js', 'lib/jedz/profil.js', 'lib/jedz/manewry.js', 'lib/jedz/podklad.js', 'lib/jedz/historia.js', 'lib/infra.js', 'lib/uwagi.js', 'lib/jedz.js', 'lib/leaflet.js', 'lib/leaflet.css', 'stan/odcinki.js', 'stan/jedz.js', 'stan/wysokosci.js', 'data.js',
   'lib/ikony.js', 'lib/tabliczka-dane.js', 'lib/tabliczka.js', 'lib/fonts/FiraSansCondensed-SemiBold.ttf', 'ikona-192.png', 'favicon.svg'];
 // mapa offline (2,8 MB) – tylko gdy użytkownik ją pobierze (przycisk w Jedź); wtedy zapisujemy ją jak resztę plików
 const NA_ZYCZENIE = ['stan/podklad.js'];

@@ -60,12 +60,12 @@
   }
   // profil trasy co ~20 m: odległość, wysokość (wygładzona), rodzaj nawierzchni, czas od startu (s)
   function profil(T) {
-    const d = [], z = [], st = [];
+    const d = [], z = [], st = [], wol = [];   // wol – mnożnik prędkości (szeroki chodnik przy DW: piesi, wolniej)
     for (let i = 0; i < T.ll.length - 1; i++) {
       const s = T.seg[i], a = T.ll[i], b = T.ll[i + 1], L = T.cum[i + 1] - T.cum[i], n = Math.max(1, Math.round(L / 20));
       for (let k = (i ? 1 : 0); k <= n; k++) {
         const t = k / n, p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-        d.push(T.cum[i] + L * t); z.push(wysPkt(s, p)); st.push(stOdc(s) || stOdc(T.seg[i - 1]) || stOdc(T.seg[i + 1]) || 'brak');
+        d.push(T.cum[i] + L * t); z.push(wysPkt(s, p)); st.push(stOdc(s) || stOdc(T.seg[i - 1]) || stOdc(T.seg[i + 1]) || 'brak'); wol.push(s && JZ.CHODNIK && JZ.CHODNIK.has(s[0]) ? .8 : 1);
       }
     }
     // dziury (dojazd do drogi, odcinki bez danych) – interpolacja między znanymi wysokościami
@@ -83,7 +83,7 @@
     for (let i = 1; i < d.length; i++) {
       const L = d[i] - d[i - 1]; if (L <= 0) { tc.push(tc[i - 1]); continue; }
       const g = (zs[i] - zs[i - 1]) / L;
-      tc.push(tc[i - 1] + L / (predkosc(st[i], Math.max(-0.12, Math.min(0.12, g))) / 3.6));
+      tc.push(tc[i - 1] + L / (predkosc(st[i], Math.max(-0.12, Math.min(0.12, g))) * wol[i] / 3.6));
       if (zs[i] - ref > 2) { up += zs[i] - ref; ref = zs[i]; } else if (ref - zs[i] > 2) { down += ref - zs[i]; ref = zs[i]; }
     }
     return {d, z: zs, st, tc, czas: tc[tc.length - 1], up, down, wys: jest};

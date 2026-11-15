@@ -356,6 +356,8 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       <span><i class="sw nie"></i>nieprzejezdna</span>
       <span><i class="sw" style="background:#8fcf9c;height:4px"></i>utwardzona (wg OSM)</span>
       <span><i class="sw" style="background:var(--s-brak);height:3px"></i>brak oceny</span>
+      <span><i class="sw" style="background:#fff;border:2px solid #1e6fd0;height:3px;box-sizing:content-box"></i>droga rowerowa</span>
+      <span><i class="sw" style="background:repeating-linear-gradient(90deg,#1e6fd0 0 6px,transparent 6px 10px);height:3px"></i>szeroki chodnik</span>
       <span><i class="sw" style="background:var(--sel);opacity:.6;height:8px"></i>zaznaczone</span>
       <span><i class="sw" style="background:repeating-linear-gradient(90deg,#8a5300 0 6px,transparent 6px 11px);height:2px"></i>granica gminy</span>
     </div>
@@ -453,6 +455,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <div class="key">
       <div><span class="dot" style="background:var(--node)">7</span> słupek na trasie – kliknij, by zobaczyć tabliczki</div>
       <div><span class="dot" style="background:var(--grey)">7</span> pozostałe słupki (część opcjonalna)</div>
+      <div><span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px"><i style="display:inline-block;width:26px;height:3px;background:#fff;border:2px solid #1e6fd0;border-radius:3px"></i>droga rowerowa</span><span style="display:inline-flex;align-items:center;gap:6px"><i style="display:inline-block;width:26px;height:3px;background:repeating-linear-gradient(90deg,#1e6fd0 0 7px,transparent 7px 12px)"></i>szeroki chodnik (bezpieczniejsza alternatywa)</span></div>
       <div id="key-mj"></div>
       <div><a href="#wspolna">Brakuje ławki, wiaty albo serwisu? Dodaj miejsce na mapie wspólnej ↑</a></div>
     </div>
@@ -545,6 +548,8 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <script src="lib/nawigacja.js"></script>
 <script src="stan/odcinki.js"></script>
 <script src="data.js"></script>
+<script src="stan/jedz.js"></script>
+<script src="lib/infra.js"></script>
 <script src="lib/ikony.js"></script>
 <script src="lib/miejsca.js"></script>
 <script src="lib/uwagi.js"></script>
@@ -579,6 +584,8 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     line.bindTooltip((r.alt ? 'Wariant 1a – ' : 'Trasa ' + r.id + ': ') + r.name, {sticky:true});
     byId[r.id] = {r, g, line, casing};
   });
+  // drogi rowerowe i szerokie chodniki wzdłuż DW (lib/infra.js)
+  if (window.INFRA) INFRA.warstwa(L, {podpowiedzi: true, gr: 4}).addTo(map);
   // posts
   const onL = L.layerGroup().addTo(map), offL = L.layerGroup().addTo(map);
   H.posts.forEach(p => {
@@ -661,6 +668,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   // na ekranach dotykowych większa strefa trafienia w cienką linię drogi (palec jest mniej precyzyjny niż mysz)
   const DOTYK = L.Browser.touch || (window.matchMedia && matchMedia('(pointer: coarse)').matches);
   const rnd = L.canvas({tolerance: DOTYK ? 14 : 7}); window.mapaW = map;
+  if (window.INFRA) { map.createPane('infra').style.zIndex = 395; map.getPane('infra').style.pointerEvents = 'none'; INFRA.warstwa(L, {pane: 'infra', gr: 3}).addTo(map); }
 
   // odcinki: [id, typ, nazwa, nawierzchnia, stan_pomiar, data_pomiaru, dlugosc_m, [lat,lon,...]]
   const S = {};

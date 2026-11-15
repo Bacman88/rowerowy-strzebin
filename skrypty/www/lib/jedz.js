@@ -127,6 +127,8 @@
       .on('tileload', () => { ostOk = Date.now(); bledyK = 0; if (!mapaOffline && map.hasLayer(podklad)) pokazPodklad(false); });
     mapaUstaw = off => { mapaOffline = off; if (off) { kafelki.remove(); pokazPodklad(true); } else { kafelki.addTo(map); pokazPodklad(false); } };
     mapaUstaw(mapaOffline);
+    // drogi rowerowe i szerokie chodniki wzdłuż DW – pod trasą
+    if (window.INFRA) { map.createPane('infra').style.zIndex = 380; INFRA.warstwa(L, {pane: 'infra', gr: 4}).addTo(map); }
     warstwa = L.layerGroup().addTo(map);
     map.on('dragstart', () => { if (stan.jazda) { sledz = false; $('b-srodek').classList.remove('hide'); } });
     // obrót „zablokowany” kompasem: mapy nie da się przesunąć, ale da się ją przybliżać/oddalać (wokół Twojej pozycji);

@@ -5,7 +5,8 @@
   const JZ = window.JZ = window.JZ || {};
   const {ODC, J, rad, RZ, dist} = JZ;
   // ===================== graf dróg =====================
-  const TRASY = new Set(J.trasy), ROWER = new Set(J.rower);
+  // ROWER – odcinki DW z drogą rowerową obok; CHODNIK – DW z szerokim chodnikiem (bezpieczniejsza alternatywa, jedzie się wolniej)
+  const TRASY = new Set(J.trasy), ROWER = new Set(J.rower), CHODNIK = new Set(J.chodnik || []);
   // kara za nawierzchnię w trybie Bezpieczna; trudne (czerwone) omijamy mocno – lepiej nadłożyć drogi niż przedzierać się przez piach
   const F = {osm: 1, dobra: 1, srednia: 1.5, trudna: 6, nieprzejezdna: 50, brak: 1.25};
   const P = [], adj = [], klucz = new Map();
@@ -45,6 +46,7 @@
     // drogi tras HUB są sprawdzone – bez kary za „brak oceny”; ale ocena mieszkańców (średnia / trudna) liczy się także na trasach
     if (TRASY.has(s[0])) f = (st === 'brak' || st === 'osm' ? Math.min(f, 1) : f) * 0.9;
     if (ROWER.has(s[0])) f = Math.min(f, 0.85);
+    else if (CHODNIK.has(s[0])) f = Math.min(f, 1.1);
     else if (DW(s)) f *= 6;
     return s[6] * f;
   }
@@ -150,5 +152,5 @@
     for (const [id, st] of Object.entries(mapa || {})) { ustaw(id, st); for (const nid of AL[id] || []) if (!(nid in mapa)) ustaw(nid, st); }
     return n;
   }
-  Object.assign(JZ, {oceny, TRASY, ROWER, F, P, adj, DW, koszt, najblizszy, przyczep, trasuj, wDal, UTW, stOdc});
+  Object.assign(JZ, {oceny, TRASY, ROWER, CHODNIK, F, P, adj, DW, koszt, najblizszy, przyczep, trasuj, wDal, UTW, stOdc});
 })();

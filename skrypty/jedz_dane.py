@@ -1,6 +1,6 @@
 """Dane pomocnicze dla nawigacji „Jedź” (strona/jedz.html): które odcinki dróg leżą na trasach pokazowych,
 a które wojewódzkie mają obok drogę rowerową (ciąg pieszo-rowerowy z pomiarów w uMap).
-Wynik: <strona>/stan/jedz.js  →  window.JEDZ = {trasy: [id…], rower: [id…]}
+Wynik: <strona>/stan/jedz.js  →  window.JEDZ = {trasy: [id…], rower: [id…], chodnik: [id…], linie: [{typ: rower|chodnik, ll}]}
 Użycie (po odcinki.py): python3 jedz_dane.py ../dane/umap_mapa_rowerowa.geojson ../out/strona
 """
 import json, math, sys
@@ -56,10 +56,43 @@ def features(o):
             for v in o.values(): yield from features(v)
     elif isinstance(o, list):
         for v in o: yield from features(v)
-ciagi = [[(c[1], c[0]) for c in f["geometry"]["coordinates"]] for f in features(json.load(open(UMAP)))
-         if f.get("geometry", {}).get("type") == "LineString" and f["properties"].get("Typ drogi") == "ciąg pieszo-rowerowy"]
-R = [i for i in wybierz(Siatka(lines_xy(ciagi)), 25, .6) if i in {s[0] for s in ODC if s[1] in ("droga wojewódzka", "droga krajowa")}] if ciagi else []
+UF = [f for f in features(json.load(open(UMAP))) if f.get("geometry", {}).get("type") == "LineString"]
+linia = lambda f: [(c[1], c[0]) for c in f["geometry"]["coordinates"]]
+ciagi = [linia(f) for f in UF if f["properties"].get("Typ drogi") == "ciąg pieszo-rowerowy"]
+chodniki = [linia(f) for f in UF if f["properties"].get("Typ drogi") == "chodnik pieszy"]
+GLOWNE = {s[0] for s in ODC if s[1] in ("droga wojewódzka", "droga krajowa")}
+R = [i for i in wybierz(Siatka(lines_xy(ciagi)), 25, .6) if i in GLOWNE] if ciagi else []
+# szeroki chodnik wzdłuż DW (ludzie jeżdżą nim jako bezpieczniejszą alternatywą) – osobna lista: bez kary za DW, ale trochę wolniej
+C = [i for i in wybierz(Siatka(lines_xy(chodniki)), 25, .6) if i in GLOWNE and i not in R] if chodniki else []
 
-open(f"{OUT}/stan/jedz.js", "w").write("window.JEDZ=" + json.dumps({"trasy": T, "rower": R}, separators=(",", ":")) + ";")
+# linie do narysowania na mapach: wzdłuż osi drogi (co 10 m), odsunięte o 9 m na tę stronę, po której narysowano je w uMap
+SEGXY = [[xy(s[7][i], s[7][i + 1]) for i in range(0, len(s[7]), 2)] for s in ODC if s[0] in set(R) | set(C)]
+def rzut(p):
+    best = None
+    for ln in SEGXY:
+        for a, b in zip(ln, ln[1:]):
+            dx, dy = b[0] - a[0], b[1] - a[1]; L2 = dx * dx + dy * dy
+            t = 0 if not L2 else max(0, min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2))
+            q = (a[0] + t * dx, a[1] + t * dy); d = math.dist(p, q)
+            if best is None or d < best[0]: best = (d, q, (dx, dy))
+    return best
+def odsun(ll):
+    P = [xy(*q) for q in ll]; pts = []
+    for a, b in zip(P, P[1:]):
+        n = max(1, int(math.dist(a, b) // 10)); pts += [(a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n) for k in range(n)]
+    pts.append(P[-1]); out = []
+    for p in pts:
+        r = rzut(p)
+        if not r or r[0] > 40: q = p                                  # daleko od drogi – zostaw jak narysowano
+        else:
+            _, q0, (dx, dy) = r; L = math.hypot(dx, dy) or 1; nx, ny = -dy / L, dx / L
+            strona = 1 if (p[0] - q0[0]) * nx + (p[1] - q0[1]) * ny >= 0 else -1
+            q = (q0[0] + strona * 9 * nx, q0[1] + strona * 9 * ny)
+        lat = q[1] / 111200; out.append([round(lat, 6), round(q[0] / (111200 * math.cos(math.radians(lat))), 6)])
+    # wygładzenie (średnia z sąsiadów) – rzut na załamania osi daje drobne ząbki
+    return [out[0]] + [[round((out[i - 1][0] + out[i][0] + out[i + 1][0]) / 3, 6), round((out[i - 1][1] + out[i][1] + out[i + 1][1]) / 3, 6)] for i in range(1, len(out) - 1)] + [out[-1]]
+LINIE = [{"typ": "rower", "ll": odsun(l)} for l in ciagi] + [{"typ": "chodnik", "ll": odsun(l)} for l in chodniki]
+
+open(f"{OUT}/stan/jedz.js", "w").write("window.JEDZ=" + json.dumps({"trasy": T, "rower": R, "chodnik": C, "linie": LINIE}, separators=(",", ":")) + ";")
 km = lambda ids: sum(s[6] for s in ODC if s[0] in set(ids)) / 1000
-print(f"jedź: odcinki na trasach {len(T)} ({km(T):.0f} km), DW z drogą rowerową obok {len(R)} ({km(R):.1f} km)")
+print(f"jedź: odcinki na trasach {len(T)} ({km(T):.0f} km), DW z drogą rowerową obok {len(R)} ({km(R):.1f} km), z szerokim chodnikiem {len(C)} ({km(C):.1f} km), linii na mapę {len(LINIE)}")
