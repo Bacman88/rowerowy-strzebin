@@ -102,9 +102,10 @@
   function podpowiedzOffline() { const p = $('p-offline'); if (p) p.hidden = JZ.podklad.pobrana(); }
   function mapa() {
     if (map) return map;
-    // trasa i znaczniki jako SVG, bez animacji przybliżania: płótno canvas przy obróconej / pochylonej (3D) mapie miało ponad 4000×4000 px
-    // i każdy ruch przerysowywał je od nowa (przycięcia na telefonie); animacja przybliżania przerywana co pozycję GPS rozjeżdżała SVG
-    map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: false, renderer: L.svg({padding: 0.1}), zoomAnimation: false}).setView([50.615, 18.9], 13);
+    // trasa i znaczniki jako SVG: płótno canvas przy obróconej / pochylonej (3D) mapie miało ponad 4000×4000 px i każdy ruch
+    // przerysowywał je od nowa (przycięcia na telefonie). Animacja przybliżania zostaje – patrz widok() niżej.
+    map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: false, renderer: L.svg({padding: 0.1})}).setView([50.615, 18.9], 13);
+    map.on('zoomend', () => { if (czekaWidok) { const [p, z] = czekaWidok; czekaWidok = null; map.setView(p, z ?? map.getZoom(), {animate: false}); } });
     // mapa offline (lib/jedz/podklad.js) zawsze pod spodem; kafelki OSM na wierzchu, chyba że wybrano „zawsze offline”.
     // Bez zasięgu kafelki się nie wczytają (zostają niewidoczne) i widać podkład offline – wtedy dokładamy też nazwy miejscowości.
     map.createPane('nazwy').style.zIndex = 390;
@@ -352,13 +353,20 @@
   // 3D: obrócona mapa dodatkowo pochylona jak kartka na stole (perspektywa CSS); kontener większy, żeby pokryć „dal”
   const KROTNOSC_3D = +(new URLSearchParams(location.search).get('k3d') || 1.9);   // rozmiar mapy w 3D względem przekątnej ekranu
   const tr = () => tilt && obrocona ? `perspective(${Math.round($('s-mapa').clientHeight * 1.1)}px) rotateX(48deg) rotate(${-B}deg)` : `rotate(${-B}deg)`;
+  // przestawianie mapy przez apkę (pozycja GPS, start jazdy) – zawsze bez animacji, a w trakcie przybliżania palcami / animacji
+  // przybliżania czekamy do jej końca: wcześniej kolejna pozycja GPS przerywała animację i trasa (SVG) zostawała w złej skali
+  let czekaWidok = null;
+  function widok(p, z) {
+    if (map._animatingZoom || (map.touchZoom && map.touchZoom._zooming)) { czekaWidok = [p, z]; return; }
+    map.setView(p, z ?? map.getZoom(), {animate: false});
+  }
   function obroc(on) {
     const el = $('mapa'), box = $('s-mapa'), w = box.clientWidth, h = box.clientHeight;
     obrocona = on;
     map.options.touchZoom = map.options.doubleClickZoom = map.options.scrollWheelZoom = on ? 'center' : true;
     if (on) { const D = Math.ceil(Math.hypot(w, h) * (tilt ? KROTNOSC_3D : 1)) + 4, ay = Math.round(h * (tilt ? .7 : .62)); el.style.cssText = `inset:auto;left:${Math.round((w - D) / 2)}px;top:${ay - Math.round(D / 2)}px;width:${D}px;height:${D}px;transition:transform .6s linear`; el.style.transform = tr(); map.dragging.disable(); }
     else { el.style.cssText = ''; map.dragging.enable(); }
-    map.invalidateSize({pan: false}); if (jaM && sledz) map.setView(jaM.getLatLng(), map.getZoom(), {animate: false});
+    map.invalidateSize({pan: false}); if (jaM && sledz) widok(jaM.getLatLng());
     kompas();
   }
   function kompas() { $('b-kurs').innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(${obrocona ? -B : 0}deg);transition:transform .6s linear"><path d="M12 2l4 10h-8z" fill="#d62828"/><path d="M12 22l-4-10h8z" fill="#9aa3a8"/><text x="12" y="9.5" text-anchor="middle" font-size="5" font-weight="800" fill="#fff" font-family="Inter,Arial">N</text></svg>`;
@@ -370,7 +378,7 @@
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
     $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
     $('b-stop').onclick = koniecJazdy;
-    map.setView(stan.T.ll[0], 17); B = brg(stan.T.ll[0], wDal(stan.T, 40)); if (kurs) obroc(true); else kompas();
+    widok(stan.T.ll[0], 17); B = brg(stan.T.ll[0], wDal(stan.T, 40)); if (kurs) obroc(true); else kompas();
     $('b-kurs').classList.remove('hide'); $('b-3d').classList.remove('hide'); trojwymiar();
     if (!sym) pozycja(stan.start, 20, true);
     if (sym) { symV = 1; $('b-sym').textContent = 'Symulacja: ×1'; sym.t = setInterval(() => { sym.d += 6 * symV; const p = wDal(stan.T, sym.d); pozycja(p, 5, sym.d); }, 1000); }
@@ -412,8 +420,8 @@
       // kierunek: trasa ok. 40 m przed Tobą (stabilny także na postoju), łagodnie wygładzony
       const cel = brg(wDal(T, r.w), wDal(T, r.w + 40)); B = (B + kat(cel, B) * .6 + 360) % 360;
       $('mapa').style.transform = tr(); kompas();
-      map.setView(p, map.getZoom(), {animate: false});
-    } else if (sledz) map.panTo(p, {animate: true, duration: .5});
+      widok(p);
+    } else if (sledz) { if (map._animatingZoom || (map.touchZoom && map.touchZoom._zooming)) czekaWidok = [p, null]; else map.panTo(p, {animate: true, duration: .5}); }
     // zejście z trasy → przeliczenie od miejsca, w którym jesteś
     const prog = Math.max(40, Math.min(80, (acc || 20) * 1.5));
     if (r.d > prog && !wSym) {

@@ -20,6 +20,13 @@ const URL = (process.argv[2] || 'http://127.0.0.1:8799/') + 'jedz.html';
     ok(await p.$eval('.manew', e => e.getBoundingClientRect().height) > 100, 'lista „Po drodze” widoczna');
     await p.click('#b-symstart'); await p.waitForTimeout(3000);
     ok(/km/.test(await p.textContent('#j-zost')), 'jazda (symulacja)');
+    // przybliżanie z animacją w trakcie jazdy nie może rozjechać trasy i mapy (kreska trasy przechodzi przez znacznik „ja”)
+    for (let i = 0; i < 4; i++) { await p.mouse.move(206, 500); await p.mouse.wheel(0, i % 2 ? 300 : -300); await p.waitForTimeout(350); }
+    await p.waitForTimeout(1500);
+    const odl = await p.evaluate(() => { const j = document.querySelector('.ja'); if (!j) return 999; const r = j.getBoundingClientRect(), cx = r.x + r.width / 2, cy = r.y + r.height / 2; let best = 1e9;
+      document.querySelectorAll('.leaflet-overlay-pane path').forEach(el => { const L = el.getTotalLength(); if (L < 50) return; const m = el.getScreenCTM();
+        for (let s = 0; s <= L; s += 4) { const q = el.getPointAtLength(s); best = Math.min(best, Math.hypot(m.a * q.x + m.c * q.y + m.e - cx, m.b * q.x + m.d * q.y + m.f - cy)); } }); return Math.round(best); });
+    ok(odl <= 8, `trasa zgadza się z mapą po przybliżaniu w trakcie jazdy (${odl} px)`);
     ok(!err.length, 'bez błędów JavaScript' + (err.length ? ': ' + err.join(' | ') : ''));
     await c.close();
   }
