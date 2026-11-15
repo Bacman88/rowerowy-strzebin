@@ -64,6 +64,8 @@ function hub_db(): PDO {
     $db->exec("CREATE TABLE IF NOT EXISTS korekty_miejsc (
         klucz VARCHAR(80) NOT NULL PRIMARY KEY, ukryj INT NOT NULL DEFAULT 0, typ VARCHAR(12), nazwa VARCHAR(80), opis TEXT,
         lat DOUBLE PRECISION, lon DOUBLE PRECISION, zmieniono VARCHAR(19) NOT NULL)");
+    // przesunięcia węzłów (słupków) z panelu (15.11.2026): nowe położenie słupka; strona i nawigacja nakładają je od razu
+    $db->exec("CREATE TABLE IF NOT EXISTS korekty_wezlow (nr INT NOT NULL PRIMARY KEY, lat DOUBLE PRECISION NOT NULL, lon DOUBLE PRECISION NOT NULL, zmieniono VARCHAR(19) NOT NULL)");
     // zdjęcie do zgłoszenia (12.11.2026): nazwa pliku w <dane>/zdjecia, kasowane po decyzji administratora
     foreach (['zgloszenia', 'miejsca'] as $t) {
         $kol = $my ? array_column($db->query("SHOW COLUMNS FROM $t")->fetchAll(), 'Field')
@@ -102,6 +104,7 @@ function hub_zrzut(): array {
         'wezly' => $db->query('SELECT * FROM wezly ORDER BY id')->fetchAll(),
         'trasy' => $db->query('SELECT * FROM trasy ORDER BY id')->fetchAll(),
         'uwagi' => $db->query('SELECT * FROM uwagi ORDER BY id')->fetchAll(),
+        'korekty_wezlow' => $db->query('SELECT * FROM korekty_wezlow ORDER BY nr')->fetchAll(),
         'korekty_miejsc' => $db->query('SELECT * FROM korekty_miejsc ORDER BY klucz')->fetchAll(),
     ];
 }
@@ -191,6 +194,12 @@ function hub_korekty(PDO $db): array {
     foreach ($db->query('SELECT * FROM korekty_miejsc') as $k)
         $out[$k['klucz']] = $k['ukryj'] ? ['u' => 1] : array_filter(['t' => $k['typ'], 'n' => $k['nazwa'], 'o' => $k['opis'],
             'lat' => $k['lat'] === null ? null : (float)$k['lat'], 'lon' => $k['lon'] === null ? null : (float)$k['lon']], fn($v) => $v !== null);
+    return $out;
+}
+// przesunięte węzły: {nr: [lat, lon]}
+function hub_korekty_wezlow(PDO $db): array {
+    $out = [];
+    foreach ($db->query('SELECT nr, lat, lon FROM korekty_wezlow') as $k) $out[(string)$k['nr']] = [round((float)$k['lat'], 6), round((float)$k['lon'], 6)];
     return $out;
 }
 function hub_foto_usun(PDO $db, string $tab, int $id): void {

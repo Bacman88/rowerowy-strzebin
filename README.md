@@ -126,6 +126,8 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
   max(1,2 km; 1,5× odcinek) → baner i głos „Objazd / Zostaję”. O ten sam odcinek pytamy raz.
 - **Moje przejazdy** (`lib/jedz/historia.js`): ślad, długość, czas w ruchu, prędkość średnia i maks., statystyki, GPX – zapis tylko w telefonie (localStorage).
 - W trakcie jazdy zegar co 5 s odświeża czas i godzinę przyjazdu, także na postoju.
+- **Węzły – przesuwanie** (panel, zakładka „Węzły – przesuwanie”): przeciągnięcie numeru węzła i „Zapisz” → tabela `korekty_wezlow`;
+  `api/stan.php` zwraca `wezly` – mapa tras na stronie i Jedź nakładają nowe położenie od razu. Na stałe (tabliczki, PDF): „Pobierz przesunięcia (JSON)” w panelu.
 - **Zgłoś błąd / sugestię**: `lib/uwagi.js` (okienko wspólne dla strony i Jedź, także w aplikacji) → `api/uwagi.php` (CORS dla aplikacji) → tabela `uwagi`,
   zakładka „Uwagi i błędy” w panelu i e-mail (bez kontaktu i bez trasy). Trasa (start/cel/tryb/rower) tylko po zaznaczeniu „Dołącz tę trasę”.
 

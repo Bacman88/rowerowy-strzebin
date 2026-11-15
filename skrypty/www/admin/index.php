@@ -89,6 +89,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['akcja'] ?? '') === 'korekt
     } else hub_json(['blad' => 'Nieznana operacja'], 400);
     hub_json(['ok' => true, 'korekty' => hub_korekty($db)]);
 }
+// przesunięcie węzła (słupka) z mapy panelu (fetch): zapisz / cofnij – odpowiedź JSON
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['akcja'] ?? '') === 'wezel_poz') {
+    if (!hash_equals($_SESSION['csrf'] ?? '', (string)($_POST['csrf'] ?? ''))) hub_json(['blad' => 'Błędny token – odśwież stronę'], 400);
+    $nr = (int)($_POST['nr'] ?? 0); $op = (string)($_POST['op'] ?? '');
+    if ($nr < 1 || $nr > 999) hub_json(['blad' => 'Nieznany węzeł'], 400);
+    if ($op === 'cofnij') $db->prepare('DELETE FROM korekty_wezlow WHERE nr = ?')->execute([$nr]);
+    elseif ($op === 'zapisz') {
+        $lat = (float)($_POST['lat'] ?? 0); $lon = (float)($_POST['lon'] ?? 0);
+        if ($lat < 50.40 || $lat > 50.85 || $lon < 18.55 || $lon > 19.25) hub_json(['blad' => 'Położenie poza mapą'], 400);
+        $db->prepare('DELETE FROM korekty_wezlow WHERE nr = ?')->execute([$nr]);
+        $db->prepare('INSERT INTO korekty_wezlow (nr, lat, lon, zmieniono) VALUES (?,?,?,?)')->execute([$nr, round($lat, 6), round($lon, 6), hub_teraz()]);
+    } else hub_json(['blad' => 'Nieznana operacja'], 400);
+    hub_json(['ok' => true, 'wezly' => hub_korekty_wezlow($db) ?: new stdClass()]);
+}
 if (isset($_GET['test_maila'])) {   // próbna wiadomość – sprawdzenie, czy powiadomienia dochodzą
     $ok = hub_powiadom('Test powiadomień', "To jest próbna wiadomość z panelu mapy wspólnej (" . hub_teraz() . ").\nJeśli ją widzisz, powiadomienia o nowych zgłoszeniach działają.", '', true);
     $do = hub_cfg()['powiadom'];
@@ -101,6 +115,11 @@ if (($_GET['eksport'] ?? '') === 'miejsca') {   // korekty miejsc – do przenie
     header('Content-Type: application/json; charset=utf-8');
     header('Content-Disposition: attachment; filename="korekty_miejsc_' . date('Y-m-d') . '.json"');
     echo json_encode($db->query('SELECT * FROM korekty_miejsc ORDER BY klucz')->fetchAll(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); exit;
+}
+if (($_GET['eksport'] ?? '') === 'slupki') {   // przesunięcia węzłów – do wpisania na stałe w danych projektu (tabliczki, PDF)
+    header('Content-Type: application/json; charset=utf-8');
+    header('Content-Disposition: attachment; filename="przesuniecia_wezlow_' . date('Y-m-d') . '.json"');
+    echo json_encode($db->query('SELECT * FROM korekty_wezlow ORDER BY nr')->fetchAll(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); exit;
 }
 if (isset($_GET['eksport'])) {   // zatwierdzone zmiany węzłów – do wdrożenia w projekcie (dane/wezly_zatwierdzone.json w repozytorium)
     header('Content-Type: application/json; charset=utf-8');
@@ -138,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $k = in_array($_GET['k'] ?? '', ['oczekuje', 'zatwierdzone', 'odrzucone', 'wycofane'], true) ? $_GET['k'] : 'oczekuje';
-$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy', 'uwagi', 'mapa'], true) ? $_GET['t'] : 'drogi';
+$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy', 'uwagi', 'mapa', 'slupki'], true) ? $_GET['t'] : 'drogi';
 $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'][$tryb] ?? 'zgloszenia';
 $licz = []; $czeka = [];
 foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja") as $r) $licz[$r['moderacja']] = (int)$r['n'];
@@ -202,11 +221,11 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <header>
   <h1>Panel</h1>
   <nav class="tabs tryb">
-    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy', 'uwagi' => 'Uwagi i błędy', 'mapa' => 'Miejsca na mapie – edycja'] as $tt => $t): ?>
+    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy', 'uwagi' => 'Uwagi i błędy', 'mapa' => 'Miejsca na mapie – edycja', 'slupki' => 'Węzły – przesuwanie'] as $tt => $t): ?>
       <a href="?t=<?= $tt ?>" class="<?= $tryb === $tt ? 'on' : '' ?>"><?= $t ?><?= ($czeka[$tt] ?? 0) ? '<i>' . $czeka[$tt] . '</i>' : '' ?></a>
     <?php endforeach ?>
   </nav>
-  <nav class="tabs"<?= $tryb === 'mapa' ? ' hidden' : '' ?>>
+  <nav class="tabs"<?= in_array($tryb, ['mapa', 'slupki'], true) ? ' hidden' : '' ?>>
     <?php foreach (['oczekuje' => 'Oczekujące', 'zatwierdzone' => 'Zatwierdzone', 'odrzucone' => 'Odrzucone', 'wycofane' => 'Wycofane'] as $kk => $t): ?>
       <a href="?t=<?= $tryb ?>&k=<?= $kk ?>" class="<?= $k === $kk ? 'on' : '' ?>"><?= $t ?> (<?= $licz[$kk] ?? 0 ?>)</a>
     <?php endforeach ?>
@@ -234,6 +253,21 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
     <h3 style="font-size:15px;margin:16px 0 6px">Poprawione miejsca (<span id="ile-k">0</span>)</h3>
     <div id="lista-k" class="m"></div>
     <p class="m">Piktogramy celów lokalnych (kościoły, gastronomia, zabytki) są też na tabliczkach i mapach PDF – ich zmiany przenieś do projektu: „eksport poprawek miejsc”.</p>
+  </div>
+  <?php elseif ($tryb === 'slupki'): ?>
+  <div class="list" id="sl">
+    <p class="m" style="margin-top:0"><b>Przeciągnij numer węzła</b> na mapie w nowe miejsce i kliknij „Zapisz”. Nowe położenie od razu widać na stronie
+      (mapa tras, mapa wspólna) i w nawigacji „Jedź”. Tabliczki, PDF-y i odległości na tabliczkach zmienią się po wpisaniu przesunięć do projektu – pobierz je przyciskiem niżej.</p>
+    <div class="edbox" id="sl-form" hidden>
+      <div style="font-size:17px;font-weight:700">Węzeł <span id="sl-nr"></span></div>
+      <div class="m" id="sl-loc"></div>
+      <div class="m">Położenie: <span id="sl-poz"></span> <span id="sl-przes" style="color:#b45309"></span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><button class="ok" id="sl-zapisz">Zapisz</button><button id="sl-cofnij">Przywróć oryginalne położenie</button></div>
+      <div class="m" id="sl-msg"></div>
+    </div>
+    <h3 style="font-size:15px;margin:16px 0 6px">Przesunięte węzły (<span id="sl-ile">0</span>)</h3>
+    <div id="sl-lista" class="m"></div>
+    <p class="m"><a href="?eksport=slupki">Pobierz przesunięcia (JSON)</a> – wyślij ten plik, żeby wpisać je na stałe do danych projektu.</p>
   </div>
   <?php else: ?>
   <div class="list">
@@ -346,7 +380,7 @@ document.querySelectorAll('.z').forEach(el => el.addEventListener('click', e => 
   } else pokaz(el.dataset.id, el.dataset.stan, true);
 }));
 // węzły na mapie i podgląd tabliczek „po zmianie” (ten sam rysunek co na stronie)
-if (window.HUB) for (const p of HUB.posts) L.marker([p.lat, p.lon], {icon: L.divIcon({className: '', html: `<div class="wzm">${p.nr}</div>`, iconSize: [22, 22], iconAnchor: [11, 11]}), interactive: false}).addTo(map);
+if (window.HUB && <?= json_encode($tryb !== 'slupki') ?>) for (const p of HUB.posts) L.marker([p.lat, p.lon], {icon: L.divIcon({className: '', html: `<div class="wzm">${p.nr}</div>`, iconSize: [22, 22], iconAnchor: [11, 11]}), interactive: false}).addTo(map);
 document.querySelectorAll('.z[data-zm]').forEach(el => {
   const zm = JSON.parse(el.dataset.zm || '{}'), p = el.dataset.wezel ? HUB.posts.find(q => q.nr === +el.dataset.wezel) : null;
   const cele = [];
@@ -357,6 +391,46 @@ document.querySelectorAll('.z[data-zm]').forEach(el => {
 const pierwszy = document.querySelector('.z');
 map.setView([50.62, 18.88], 12);
 if (pierwszy) pierwszy.click();
+<?php if ($tryb === 'slupki'): ?>
+// ===== Przesuwanie węzłów: korekty położenia słupków w tabeli korekty_wezlow =====
+(() => {
+  Object.values(ML).forEach(l => map.removeLayer(l));
+  const CSRF = <?= json_encode($_SESSION['csrf']) ?>, $ = id => document.getElementById(id);
+  let KW = <?= json_encode(hub_korekty_wezlow($db) ?: new stdClass()) ?>;
+  const warstwa = L.layerGroup().addTo(map); let wyb = null, poz = null;
+  const oryg = p => [p.lat, p.lon], biez = p => KW[p.nr] || oryg(p);
+  function rysuj() {
+    warstwa.clearLayers();
+    for (const p of HUB.posts) {
+      const ll = biez(p), przes = !!KW[p.nr];
+      if (przes) L.polyline([oryg(p), ll], {color: '#b45309', weight: 2, dashArray: '4 4', interactive: false}).addTo(warstwa);
+      L.marker(wyb === p && poz ? poz : ll, {draggable: true, zIndexOffset: wyb === p ? 1000 : 0, title: 'Węzeł ' + p.nr,
+        icon: L.divIcon({className: '', html: `<div class="wzm" style="${przes ? 'background:#b45309;' : ''}${wyb === p ? 'outline:3px solid #1d4ed8;' : ''}">${p.nr}</div>`, iconSize: [22, 22], iconAnchor: [11, 11]})})
+        .on('click', () => wybierz(p)).on('dragend', e => { const q = e.target.getLatLng(); wybierz(p); poz = [q.lat, q.lng]; pokaz(); rysuj(); }).addTo(warstwa);
+    }
+    const kk = Object.keys(KW); $('sl-ile').textContent = kk.length;
+    $('sl-lista').innerHTML = kk.map(nr => { const p = HUB.posts.find(q => q.nr === +nr); return p ? `<div><a data-nr="${nr}" style="cursor:pointer;color:var(--green)">Węzeł ${nr}</a> – o ${Math.round(map.distance(oryg(p), KW[nr]))} m</div>` : ''; }).join('') || 'brak';
+    $('sl-lista').querySelectorAll('a').forEach(a => a.onclick = () => { const p = HUB.posts.find(q => q.nr === +a.dataset.nr); wybierz(p); map.setView(biez(p), 18); });
+  }
+  function pokaz() {
+    $('sl-poz').textContent = poz[0].toFixed(6) + ', ' + poz[1].toFixed(6);
+    const d = map.distance(poz, biez(wyb)), dO = map.distance(poz, oryg(wyb));
+    $('sl-przes').textContent = d > 0.5 ? `(przesunięty o ${Math.round(d)} m – zapisz)` : (KW[wyb.nr] ? `(o ${Math.round(dO)} m od oryginału)` : '');
+  }
+  function wybierz(p) { wyb = p; poz = biez(p); $('sl-form').hidden = false; $('sl-nr').textContent = p.nr; $('sl-loc').textContent = p.loc || ''; $('sl-msg').textContent = ''; $('sl-cofnij').hidden = !KW[p.nr]; pokaz(); rysuj(); }
+  async function wyslij(op) {
+    const fd = new FormData(); fd.append('akcja', 'wezel_poz'); fd.append('csrf', CSRF); fd.append('nr', wyb.nr); fd.append('op', op);
+    if (op === 'zapisz') { fd.append('lat', poz[0]); fd.append('lon', poz[1]); }
+    try { const r = await fetch('./', {method: 'POST', body: fd, headers: {'Accept': 'application/json'}}); const j = await r.json();
+      if (!j.ok) throw new Error(j.blad || 'Nie udało się zapisać');
+      KW = j.wezly || {}; wybierz(wyb); $('sl-msg').textContent = op === 'zapisz' ? 'Zapisano – nowe położenie jest już na stronie i w nawigacji.' : 'Przywrócono oryginalne położenie.';
+    } catch (e) { $('sl-msg').textContent = '⚠ ' + e.message; }
+  }
+  $('sl-zapisz').onclick = () => wyslij('zapisz');
+  $('sl-cofnij').onclick = () => { if (confirm('Przywrócić oryginalne położenie węzła ' + wyb.nr + '?')) wyslij('cofnij'); };
+  rysuj();
+})();
+<?php endif ?>
 <?php if ($tryb === 'mapa'): ?>
 // ===== Edycja miejsc na mapie: korekty (przesunięcie, rodzaj, nazwa, opis, ukrycie) zapisywane w tabeli korekty_miejsc =====
 (() => {

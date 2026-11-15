@@ -20,10 +20,13 @@
   setTimeout(pokazDiag, 500);
   // oceny dróg zatwierdzone w panelu (mapa wspólna) – najpierw zapamiętane w telefonie (działa bez zasięgu), potem świeże z serwera
   let ocenyN = JZ.oceny(LS.get('oceny', {}));
+  // węzły przesunięte w panelu (słupki – drogowskazy na trasie liczone od nowego miejsca)
+  const wezly = w => { for (const [nr, ll] of Object.entries(w || {})) { const p = H.posts.find(q => q.nr === +nr); if (p) { p.lat = ll[0]; p.lon = ll[1]; } } };
+  wezly(LS.get('wezly', {}));
   fetch(BAZA + 'api/stan.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
     if (!j || !j.stany) return;
     const m = {}; for (const [id, zid] of Object.entries(j.stany)) { const z = j.zgloszenia[zid]; if (z) m[id] = z[0]; }
-    LS.set('oceny', m); ocenyN = JZ.oceny(m);
+    LS.set('oceny', m); ocenyN = JZ.oceny(m); if (j.wezly) { LS.set('wezly', j.wezly); wezly(j.wezly); }
     if (stan.T && !stan.jazda && $('s-mapa').classList.contains('on') && $('dol').querySelector('.staty')) podglad();   // podgląd już otwarty – policz z nowymi ocenami
   }).catch(() => {});
   // zgłoszenia błędów i sugestii (lib/uwagi.js) – w aplikacji pod pełny adres strony

@@ -590,7 +590,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   const onL = L.layerGroup().addTo(map), offL = L.layerGroup().addTo(map);
   H.posts.forEach(p => {
     const on = p.routes.length > 0;
-    const m = L.marker([p.lat, p.lon], {icon:L.divIcon({className:'', html:`<div class="pm ${on?'on':'off'}">${p.nr}</div>`, iconSize:[26,26], iconAnchor:[13,13]}),
+    const m = p._m = L.marker([p.lat, p.lon], {icon:L.divIcon({className:'', html:`<div class="pm ${on?'on':'off'}">${p.nr}</div>`, iconSize:[26,26], iconAnchor:[13,13]}),
       zIndexOffset: on ? 500 : 0, title:'Słupek ' + p.nr});
     const chips = p.routes.map(id => { const r = byId[id].r; return `<span class="chip" style="background:${r.col};color:${r.txt}">${id}</span>`; }).join('');
     const imgs = p.imgs.map(f => `<img src="tabliczki/${f}" alt="tabliczka" loading="lazy">`).join('');
@@ -1164,6 +1164,8 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   }
   fetch('api/stan.php', {cache:'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
     if (j.blad) throw 0; API = j; apiOk = true;
+    // węzły przesunięte w panelu – nowe położenie słupków (mapa tras od razu; mapa wspólna rysuje je przy włączeniu trybu węzłów)
+    for (const [nr, ll] of Object.entries(j.wezly || {})) { const p = (window.HUB.posts || []).find(q => q.nr === +nr); if (!p) continue; p.lat = ll[0]; p.lon = ll[1]; if (p._m) p._m.setLatLng(ll); }
     // zgłoszenia na odcinkach z poprzedniej wersji danych OSM -> odpowiadające im nowe odcinki
     for (const [o, ns] of Object.entries(window.ODC_ALIASY || {})) {
       if (API.stany[o] !== undefined) for (const n of ns) if (!(API.stany[n] > API.stany[o])) API.stany[n] = API.stany[o];

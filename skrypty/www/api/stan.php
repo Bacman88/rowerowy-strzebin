@@ -16,7 +16,7 @@ try {
     }
     foreach ($wpisy as $k => $v) $wpisy[$k] = array_slice(array_reverse($v), 0, 5);
     $oczekuje = (int)$db->query("SELECT COUNT(*) FROM zgloszenia WHERE moderacja = 'oczekuje'")->fetchColumn();
-    hub_json(['stany' => $stany, 'wpisy' => $wpisy, 'zgloszenia' => $zgl, 'oczekuje' => $oczekuje]);
+    hub_json(['stany' => $stany, 'wpisy' => $wpisy, 'zgloszenia' => $zgl, 'oczekuje' => $oczekuje, 'wezly' => hub_korekty_wezlow($db) ?: new stdClass()]);
 } catch (Throwable $e) {
     error_log('stan.php: ' . $e->getMessage());
     hub_json(['blad' => 'Baza niedostępna'], 500);
