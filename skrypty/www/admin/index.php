@@ -83,11 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['akcja'] ?? '') === 'miejsc
     $typ = (string)($_POST['typ'] ?? ''); $lat = (float)($_POST['lat'] ?? 0); $lon = (float)($_POST['lon'] ?? 0);
     if (!in_array($typ, TYPY_MIEJSC, true)) hub_json(['blad' => 'Wybierz rodzaj miejsca'], 400);
     if ($lat < 50.40 || $lat > 50.85 || $lon < 18.55 || $lon > 19.25) hub_json(['blad' => 'Położenie poza mapą'], 400);
-    $nazwa = hub_txt($_POST, 'nazwa', 80); $opis = hub_txt($_POST, 'opis', 1000);
-    $db->prepare("INSERT INTO miejsca (utworzono, typ, nazwa, opis, lat, lon, nick, kontakt, ip, moderacja, moderowano) VALUES (?,?,?,?,?,?,?,?,?,'zatwierdzone',?)")
-       ->execute([hub_teraz(), $typ, $nazwa, $opis, round($lat, 6), round($lon, 6), 'Administrator', '', '', hub_teraz()]);
+    $nazwa = hub_txt($_POST, 'nazwa', 80); $opis = hub_txt($_POST, 'opis', 1000); $godz = hub_txt($_POST, 'godziny', 200);
+    $db->prepare("INSERT INTO miejsca (utworzono, typ, nazwa, opis, lat, lon, nick, kontakt, ip, moderacja, moderowano, godziny) VALUES (?,?,?,?,?,?,?,?,?,'zatwierdzone',?,?)")
+       ->execute([hub_teraz(), $typ, $nazwa, $opis, round($lat, 6), round($lon, 6), 'Administrator', '', '', hub_teraz(), $godz]);
     $id = (int)$db->lastInsertId();
-    hub_json(['ok' => true, 'm' => ['k' => "db:$id", 'typ' => $typ, 'nazwa' => $nazwa, 'opis' => $opis, 'lat' => round($lat, 6), 'lon' => round($lon, 6), 'nick' => 'Administrator', 'data' => date('Y-m-d')]]);
+    hub_json(['ok' => true, 'm' => ['k' => "db:$id", 'typ' => $typ, 'nazwa' => $nazwa, 'opis' => $opis, 'lat' => round($lat, 6), 'lon' => round($lon, 6), 'nick' => 'Administrator', 'data' => date('Y-m-d')] + ($godz !== '' ? ['h' => $godz] : [])]);
 }
 
 // korekta miejsca z mapy panelu (fetch): zapisz / ukryj / pokaż / cofnij – odpowiedź JSON
@@ -105,13 +105,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['akcja'] ?? '') === 'korekt
     if ($op === 'cofnij') $db->prepare('DELETE FROM korekty_miejsc WHERE klucz = ?')->execute([$kl]);
     elseif ($op === 'ukryj') $zapisz(['ukryj' => 1]);
     elseif ($op === 'pokaz') {
-        if ($jest && $jest['typ'] === null && $jest['lat'] === null && $jest['nazwa'] === null && $jest['opis'] === null) $db->prepare('DELETE FROM korekty_miejsc WHERE klucz = ?')->execute([$kl]);
+        if ($jest && $jest['typ'] === null && $jest['lat'] === null && $jest['nazwa'] === null && $jest['opis'] === null && ($jest['godziny'] ?? null) === null) $db->prepare('DELETE FROM korekty_miejsc WHERE klucz = ?')->execute([$kl]);
         elseif ($jest) $zapisz(['ukryj' => 0]);
     } elseif ($op === 'zapisz') {
         $typ = (string)($_POST['typ'] ?? ''); $lat = (float)($_POST['lat'] ?? 0); $lon = (float)($_POST['lon'] ?? 0);
         if (!in_array($typ, TYPY_MIEJSC, true) && $typ !== 'stacja') hub_json(['blad' => 'Nieznany rodzaj miejsca'], 400);
         if ($lat < 50.40 || $lat > 50.85 || $lon < 18.55 || $lon > 19.25) hub_json(['blad' => 'Położenie poza mapą'], 400);
-        $zapisz(['ukryj' => 0, 'typ' => $typ, 'nazwa' => hub_txt($_POST, 'nazwa', 80), 'opis' => hub_txt($_POST, 'opis', 1000), 'lat' => round($lat, 6), 'lon' => round($lon, 6)]);
+        $zapisz(['ukryj' => 0, 'typ' => $typ, 'nazwa' => hub_txt($_POST, 'nazwa', 80), 'opis' => hub_txt($_POST, 'opis', 1000), 'godziny' => hub_txt($_POST, 'godziny', 200), 'lat' => round($lat, 6), 'lon' => round($lon, 6)]);
     } else hub_json(['blad' => 'Nieznana operacja'], 400);
     hub_json(['ok' => true, 'korekty' => hub_korekty($db)]);
 }
@@ -272,6 +272,8 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       <label class="fl">Rodzaj<select id="nw-typ"></select></label>
       <label class="fl">Nazwa<input id="nw-nazwa" maxlength="80"></label>
       <label class="fl">Opis<textarea id="nw-opis" maxlength="1000" rows="3"></textarea></label>
+      <label class="fl">Godziny otwarcia<input id="nw-godz" maxlength="200" placeholder="np. pn–pt 8–18; sob 8–14; nd nieczynne"></label>
+      <div class="m" id="nw-godz-p"></div>
       <div class="m">Położenie: <span id="nw-poz">– kliknij na mapie –</span></div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><button class="ok" id="nw-zapisz" disabled>Dodaj na mapę</button><button id="nw-anuluj">Anuluj</button></div>
       <div class="m" id="nw-msg"></div>
@@ -281,6 +283,8 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       <label class="fl">Rodzaj<select id="ed-typ"></select></label>
       <label class="fl">Nazwa<input id="ed-nazwa" maxlength="80"></label>
       <label class="fl">Opis<textarea id="ed-opis" maxlength="1000" rows="3"></textarea></label>
+      <label class="fl">Godziny otwarcia<input id="ed-godz" maxlength="200" placeholder="np. pn–pt 8–18; sob 8–14; nd nieczynne"></label>
+      <div class="m" id="ed-godz-p"></div>
       <div class="m">Położenie: <span id="ed-poz"></span> <span id="ed-przes" style="color:#b45309"></span></div>
       <div class="m" id="ed-oryg"></div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
@@ -506,7 +510,7 @@ setInterval(() => fetch('./?ping=1', {cache: 'no-store'}).catch(() => {}), 5 * 6
     wyb = m; const z = biez(m); poz = [z.lat, z.lon];
     $('ed-form').hidden = false; $('ed-msg').textContent = '';
     $('ed-zrodlo').innerHTML = `<b>${E(ZR(m.k))}</b>${ukryte(m.k) ? ' · <span style="color:#b00020">usunięte z mapy</span>' : ''}`;
-    $('ed-typ').value = z.typ; $('ed-nazwa').value = z.nazwa || ''; $('ed-opis').value = z.opis || '';
+    $('ed-typ').value = z.typ; $('ed-nazwa').value = z.nazwa || ''; $('ed-opis').value = z.opis || ''; $('ed-godz').value = z.h || ''; godzPodglad('ed');
     $('ed-oryg').innerHTML = K[m.k] && !K[m.k].u ? `Oryginał: ${E(MIEJSCA.TYP[m.typ]?.n || m.typ)}${m.nazwa ? ' · ' + E(m.nazwa) : ''} · ${m.lat.toFixed(5)}, ${m.lon.toFixed(5)}` : '';
     $('ed-ukryj').textContent = ukryte(m.k) ? 'Pokaż z powrotem' : 'Usuń z mapy';
     $('ed-cofnij').hidden = !K[m.k];
@@ -522,7 +526,11 @@ setInterval(() => fetch('./?ping=1', {cache: 'no-store'}).catch(() => {}), 5 * 6
       K = j.korekty || {}; wybierz(wyb); $('ed-msg').textContent = 'Zapisano – zmiana jest już na stronie.';
     } catch (e) { $('ed-msg').textContent = '⚠ ' + e.message; }
   }
-  $('ed-zapisz').onclick = () => wyslij('zapisz', {typ: $('ed-typ').value, nazwa: $('ed-nazwa').value, opis: $('ed-opis').value, lat: poz[0], lon: poz[1]});
+  // podgląd godzin: tak, jak zobaczą je użytkownicy (z „otwarte teraz”); nierozpoznany zapis pokaże się dosłownie
+  function godzPodglad(p) { const g = MIEJSCA.godziny($(p + '-godz').value);
+    $(p + '-godz-p').textContent = !g ? 'Format: pn–pt 8–18; sob 8–14; nd nieczynne (albo zapis z OpenStreetMap).' : g.otwarte === null ? '⚠ Nie rozpoznaję dni i godzin – pokażemy dosłownie: ' + g.txt : 'Na mapie: ' + g.txt + (g.otwarte ? ' (teraz otwarte)' : ' (teraz zamknięte)'); }
+  $('ed-godz').oninput = () => godzPodglad('ed'); $('nw-godz').oninput = () => godzPodglad('nw');
+  $('ed-zapisz').onclick = () => wyslij('zapisz', {typ: $('ed-typ').value, nazwa: $('ed-nazwa').value, opis: $('ed-opis').value, godziny: $('ed-godz').value, lat: poz[0], lon: poz[1]});
   $('ed-ukryj').onclick = () => { if (ukryte(wyb.k)) wyslij('pokaz'); else if (confirm('Usunąć to miejsce z mapy na stronie? Można je potem przywrócić.')) wyslij('ukryj'); };
   $('ed-cofnij').onclick = () => { if (confirm('Przywrócić oryginalne położenie i opis?')) wyslij('cofnij'); };
   $('szukaj').oninput = e => {
@@ -547,12 +555,12 @@ setInterval(() => fetch('./?ping=1', {cache: 'no-store'}).catch(() => {}), 5 * 6
     nwPoz(); });
   $('nw-zapisz').onclick = async () => {
     if (!nw) return; const q = nw.getLatLng(), fd = new FormData();
-    for (const [k, v] of Object.entries({akcja: 'miejsce_dodaj', csrf: CSRF, typ: $('nw-typ').value, nazwa: $('nw-nazwa').value, opis: $('nw-opis').value, lat: q.lat, lon: q.lng})) fd.append(k, v);
+    for (const [k, v] of Object.entries({akcja: 'miejsce_dodaj', csrf: CSRF, typ: $('nw-typ').value, nazwa: $('nw-nazwa').value, opis: $('nw-opis').value, godziny: $('nw-godz').value, lat: q.lat, lon: q.lng})) fd.append(k, v);
     $('nw-zapisz').disabled = true;
     try {
       const r = await fetch('./', {method: 'POST', body: fd, headers: {'Accept': 'application/json'}}); const j = await r.json().catch(() => ({blad: 'Sesja wygasła albo serwer chwilowo niedostępny – odśwież stronę i spróbuj ponownie'}));
       if (!j.ok) throw new Error(j.blad || 'Nie udało się dodać');
-      P.push(j.m); $('nw-nazwa').value = ''; $('nw-opis').value = ''; nwStop(); wybierz(P[P.length - 1]); $('ed-msg').textContent = 'Dodano – miejsce jest już na stronie i w nawigacji.';
+      P.push(j.m); $('nw-nazwa').value = ''; $('nw-opis').value = ''; $('nw-godz').value = ''; nwStop(); wybierz(P[P.length - 1]); $('ed-msg').textContent = 'Dodano – miejsce jest już na stronie i w nawigacji.';
     } catch (e) { $('nw-msg').textContent = '⚠ ' + e.message; $('nw-zapisz').disabled = false; }
   };
   rysuj(); map.setView([50.617, 18.895], 14);

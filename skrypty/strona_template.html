@@ -447,7 +447,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <div class="app">
   <aside class="side">
     <h2>Trasy</h2>
-    <button class="reset" id="reset" hidden>Pokaż wszystkie trasy</button>
+    <div style="display:flex;gap:14px;flex-wrap:wrap"><button class="reset" id="reset" hidden>Pokaż wszystkie trasy</button><button class="reset" id="ukryj">Ukryj wszystkie trasy</button></div>
     <div id="routes"></div>
     <div class="toggles">
       <label><input type="checkbox" id="t-opt" checked> słupki poza trasami</label>
@@ -645,15 +645,20 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     el.onclick = () => select(el.classList.contains('on') ? null : r.id);
     box.appendChild(el);
   });
-  const reset = document.getElementById('reset'); reset.onclick = () => select(null);
-  function select(id){
-    document.querySelectorAll('.route').forEach(e => { e.classList.toggle('on', e.dataset.id === id); e.classList.toggle('dim', !!id && e.dataset.id !== id); });
+  // „Ukryj wszystkie trasy”: czysta mapa (np. do oglądania miejsc); kliknięcie trasy na liście pokazuje tylko ją
+  let ukryte = false; const ukr = document.getElementById('ukryj');
+  const reset = document.getElementById('reset'); reset.onclick = () => { ukryte = false; select(null); };
+  ukr.onclick = () => { ukryte = !ukryte; select(null, true); };
+  function select(id, bezWidoku){
+    document.querySelectorAll('.route').forEach(e => { e.classList.toggle('on', e.dataset.id === id); e.classList.toggle('dim', (!!id && e.dataset.id !== id) || (!id && ukryte)); });
     Object.values(byId).forEach(o => {
-      const act = !id || o.r.id === id || (id === '1' && o.r.id === '1a');
-      o.line.setStyle({opacity: act ? .95 : .18}); o.casing.setStyle({opacity: !id ? .9 : 0});
+      const act = id ? (o.r.id === id || (id === '1' && o.r.id === '1a')) : !ukryte;
+      o.line.setStyle({opacity: act ? .95 : (ukryte ? 0 : .18)}); o.casing.setStyle({opacity: !id && !ukryte ? .9 : 0});
       if (act) o.g.bringToFront();
     });
-    reset.hidden = !id;
+    const pusta = !id && ukryte; [all, casL].forEach(l => pusta ? map.removeLayer(l) : (map.hasLayer(l) || l.addTo(map)));
+    reset.hidden = !id && !ukryte; ukr.hidden = ukryte && !id; ukr.textContent = 'Ukryj wszystkie trasy';
+    if (bezWidoku) return;
     map.fitBounds(id ? byId[id].g.getBounds() : all.getBounds(), {padding:[30,30]});
     if (id && window.innerWidth < 900) document.getElementById('map').scrollIntoView({behavior:'smooth', block:'start'});
   }

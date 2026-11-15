@@ -72,6 +72,12 @@ function hub_db(): PDO {
                    : array_column($db->query("PRAGMA table_info($t)")->fetchAll(), 'name');
         if (!in_array('foto', $kol, true)) $db->exec("ALTER TABLE $t ADD COLUMN foto VARCHAR(60) NOT NULL DEFAULT ''");
     }
+    // godziny otwarcia miejsc (15.11.2026): dla miejsc dodanych na mapie i jako poprawka administratora do dowolnego miejsca
+    foreach (['miejsca' => "VARCHAR(200) NOT NULL DEFAULT ''", 'korekty_miejsc' => 'VARCHAR(200)'] as $t => $typ) {
+        $kol = $my ? array_column($db->query("SHOW COLUMNS FROM $t")->fetchAll(), 'Field')
+                   : array_column($db->query("PRAGMA table_info($t)")->fetchAll(), 'name');
+        if (!in_array('godziny', $kol, true)) $db->exec("ALTER TABLE $t ADD COLUMN godziny $typ");
+    }
     if (!$my) $db->exec('PRAGMA busy_timeout=3000');
     return $db;
 }
@@ -223,7 +229,7 @@ function hub_foto_zapisz(PDO $db, array $in, string $tab, int $id): string {
 function hub_korekty(PDO $db): array {
     $out = [];
     foreach ($db->query('SELECT * FROM korekty_miejsc') as $k)
-        $out[$k['klucz']] = $k['ukryj'] ? ['u' => 1] : array_filter(['t' => $k['typ'], 'n' => $k['nazwa'], 'o' => $k['opis'],
+        $out[$k['klucz']] = $k['ukryj'] ? ['u' => 1] : array_filter(['t' => $k['typ'], 'n' => $k['nazwa'], 'o' => $k['opis'], 'g' => $k['godziny'] ?? null,
             'lat' => $k['lat'] === null ? null : (float)$k['lat'], 'lon' => $k['lon'] === null ? null : (float)$k['lon']], fn($v) => $v !== null);
     return $out;
 }

@@ -70,8 +70,14 @@ window.MIEJSCA = (() => {
   // godziny otwarcia z OpenStreetMap (opening_hours) – prosty odczyt najczęstszych zapisów: „24/7”, „Mo-Fr 08:00-18:00; Sa 08:00-14:00; Su off”
   const DNI = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'], DPL = ['pn', 'wt', 'śr', 'cz', 'pt', 'sob', 'nd'];
   function godziny(h, teraz = new Date()) {
-    if (!h) return null; h = String(h).trim();
-    if (h === '24/7') return {txt: 'całą dobę', otwarte: true};
+    if (!h) return null; h = String(h).trim(); const orig = h;
+    if (/^(24\/7|całą dobę|cała doba|calodobowo|całodobowo|24h)$/i.test(h)) return {txt: 'całą dobę', otwarte: true};
+    // zapis po polsku (z panelu): „pn–pt 8–18; sob 8–14; nd nieczynne” → zapis OSM
+    h = h.replace(/[–—]/g, '-').replace(/\b(codziennie|cały tydzień|caly tydzien)\b/gi, 'Mo-Su').replace(/\b(pon|pn|poniedziałek)\b\.?/gi, 'Mo').replace(/\b(wt|wto|wtorek)\b\.?/gi, 'Tu').replace(/(?<![a-ząęółśżźćń])(śr|sr|środa|sroda)\b\.?/gi, 'We')
+      .replace(/\b(czw|cz|czwartek)\b\.?/gi, 'Th').replace(/\b(pt|pią|piątek|piatek)\b\.?/gi, 'Fr').replace(/\b(sob|sb|so|sobota)\b\.?/gi, 'Sa')
+      .replace(/\b(nd|nie|niedz|niedziela|ndz)\b\.?/gi, 'Su').replace(/\b(nieczynne|zamknięte|zamkniete|nieczynny|zamknięty)\b/gi, 'off')
+      .replace(/(\d{1,2})(?::(\d{2}))?\s*-\s*(\d{1,2})(?::(\d{2}))?/g, (_, a, b, c, d) => `${a.padStart(2, '0')}:${b || '00'}-${c.padStart(2, '0')}:${d || '00'}`)
+      .replace(/\s*-\s*(?=(Mo|Tu|We|Th|Fr|Sa|Su)\b)/g, '-').replace(/\s+/g, ' ').trim();
     // dni bez godzin w zapisie OSM są nieczynne; „Su[-1]” – ostatnia niedziela miesiąca (niedziela handlowa)
     const tyg = DNI.map(() => []), ost = {}; let ok = true;
     const D = '(?:Mo|Tu|We|Th|Fr|Sa|Su)';
@@ -86,7 +92,7 @@ window.MIEJSCA = (() => {
         for (let k = i; ; k = (k + 1) % 7) { tyg[k] = prz; if (k === j) break; } }
     }
     const fmt = x => Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0');
-    if (!ok) return {txt: h, otwarte: null};
+    if (!ok) return {txt: orig, otwarte: null};
     const opis = [], kl = d => tyg[d].map(p => fmt(p[0]) + '–' + fmt(p[1])).join(', ') || 'nieczynne';
     for (let d = 0; d < 7;) { let e = d; while (e < 6 && kl(e + 1) === kl(d)) e++; opis.push((e > d ? DPL[d] + '–' + DPL[e] : DPL[d]) + ' ' + kl(d)); d = e + 1; }
     for (const [d, p] of Object.entries(ost)) opis.push('ostatnia ' + DPL[d] + ' miesiąca ' + (p.map(q => fmt(q[0]) + '–' + fmt(q[1])).join(', ') || 'nieczynne'));
@@ -111,7 +117,7 @@ window.MIEJSCA = (() => {
   // korekta z panelu administratora: {u:1} = ukryte, inaczej nadpisane pola (t – rodzaj, n – nazwa, o – opis, lat, lon)
   function popraw(m, K) {
     const k = m.k && K[m.k]; if (!k) return m; if (k.u) return null;
-    const z = {...m}; if (k.t) { z.typ = k.t; if (k.t !== m.typ) delete z.ik; } if (k.n !== undefined) z.nazwa = k.n; if (k.o !== undefined) z.opis = k.o;
+    const z = {...m}; if (k.t) { z.typ = k.t; if (k.t !== m.typ) delete z.ik; } if (k.n !== undefined) z.nazwa = k.n; if (k.o !== undefined) z.opis = k.o; if (k.g !== undefined) z.h = k.g;
     if (k.lat != null) { z.lat = k.lat; z.lon = k.lon; } return z;
   }
   function warstwy(map, stale) {

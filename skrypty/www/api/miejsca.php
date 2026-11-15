@@ -4,9 +4,9 @@ require __DIR__ . '/_db.php';
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $db = hub_db();
-        $r = $db->query("SELECT id, typ, nazwa, opis, lat, lon, nick, utworzono FROM miejsca WHERE moderacja = 'zatwierdzone' ORDER BY id")->fetchAll();
+        $r = $db->query("SELECT id, typ, nazwa, opis, lat, lon, nick, utworzono, godziny FROM miejsca WHERE moderacja = 'zatwierdzone' ORDER BY id")->fetchAll();
         hub_json(['miejsca' => array_map(fn($m) => ['k' => 'db:' . $m['id'], 'typ' => $m['typ'], 'nazwa' => $m['nazwa'], 'opis' => (string)$m['opis'],
-            'lat' => (float)$m['lat'], 'lon' => (float)$m['lon'], 'nick' => $m['nick'], 'data' => substr($m['utworzono'], 0, 10)], $r),
+            'lat' => (float)$m['lat'], 'lon' => (float)$m['lon'], 'nick' => $m['nick'], 'data' => substr($m['utworzono'], 0, 10)] + ((string)($m['godziny'] ?? '') !== '' ? ['h' => $m['godziny']] : []), $r),
             'korekty' => hub_korekty($db)]);
     }
     $in = hub_wejscie();
