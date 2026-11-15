@@ -217,8 +217,15 @@
   }
 
   // ===================== 2. podgląd trasy =====================
+  // kary dla odcinków: wybrany wariant alternatywny (podgląd) i objazd trudnego odcinka (jazda) – ważne dla tego samego celu i trybu
+  const klucz = () => JSON.stringify(stan.cel) + '|' + stan.tryb;
+  function kary() {
+    const m = new Map();
+    for (const k of [stan.kara, stan.objazd]) if (k && k.klucz === klucz()) for (const [id, f] of k.ids) m.set(id, Math.max(m.get(id) || 1, f));
+    return m.size ? m : null;
+  }
   function policz() {
-    const opc = {tryb: stan.tryb};
+    const opc = {tryb: stan.tryb, kara: kary()};
     const T = trasuj(stan.start, stan.cel, opc);
     if (T.blad) return T;
     T.km = {dw: 0, trasy: 0}; for (let i = 0; i < T.seg.length; i++) { const s = T.seg[i]; if (!s) continue; const d = T.cum[i + 1] - T.cum[i]; if (DW(s) && !ROWER.has(s[0])) T.km.dw += d; if (TRASY.has(s[0])) T.km.trasy += d; }
@@ -275,6 +282,53 @@
     svg.addEventListener('touchmove', e => { pokaz(e); e.preventDefault(); }, {passive: false});
     svg.addEventListener('pointerleave', ukryj);
   }
+  // ===================== trasa alternatywna (podgląd) =====================
+  // kandydaci: wariant omijający odcinki głównej trasy (×1,8), trasy z innych trybów, a gdy wybrano już wariant – zwykła trasa.
+  // Pokazujemy pierwszego, który naprawdę się różni (wspólne < 75%) i nie jest dużo dłuższy (< +60%).
+  function alternatywa(T, inne) {
+    const P0 = JZ.podsumuj(T), kand = [];
+    if (kary()) kand.push({typ: 'zwykla', T: trasuj(stan.start, stan.cel, {tryb: stan.tryb})});
+    const omin = new Map(); for (const id of P0.ids.keys()) omin.set(id, 1.8);
+    kand.push({typ: 'objazd', T: trasuj(stan.start, stan.cel, {tryb: stan.tryb, kara: omin}), ids: omin});
+    for (const [k, X] of Object.entries(inne)) kand.push({typ: 'tryb', tryb: k, T: X});
+    for (const c of kand) {
+      if (!c.T || c.T.blad || c.T.m > T.m * 1.6) continue;
+      const PA = JZ.podsumuj(c.T); if (JZ.wspolne(PA, P0) > 0.75) continue;
+      c.T.prof = profil(c.T); c.P = PA; c.P0 = P0; c.txt = altOpis(PA, P0, c.T.prof.czas - T.prof.czas, c); return c;
+    }
+    return null;
+  }
+  function altOpis(A, B, dt, c) {
+    const d = A.m - B.m, t = [];
+    t.push((d >= 0 ? '+' : '−') + kmTxt(Math.abs(d)) + (Math.abs(dt) >= 60 ? ` (${dt >= 0 ? '+' : '−'}${Math.round(Math.abs(dt) / 60)} min)` : ''));
+    if (B.tr - A.tr > 80) t.push('omija ' + kmTxt(B.tr - A.tr) + ' drogi trudnej');
+    else if (B.sr - A.sr > 200) t.push('mniej o ' + kmTxt(B.sr - A.sr) + ' drogi średniej');
+    if (B.dw - A.dw > 100) t.push('mniej jezdnią DW o ' + kmTxt(B.dw - A.dw));
+    if (A.tr - B.tr > 80) t.push('ale ' + kmTxt(A.tr - B.tr) + ' drogi trudnej');
+    if (A.dw - B.dw > 100) t.push('ale ' + kmTxt(A.dw - B.dw) + ' jezdnią DW');
+    if (A.sr - B.sr > 200 && !(B.tr - A.tr > 80)) t.push('ale ' + kmTxt(A.sr - B.sr) + ' drogi średniej');
+    if (A.nu - B.nu > 300) t.push('więcej dróg nieutwardzonych / bez oceny (+' + kmTxt(A.nu - B.nu) + ')');
+    else if (B.nu - A.nu > 300) t.push('więcej po utwardzonej (+' + kmTxt(B.nu - A.nu) + ')');
+    if (c.typ === 'tryb') t.push('tryb „' + TRYBY[c.tryb] + '”');
+    return t.join(' · ');
+  }
+  function rysujAlt(c) {
+    const A = c.T, g = L.layerGroup().addTo(warstwa);
+    const kl = () => wybierzAlt(c);
+    L.polyline(A.ll, {color: '#fff', weight: 9, opacity: .9}).on('click', kl).addTo(g).bringToBack();
+    L.polyline(A.ll, {color: '#7f9e9a', weight: 5, opacity: .95, dashArray: '10 7', lineCap: 'round'}).on('click', kl).addTo(g);
+    // dopisek w miejscu najdalszym od głównej trasy
+    const M = stan.T.ll.filter((_, i) => i % 3 === 0); let best = null, bd = -1;
+    for (let i = 0; i < A.ll.length; i += 2) { let m = 1e9; for (const q of M) m = Math.min(m, dist(A.ll[i], q)); if (m > bd) { bd = m; best = A.ll[i]; } }
+    if (best && bd > 30) L.marker(best, {icon: L.divIcon({className: '', html: `<div class="alt-et">${esc(c.txt.split(' · ').slice(0, 2).join(' · '))}</div>`, iconSize: null})}).on('click', kl).addTo(g);
+    g.eachLayer(l => l.bringToBack && l.bringToBack());
+  }
+  function wybierzAlt(c) {
+    if (c.typ === 'tryb') { stan.tryb = c.tryb; LS.set('tryb', stan.tryb); stan.kara = null; }
+    else if (c.typ === 'objazd') stan.kara = {klucz: klucz(), ids: c.ids};
+    else { stan.kara = null; stan.objazd = null; }
+    const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y;
+  }
   function podglad() {
     if (stan.tryb === 'szosa' && ST.RT !== 'szosa') stan.tryb = 'bezp';
     ekran('s-mapa'); mapa(); panele('podglad'); stan.wybor = null;
@@ -291,6 +345,7 @@
     const tryby = ST.RT === 'szosa' ? ['bezp', 'krotko', 'szosa'] : ['bezp', 'krotko'];
     const inne = {}; for (const k of tryby) if (k !== stan.tryb) inne[k] = trasuj(stan.start, stan.cel, {tryb: k});
     const km = k => k === stan.tryb ? T.m : inne[k].m;
+    const alt = alternatywa(T, inne); if (alt) rysujAlt(alt);
     const opisT = {bezp: ' · omija DW i DK', krotko: '', szosa: ' · asfalt, główne drogi'};
     const nTab = stan.M.filter(m => m.typ === 'tab').length;
     const lista = stan.M.slice(0, 40).map(m => `<div>${strzalkaSVG(m.k, m.typ === 'tab' ? '#0759A7' : m.typ === 'cel' ? '#1d3b30' : '#1d2a23', 22)}<span>${esc(mTekst(m))}</span><span class="km">${kmTxt(m.c)}</span></div>`).join('');
@@ -299,6 +354,7 @@
       <div class="tryb${tryby.length > 2 ? ' t3' : ''}" role="radiogroup" aria-label="Rodzaj trasy">
         ${tryby.map(k => `<button type="button" role="radio" data-t="${k}" aria-checked="${stan.tryb === k}"><b>${TRYBY[k]}</b><span>${kmTxt(km(k))}${opisT[k]}</span></button>`).join('')}
       </div>
+      ${alt ? `<div class="alt"><span><b>${alt.typ === 'zwykla' ? 'Wróć do głównej trasy' : 'Trasa alternatywna'}</b> – ${esc(alt.txt)}</span><button type="button" class="moff-b" id="b-alt">Wybierz</button></div>` : ''}
       <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b id="p-czas">${czasTxt(T.prof.czas)}</b><span>czasu jazdy</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
       <div class="rower" role="radiogroup" aria-label="Rodzaj roweru">${Object.entries(ROWERY).map(([k, r]) => `<button type="button" role="radio" data-r="${k}" aria-checked="${k === ST.RT}">${r.n}</button>`).join('')}</div>
       <div class="msg ostrz" id="p-ostrz"${ostrzezenie(T, inne) ? '' : ' hidden'}>${esc(ostrzezenie(T, inne))}</div>
@@ -327,6 +383,7 @@
     });
     $('b-jedz').onclick = () => startJazdy(false);
     $('b-zglos').onclick = () => zglos(true);
+    if ($('b-alt')) $('b-alt').onclick = () => wybierzAlt(alt);
     $('p-offline-b').onclick = () => { const b = $('p-offline-b'); b.disabled = true; b.textContent = 'Pobieram…';
       JZ.podklad.pobierz(() => { podpowiedzOffline(); mapaOfflinePanel(); }, () => { b.disabled = false; b.textContent = 'Nie udało się – spróbuj ponownie'; }); };
     $('b-symstart').onclick = () => startJazdy(true);
@@ -385,7 +442,7 @@
     $('b-kurs').style.background = obrocona ? '#00737e' : '#fff'; $('b-kurs').style.boxShadow = obrocona ? '0 0 0 3px #fff, 0 1px 6px rgba(0,0,0,.3)' : '';
     $('b-kurs').querySelector('svg path:last-of-type').setAttribute('fill', obrocona ? '#cfe6e6' : '#9aa3a8'); }
   function startJazdy(symulacja) {
-    stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; Object.assign(tempo, {real: 0, mod: 0, t: 0, v: 0, k: 1}); zapowiedz = new Set(); kierPokaz = null; sledz = true;
+    stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; pytano.clear(); Object.assign(tempo, {real: 0, mod: 0, t: 0, v: 0, k: 1}); zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
     if (!symulacja) JZ.historia.start({cel: stan.celN, tryb: stan.tryb, rower: ST.RT});   // zapis przejazdu (tylko w telefonie)
     $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
@@ -507,6 +564,36 @@
     tempo.real += dt; tempo.mod += czasDo(stan.T, w2) - czasDo(stan.T, w1);
     tempo.k = Math.max(0.6, Math.min(2, (tempo.real + 120) / (tempo.mod + 120)));
   }
+  // ===================== objazd trudnego odcinka (w trakcie jazdy) =====================
+  // co ~8 s patrzymy 60–700 m przed siebie: jeśli zaczyna się tam droga trudna dłuższa niż 200 m, liczymy trasę omijającą ją
+  // (kara ×20) i – gdy omija większość, a nadkłada rozsądnie – proponujemy objazd. O ten sam odcinek pytamy raz.
+  let objazdT = 0; const pytano = new Set();
+  function sprawdzObjazd() {
+    const ban = $('objazd');
+    if (ban) { if (wzdluz > +ban.dataset.od) ban.remove(); return; }
+    if (Date.now() - objazdT < 8000) return; objazdT = Date.now();
+    const T = stan.T, ids = new Map(); let od = -1, L0 = 0, przerwa = 0;
+    for (let i = Math.max(0, idx - 1); i < T.seg.length; i++) {
+      const a = T.cum[i], b = T.cum[i + 1]; if (b < wzdluz + 60) continue; if (od < 0 && a > wzdluz + 700) break;
+      const st = JZ.stOdc(T.seg[i]);
+      if (st === 'trudna' || st === 'nieprzejezdna') { if (od < 0) od = a; L0 += b - a; ids.set(T.seg[i][0], 20); przerwa = 0; }
+      else if (od >= 0) { przerwa += b - a; if (przerwa > 40) break; }
+    }
+    if (od < 0 || L0 < 200) return;
+    const k = [...ids.keys()].sort().join(','); if (pytano.has(k)) return; pytano.add(k);
+    const p = jaM ? [jaM.getLatLng().lat, jaM.getLatLng().lng] : wDal(T, wzdluz);
+    const A = trasuj(p, stan.cel, {tryb: stan.tryb, kara: ids}); if (A.blad) return;
+    const PA = JZ.podsumuj(A); let zost = 0; for (const id of ids.keys()) zost += PA.ids.get(id) || 0;
+    const extra = A.m - (T.m - wzdluz);
+    if (L0 - zost < L0 * 0.7 || extra > Math.max(1200, L0 * 1.5)) return;   // objazd nic nie daje albo jest za długi
+    const d = document.createElement('div'); d.id = 'objazd'; d.className = 'objazd'; d.dataset.od = od;
+    d.innerHTML = `<div><b>Za ${kmTxt(od - wzdluz)} droga trudna (${kmTxt(L0)})</b><span>Objazd: ${extra >= 0 ? '+' : '−'}${kmTxt(Math.abs(extra))}${zost > 20 ? `, zostaje ${kmTxt(zost)} trudnej` : ''}</span></div>
+      <button type="button" class="ok" id="obj-tak">Objazd</button><button type="button" id="obj-nie">Zostaję</button>`;
+    $('dol').prepend(d);
+    powiedz(`Za ${Math.round((od - wzdluz) / 50) * 50} metrów zaczyna się trudna droga. Możesz ją objechać, ${extra > 0 ? Math.round(extra / 50) * 50 + ' metrów dłużej' : 'nawet krócej'}.`);
+    $('obj-tak').onclick = () => { stan.objazd = {klucz: klucz(), ids}; d.remove(); przelicz(p); };
+    $('obj-nie').onclick = () => d.remove();
+  }
   function przelicz(p) {
     stan.start = p; const T = policz(); if (T.blad) return;
     stan.T = T; stan.M = manewry(T); idx = 0; wzdluz = 0; zapowiedz = new Set(); rysuj(T, stan.M);
@@ -517,6 +604,7 @@
     const T = stan.T, M = stan.M;
     const zost = T.m - wzdluz;
     if (zost < 25) return dojechales();
+    sprawdzObjazd();
     const nast = M.find(m => m.c > wzdluz - 20 && m.typ !== 'cel') || M[M.length - 1];
     const doN = Math.max(0, nast.c - wzdluz);
     // ekran przy drogowskazie (4b): od 30 m przed do 25 m za skrzyżowaniem

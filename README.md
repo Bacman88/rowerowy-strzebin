@@ -120,6 +120,10 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
 
 - **Oceny mieszkańców w trasowaniu**: Jedź pobiera przy starcie `api/stan.php` (zatwierdzone oceny, CORS dla aplikacji), zapamiętuje je w telefonie
   i nadpisuje nimi stan odcinków (`JZ.oceny`). Trudne (czerwone) odcinki: kara ×6 w trybie Bezpieczna, ×3 w Najkrótszej – także na trasach HUB.
+- **Trasa alternatywna** (podgląd): wariant omijający główną trasę (kara ×1,8 dla jej odcinków, `opc.kara`) albo trasa innego trybu –
+  pokazana, gdy wspólne < 75% i nie dłuższa niż +60%; jaśniejsza linia z dopiskiem (różnica km/min, droga trudna, DW, nieutwardzone), wybór stuknięciem.
+- **Objazd w trakcie jazdy**: co ~8 s patrzymy 60–700 m do przodu; droga trudna ≥ 200 m i objazd omijający ≥ 70% jej długości, nie dłuższy niż
+  max(1,2 km; 1,5× odcinek) → baner i głos „Objazd / Zostaję”. O ten sam odcinek pytamy raz.
 - **Moje przejazdy** (`lib/jedz/historia.js`): ślad, długość, czas w ruchu, prędkość średnia i maks., statystyki, GPX – zapis tylko w telefonie (localStorage).
 - W trakcie jazdy zegar co 5 s odświeża czas i godzinę przyjazdu, także na postoju.
 - **Zgłoś błąd / sugestię**: `lib/uwagi.js` (okienko wspólne dla strony i Jedź, także w aplikacji) → `api/uwagi.php` (CORS dla aplikacji) → tabela `uwagi`,

@@ -31,7 +31,10 @@
   //           chyba że obok jest droga rowerowa; uliczki w miejscowościach i drogi gminne/powiatowe – normalnie;
   //           lekka preferencja tras HUB (×0,9, bez kary za brak oceny) i ocen nawierzchni od mieszkańców
   //  krotko – „Najkrótsza”: sama długość (omija tylko drogi ocenione jako nieprzejezdne, trudne lekko droższe)
-  function koszt(s, opc) {
+  // opc.kara – Map id odcinka → mnożnik kosztu: warianty alternatywne (×1,8 dla odcinków głównej trasy)
+  // i objazdy w trakcie jazdy (×20 dla trudnego odcinka przed Tobą)
+  function koszt(s, opc) { return kosztBaza(s, opc) * ((opc.kara && opc.kara.get(s[0])) || 1); }
+  function kosztBaza(s, opc) {
     const st = s[4] || 'brak';
     if (opc.tryb === 'krotko') return s[6] * (st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 3 : 1);
     // szosa – „prawie jak autem”: asfalt i drogi główne (wojewódzkie i krajowe bez kary, nawet lekko preferowane),
@@ -152,5 +155,16 @@
     for (const [id, st] of Object.entries(mapa || {})) { ustaw(id, st); for (const nid of AL[id] || []) if (!(nid in mapa)) ustaw(nid, st); }
     return n;
   }
-  Object.assign(JZ, {oceny, TRASY, ROWER, CHODNIK, F, P, adj, DW, koszt, najblizszy, przyczep, trasuj, wDal, UTW, stOdc});
+  // podsumowanie trasy do porównań: długość, metry dróg trudnych / średnich / bez oceny, jezdnią DW, zbiór odcinków
+  function podsumuj(T) {
+    const o = {m: T.m, tr: 0, sr: 0, nu: 0, dw: 0, ids: new Map()};
+    for (let i = 0; i < T.seg.length; i++) { const s = T.seg[i]; if (!s) continue; const d = T.cum[i + 1] - T.cum[i], st = stOdc(s);
+      o.ids.set(s[0], (o.ids.get(s[0]) || 0) + d);
+      if (st === 'trudna' || st === 'nieprzejezdna') o.tr += d; else if (st === 'srednia') o.sr += d; else if (st === 'brak') o.nu += d;
+      if (DW(s) && !ROWER.has(s[0]) && !CHODNIK.has(s[0])) o.dw += d; }
+    return o;
+  }
+  // jaka część krótszej z dwóch tras jest wspólna (0–1)
+  function wspolne(A, B) { let w = 0; for (const [id, d] of A.ids) if (B.ids.has(id)) w += Math.min(d, B.ids.get(id)); return w / Math.max(1, Math.min(A.m, B.m)); }
+  Object.assign(JZ, {podsumuj, wspolne, oceny, TRASY, ROWER, CHODNIK, F, P, adj, DW, koszt, najblizszy, przyczep, trasuj, wDal, UTW, stOdc});
 })();
