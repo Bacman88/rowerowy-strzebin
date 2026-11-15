@@ -245,6 +245,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 .wzm{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;background:#00838F;font:700 10px system-ui;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 </style></head><body>
 <header>
+  <a href="../" title="Wróć na stronę główną HUB-u" style="text-decoration:none;font-weight:600;white-space:nowrap">← Strona główna</a>
   <h1>Panel</h1>
   <nav class="tabs tryb">
     <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy', 'uwagi' => 'Uwagi i błędy', 'mapa' => 'Miejsca na mapie – edycja', 'slupki' => 'Węzły – przesuwanie'] as $tt => $t): ?>
