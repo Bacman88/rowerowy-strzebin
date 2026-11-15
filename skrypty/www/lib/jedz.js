@@ -102,7 +102,9 @@
   function podpowiedzOffline() { const p = $('p-offline'); if (p) p.hidden = JZ.podklad.pobrana(); }
   function mapa() {
     if (map) return map;
-    map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: true}).setView([50.615, 18.9], 13);
+    // trasa i znaczniki jako SVG, bez animacji przybliżania: płótno canvas przy obróconej / pochylonej (3D) mapie miało ponad 4000×4000 px
+    // i każdy ruch przerysowywał je od nowa (przycięcia na telefonie); animacja przybliżania przerywana co pozycję GPS rozjeżdżała SVG
+    map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: false, renderer: L.svg({padding: 0.1}), zoomAnimation: false}).setView([50.615, 18.9], 13);
     // mapa offline (lib/jedz/podklad.js) zawsze pod spodem; kafelki OSM na wierzchu, chyba że wybrano „zawsze offline”.
     // Bez zasięgu kafelki się nie wczytają (zostają niewidoczne) i widać podkład offline – wtedy dokładamy też nazwy miejscowości.
     map.createPane('nazwy').style.zIndex = 390;
@@ -348,12 +350,13 @@
   //      środek kwadratu (= Twoja pozycja) w 62% wysokości ekranu, obrót CSS wokół środka
   let obrocona = false, B = 0, kurs = LS.get('kurs', true), tilt = LS.get('tilt', false);
   // 3D: obrócona mapa dodatkowo pochylona jak kartka na stole (perspektywa CSS); kontener większy, żeby pokryć „dal”
+  const KROTNOSC_3D = +(new URLSearchParams(location.search).get('k3d') || 1.9);   // rozmiar mapy w 3D względem przekątnej ekranu
   const tr = () => tilt && obrocona ? `perspective(${Math.round($('s-mapa').clientHeight * 1.1)}px) rotateX(48deg) rotate(${-B}deg)` : `rotate(${-B}deg)`;
   function obroc(on) {
     const el = $('mapa'), box = $('s-mapa'), w = box.clientWidth, h = box.clientHeight;
     obrocona = on;
     map.options.touchZoom = map.options.doubleClickZoom = map.options.scrollWheelZoom = on ? 'center' : true;
-    if (on) { const D = Math.ceil(Math.hypot(w, h) * (tilt ? 2.3 : 1)) + 4, ay = Math.round(h * (tilt ? .7 : .62)); el.style.cssText = `inset:auto;left:${Math.round((w - D) / 2)}px;top:${ay - Math.round(D / 2)}px;width:${D}px;height:${D}px;transition:transform .6s linear`; el.style.transform = tr(); map.dragging.disable(); }
+    if (on) { const D = Math.ceil(Math.hypot(w, h) * (tilt ? KROTNOSC_3D : 1)) + 4, ay = Math.round(h * (tilt ? .7 : .62)); el.style.cssText = `inset:auto;left:${Math.round((w - D) / 2)}px;top:${ay - Math.round(D / 2)}px;width:${D}px;height:${D}px;transition:transform .6s linear`; el.style.transform = tr(); map.dragging.disable(); }
     else { el.style.cssText = ''; map.dragging.enable(); }
     map.invalidateSize({pan: false}); if (jaM && sledz) map.setView(jaM.getLatLng(), map.getZoom(), {animate: false});
     kompas();
