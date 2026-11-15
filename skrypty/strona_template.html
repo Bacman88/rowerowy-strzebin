@@ -791,7 +791,19 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
       rysuj_();
     }
     const dlaWezla = nr => lista.filter(m => m.typ === 'wezly' && m.body.wezel === nr);
-    setTimeout(rysuj_, 0);
+    const zapisz_ = () => { try { localStorage.setItem(K, JSON.stringify(lista)); } catch (e) {} };
+    // po decyzji administratora propozycja znika z „Twoich” (zatwierdzona jest już na mapie, odrzucona – po prostu znika)
+    function sprawdz() {
+      const stare = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
+      lista = lista.filter(m => m.id && m.data >= stare);
+      if (!lista.length) { zapisz_(); return rysuj_(); }
+      fetch('api/status.php?q=' + encodeURIComponent(lista.map(m => m.typ + ':' + m.id).join(',')), {cache: 'no-store'})
+        .then(r => r.ok ? r.json() : null).then(j => { if (!j || !j.status) return;
+          const n = lista.length; lista = lista.filter(m => (j.status[m.typ + ':' + m.id] || 'oczekuje') === 'oczekuje');
+          if (lista.length !== n) { zapisz_(); rysuj_(); } }).catch(() => {});
+      rysuj_();
+    }
+    setTimeout(sprawdz, 0);
     return {dodaj, dlaWezla};
   })();
 
