@@ -106,13 +106,15 @@
     // mapa offline (lib/jedz/podklad.js) zawsze pod spodem; kafelki OSM na wierzchu, chyba że wybrano „zawsze offline”.
     // Bez zasięgu kafelki się nie wczytają (zostają niewidoczne) i widać podkład offline – wtedy dokładamy też nazwy miejscowości.
     map.createPane('nazwy').style.zIndex = 390;
-    JZ.podklad.warstwa(L).addTo(map);
-    const nazwy = JZ.podklad.nazwy(L, map);
+    // podkład rysujemy TYLKO gdy jest potrzebny (zawsze offline albo kafelki się nie wczytują) – rysowanie tysięcy dróg
+    // na telefonie kosztuje, a przy zasięgu i tak przykrywają go kafelki OSM
+    const podklad = JZ.podklad.warstwa(L), nazwy = JZ.podklad.nazwy(L, map);
+    const pokazPodklad = tak => { if (tak) { if (!map.hasLayer(podklad)) podklad.addTo(map); nazwy.addTo(map); } else { podklad.remove(); nazwy.remove(); } };
     let bledyK = 0, ostOk = 0;
-    const kafelki = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'})
-      .on('tileerror', () => { if (++bledyK >= 3 && Date.now() - ostOk > 4000) nazwy.addTo(map); })
-      .on('tileload', () => { ostOk = Date.now(); bledyK = 0; if (!mapaOffline) nazwy.remove(); });
-    mapaUstaw = off => { mapaOffline = off; if (off) { kafelki.remove(); nazwy.addTo(map); } else { kafelki.addTo(map); nazwy.remove(); } };
+    const kafelki = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap', keepBuffer: 1})
+      .on('tileerror', () => { if (++bledyK >= 3 && Date.now() - ostOk > 4000) pokazPodklad(true); })
+      .on('tileload', () => { ostOk = Date.now(); bledyK = 0; if (!mapaOffline && map.hasLayer(podklad)) pokazPodklad(false); });
+    mapaUstaw = off => { mapaOffline = off; if (off) { kafelki.remove(); pokazPodklad(true); } else { kafelki.addTo(map); pokazPodklad(false); } };
     mapaUstaw(mapaOffline);
     warstwa = L.layerGroup().addTo(map);
     map.on('dragstart', () => { if (stan.jazda) { sledz = false; $('b-srodek').classList.remove('hide'); } });
@@ -322,7 +324,8 @@
     // mapa mogła powstać na ukrytym ekranie (rozmiar 0) – najpierw przelicz rozmiar, potem dopasuj widok; drugi raz po ułożeniu panelu
     const dopasuj = () => { if (stan.jazda || stan.T !== T) return; map.invalidateSize({pan: false});
       map.fitBounds(L.polyline(T.ll).getBounds(), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(($('dol').offsetHeight || window.innerHeight * .55) + 10, window.innerHeight * .7)]}); };
-    dopasuj(); setTimeout(dopasuj, 120); setTimeout(dopasuj, 600);
+    dopasuj(); const roz = map.getSize();
+    setTimeout(() => { const r = map.getSize(); map.invalidateSize({pan: false}); if (!map.getSize().equals(roz) || !r.equals(roz)) dopasuj(); }, 150);   // drugi raz tylko, gdy zmienił się rozmiar
   }
   function linkGoogle(T) {
     const f = p => p[0].toFixed(5) + ',' + p[1].toFixed(5);

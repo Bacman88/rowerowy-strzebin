@@ -65,9 +65,9 @@
     dg: z => ({k: '#f6cf63', w: z < 13 ? 2.4 : z < 15 ? 4.5 : 7, o: '#d9a93a'}),
   };
   function warstwa(L) {
-    przygotuj();
     const W = L.GridLayer.extend({
       createTile(c) {
+        przygotuj();                                      // indeks dróg dopiero przy pierwszym rysowaniu (mapa offline bywa niepotrzebna)
         const t = document.createElement('canvas'), S = this.getTileSize(), dpr = Math.min(2, window.devicePixelRatio || 1);
         t.width = S.x * dpr; t.height = S.y * dpr;
         const g = t.getContext('2d'), z = c.z, sk = S.x * Math.pow(2, z), ox = c.x * S.x, oy = c.y * S.y;
@@ -99,7 +99,7 @@
     });
     const w = new W({maxZoom: 20, keepBuffer: 2, updateWhenZooming: false});
     wW = w;
-    if (pobrana()) setTimeout(() => laduj(() => { przygotujPD(); w.redraw(); }), 300);   // najpierw same drogi, po chwili lasy, wody, budynki
+    w.on('add', () => { if (pobrana() && !pdGotowy) setTimeout(() => laduj(() => { przygotujPD(); w.redraw(); }), 300); });   // lasy, wody, budynki – gdy warstwa jest na mapie   // najpierw same drogi, po chwili lasy, wody, budynki
     return w;
   }
   // nazwy miejscowości (osobna warstwa znaczników – tekst nie urywa się na krawędziach kafelków)
