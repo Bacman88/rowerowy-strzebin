@@ -65,7 +65,9 @@ R = [i for i in wybierz(Siatka(lines_xy(ciagi)), 25, .6) if i in GLOWNE] if ciag
 # szeroki chodnik wzdłuż DW (ludzie jeżdżą nim jako bezpieczniejszą alternatywą) – osobna lista: bez kary za DW, ale trochę wolniej
 C = [i for i in wybierz(Siatka(lines_xy(chodniki)), 25, .6) if i in GLOWNE and i not in R] if chodniki else []
 
-# linie do narysowania na mapach: wzdłuż osi drogi (co 10 m), odsunięte o 9 m na tę stronę, po której narysowano je w uMap
+# linie do narysowania na mapach: wzdłuż osi drogi (co 10 m), odsunięte o ODSUN m na tę stronę, po której narysowano je w uMap
+# (oś DW + pół jezdni ≈ 4–5 m – linia „przyklejona” do krawędzi drogi, nie po płotach)
+ODSUN = 5
 SEGXY = [[xy(s[7][i], s[7][i + 1]) for i in range(0, len(s[7]), 2)] for s in ODC if s[0] in set(R) | set(C)]
 def rzut(p):
     best = None
@@ -87,7 +89,7 @@ def odsun(ll):
         else:
             _, q0, (dx, dy) = r; L = math.hypot(dx, dy) or 1; nx, ny = -dy / L, dx / L
             strona = 1 if (p[0] - q0[0]) * nx + (p[1] - q0[1]) * ny >= 0 else -1
-            q = (q0[0] + strona * 9 * nx, q0[1] + strona * 9 * ny)
+            q = (q0[0] + strona * ODSUN * nx, q0[1] + strona * ODSUN * ny)
         lat = q[1] / 111200; out.append([round(lat, 6), round(q[0] / (111200 * math.cos(math.radians(lat))), 6)])
     # wygładzenie (średnia z sąsiadów) – rzut na załamania osi daje drobne ząbki
     return [out[0]] + [[round((out[i - 1][0] + out[i][0] + out[i + 1][0]) / 3, 6), round((out[i - 1][1] + out[i][1] + out[i + 1][1]) / 3, 6)] for i in range(1, len(out) - 1)] + [out[-1]]
