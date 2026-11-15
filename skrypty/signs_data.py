@@ -136,7 +136,8 @@ POLE = {**{n: "istniejący" for n in (2, 3, 10, 11, 12, 16, 17, 20, 21, 23, 24, 
         **{n: "nowy" for n in (1, 6, 7, 8, 9, 26)},
         **{n: "opcjonalny" for n in (*range(28, 49), *range(50, 58))}}
 SLUP_JEST = {46, 47}
-MOVE = {}
+# 15.11.2026: położenia węzłów poprawione przez Bartosza w panelu (Węzły – przesuwanie), stan z api/stan.php
+MOVE = {2: (18.89263, 50.616515), 3: (18.896948, 50.615804), 19: (18.909257, 50.596849), 20: (18.90776, 50.613515), 25: (18.898123, 50.615463), 27: (18.888738, 50.617749), 28: (18.909842, 50.600179), 38: (18.874769, 50.617579), 39: (18.883663, 50.616183)}
 FORCE_WHO = {**{n: "nadl_K" for n in range(36, 42)}, **{n: "gmina" for n in range(42, 48)}, 48: "nadl_K", 49: "gmina", 50: "nadl_K", 51: "nadl_K", 52: "nadl_K", 53: "nadl_K", 54: "nadl_K", 55: "nadl_K", 56: "nadl_K", 57: "nadl_K"}   # 6.11: wg Bartosza   # 6.11: leśne propozycje Bartosza – do ustalenia   # słupki w lesie: zakładamy brak (nowy)
 out = []
 # 12.11.2026: w której gminie stoi słupek (część słupków leśnych N-ctwa Koszęcin stoi w Kaletach, gm. Woźniki i gm. Boronów)

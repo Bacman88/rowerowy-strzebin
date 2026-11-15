@@ -1,6 +1,6 @@
 """Dane pomocnicze dla nawigacji „Jedź” (strona/jedz.html): które odcinki dróg leżą na trasach pokazowych,
 a które wojewódzkie mają obok drogę rowerową (ciąg pieszo-rowerowy z pomiarów w uMap).
-Wynik: <strona>/stan/jedz.js  →  window.JEDZ = {trasy: [id…], rower: [id…], chodnik: [id…], linie: [{typ: rower|chodnik, ll}]}
+Wynik: <strona>/stan/jedz.js  →  window.JEDZ = {trasy: [id…], rower: [id…], chodnik: [id…], linie: [{typ: rower|chodnik, ll}], oceny: {id: stan}}
 Użycie (po odcinki.py): python3 jedz_dane.py ../dane/umap_mapa_rowerowa.geojson ../out/strona
 """
 import json, math, sys
@@ -95,6 +95,10 @@ def odsun(ll):
     return [out[0]] + [[round((out[i - 1][0] + out[i][0] + out[i + 1][0]) / 3, 6), round((out[i - 1][1] + out[i][1] + out[i + 1][1]) / 3, 6)] for i in range(1, len(out) - 1)] + [out[-1]]
 LINIE = [{"typ": "rower", "ll": odsun(l)} for l in ciagi] + [{"typ": "chodnik", "ll": odsun(l)} for l in chodniki]
 
-open(f"{OUT}/stan/jedz.js", "w").write("window.JEDZ=" + json.dumps({"trasy": T, "rower": R, "chodnik": C, "linie": LINIE}, separators=(",", ":")) + ";")
+# zatwierdzone oceny dróg z mapy wspólnej (migawka z api/stan.php: id odcinka → stan) – działają od pierwszego uruchomienia, także bez sieci;
+# świeże oceny aplikacja i tak dociąga z serwera przy starcie
+import os
+OCENY = json.load(open("../dane/oceny_mapa.json")) if os.path.exists("../dane/oceny_mapa.json") else {}
+open(f"{OUT}/stan/jedz.js", "w").write("window.JEDZ=" + json.dumps({"trasy": T, "rower": R, "chodnik": C, "linie": LINIE, "oceny": OCENY}, separators=(",", ":")) + ";")
 km = lambda ids: sum(s[6] for s in ODC if s[0] in set(ids)) / 1000
 print(f"jedź: odcinki na trasach {len(T)} ({km(T):.0f} km), DW z drogą rowerową obok {len(R)} ({km(R):.1f} km), z szerokim chodnikiem {len(C)} ({km(C):.1f} km), linii na mapę {len(LINIE)}")

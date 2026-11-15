@@ -39,6 +39,14 @@ console.log('Rodzaj roweru (czas tej samej trasy)');
 const czas = r => { JZ.ST.RT = r; JZ.ST.R = JZ.ROWERY[r]; return JZ.profil(g).czas; };
 const cm = czas('miejski'), cs = czas('szosa'), cg = czas('gorski'); czas('miejski');
 ok(cg < cm && cs > cg, `GOSiR lasem: górski ${Math.round(cg / 60)} min < miejski ${Math.round(cm / 60)} min, szosowy ${Math.round(cs / 60)} min`);
+console.log('Dane z mapy wspólnej (oceny, zmiany węzłów)');
+{ const p28 = H.posts.find(p => p.nr === 28), cele28 = p28.tab.flatMap(t => t.e.map(e => e[0]));
+  ok(!cele28.includes('Bukowiec') && !cele28.includes('Piasek'), `węzeł 28 bez Bukowca i Piasku (zatwierdzona zmiana): ${cele28.join(', ')}`);
+  const oc = window.JEDZ.oceny || {}, tr = new Set(Object.keys(oc).filter(i => oc[i] === 'trudna' || oc[i] === 'nieprzejezdna'));
+  ok(Object.keys(oc).length > 100 && JZ.oceny(oc) === Object.keys(oc).length, `migawka ocen w danych: ${Object.keys(oc).length}, wszystkie odcinki znalezione`);
+  for (const t of ['bezp', 'krotko']) { const T = trasa([p28.lat, p28.lon], cel('Piasek'), t); let m = 0;
+    for (let i = 0; i < T.seg.length; i++) if (T.seg[i] && tr.has(T.seg[i][0])) m += T.cum[i + 1] - T.cum[i];
+    ok(!T.blad && m < 1, `28 → Piasek (${t}) omija leśną drogę ocenioną jako trudna: ${(T.m / 1000).toFixed(1)} km, po trudnej ${Math.round(m)} m`); } }
 console.log('Manewry');
 const M = JZ.manewry(g);
 ok(M.length > 2 && M[M.length - 1].typ === 'cel', `${M.length} manewrów, ostatni = cel`);

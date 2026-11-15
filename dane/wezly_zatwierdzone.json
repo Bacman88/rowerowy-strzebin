@@ -1,0 +1,4 @@
+{"_opis": "Zatwierdzone na mapie wspólnej zmiany węzłów, które są już wdrożone w projekcie (tabliczki, PDF, nawigacja). Strona przestaje pokazywać je jako „czeka na wdrożenie”, a Jedź nie stosuje ich drugi raz.",
+ "wdrozone": [
+  {"id": 1, "wezel": 28, "zmiany": {"usun": ["Bukowiec", "Piasek"], "dodaj": []}, "data": "2026-11-15", "gdzie": "skrypty/directions.py (MANUAL, FORCE_DIRS, SHORT)"}
+ ]}

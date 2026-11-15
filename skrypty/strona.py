@@ -137,7 +137,10 @@ for _w in (192, 512):   # ikony instalacji „Jedź” na telefonie (PWA)
 os.remove(f"{S}/_fav_apple.svg")
 open(f"{S}/lib/tabliczka-dane.js", "w").write("window.TABD = " + json.dumps(TABD, ensure_ascii=False, separators=(",", ":")) + ";")
 os.makedirs(f"{S}/lib/fonts", exist_ok=True); shutil.copy("../fonts/FiraSansCondensed-SemiBold.ttf", f"{S}/lib/fonts/")
-open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places, cele=cele, gmina=gmina_ll), ensure_ascii=False, separators=(",", ":")) + ";")
+# zatwierdzone zmiany węzłów z mapy wspólnej, które już są w danych projektu (id propozycji)
+import os as _os
+wdrozone = [w["id"] for w in json.load(open("../dane/wezly_zatwierdzone.json"))["wdrozone"]] if _os.path.exists("../dane/wezly_zatwierdzone.json") else []
+open(f"{S}/data.js", "w").write("window.HUB = " + json.dumps(dict(routes=routes, posts=posts, pois=pois, places=places, cele=cele, gmina=gmina_ll, wdrozone=wdrozone), ensure_ascii=False, separators=(",", ":")) + ";")
 print("miejsca:", len(places))
 M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
 # 12.11.2026: załącznik A4 – wzór drogowskazu i montaż na istniejącym słupku z nazwą ulicy

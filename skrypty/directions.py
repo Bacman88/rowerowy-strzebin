@@ -66,7 +66,7 @@ def entry(nr, v, why):
     km, path = routes[nr][v]
     return dict(name=v, km=round(km, 1), deg=round(bearing(path)), path=path, why=why)
 
-FORCE_DIRS = {28: ["Piasek", "Bukowiec", "Kalety", "Strzebiń"], 29: ["Piasek", "Bukowiec", "Kalety", "Strzebiń"]}
+FORCE_DIRS = {28: ["Kalety", "Strzebiń"], 29: ["Piasek", "Bukowiec", "Kalety", "Strzebiń"]}
 prop, removed = {}, {}
 for p in posts:
     nr = p["nr"]; cur = []; seen = set(); removed[nr] = []
@@ -156,7 +156,7 @@ MANUAL = {
  25: ["Kalety", "Kurzychowe", "Łazy"],
  26: ["Łazy", "Kalety"],
  27: ["Prądy", "Koszęcin", "Dubiele", "Boronów"],
- 28: ["Strzebiń", "Bukowiec", "Piasek", "Kalety"],
+ 28: ["Strzebiń", "Kalety"],   # 15.11.2026: zatwierdzona zmiana z mapy wspólnej – droga na wschód maksymalnie trudna, bez Bukowca i Piasku
  29: ["Bukowiec", "Piasek", "Strzebiń", "Kalety"],
  30: ["Dubiele", "Kalety"],
  31: ["Strzebiń", "Kalety", "Piasek"],
@@ -180,7 +180,7 @@ MANUAL = {
  49: ["Sitki", "Boronów", "Babienica", "Strzebiń", "Kurzychowe"],
 }
 VIA = {(48, "Bukowiec"): 29, (48, "Strzebiń"): 29}
-SHORT = {(48, "Kalety"), (26, "Bukowiec"), (26, "Psary"), (28, "Piasek"), (28, "Bukowiec")}   # prowadzimy najkrótszą drogą (nie naokoło asfaltem)
+SHORT = {(48, "Kalety"), (26, "Bukowiec"), (26, "Psary")}   # prowadzimy najkrótszą drogą (nie naokoło asfaltem)
 for nr, names in MANUAL.items():
     if nr not in prop: continue
     new = []

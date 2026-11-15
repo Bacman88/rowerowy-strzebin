@@ -803,7 +803,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     const KOLT = window.TABD.KOL;
     let on = false, wyb = null, nowyPin = null, lista = [], prop = null, sciezka = null, odP = null, zatw = [];
     const wL = L.layerGroup(), pathL = L.layerGroup().addTo(map), npL = L.layerGroup();
-    fetch('api/wezly.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => { zatw = j?.wezly || []; markery(); }).catch(() => {});
+    fetch('api/wezly.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => { zatw = (j?.wezly || []).filter(z => !(H.wdrozone || []).includes(z.id)); markery(); }).catch(() => {});
     function markery() {
       wL.clearLayers();
       for (const p of H.posts) {

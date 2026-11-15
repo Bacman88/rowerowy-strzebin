@@ -19,10 +19,16 @@
     d.textContent = 'Aplikacja · GPS w tle: ' + (PL.BackgroundGeolocation ? (diag.bg || 'gotowy') : 'brak') + ' · głos: ' + (PL.TextToSpeech ? 'tak' : 'brak') + ' · powiadomienia: ' + (PL.LocalNotifications ? 'tak' : 'brak'); };
   setTimeout(pokazDiag, 500);
   // oceny dróg zatwierdzone w panelu (mapa wspólna) – najpierw zapamiętane w telefonie (działa bez zasięgu), potem świeże z serwera
-  let ocenyN = JZ.oceny(LS.get('oceny', {}));
+  let ocenyN = JZ.oceny(LS.get('oceny', (window.JEDZ && JEDZ.oceny) || {}));
   // węzły przesunięte w panelu (słupki – drogowskazy na trasie liczone od nowego miejsca)
   const wezly = w => { for (const [nr, ll] of Object.entries(w || {})) { const p = H.posts.find(q => q.nr === +nr); if (p) { p.lat = ll[0]; p.lon = ll[1]; } } };
   wezly(LS.get('wezly', {}));
+  // zatwierdzone na mapie wspólnej zmiany tabliczek (api/wezly.php), jeszcze niewdrożone w danych: usunięte kierunki znikają z drogowskazów w nawigacji
+  const zmianyTab = L => { for (const z of L || []) { if ((H.wdrozone || []).includes(z.id) || z.wezel == null) continue;
+    const p = H.posts.find(q => q.nr === z.wezel), us = (z.zmiany && z.zmiany.usun) || []; if (!p || !p.tab || !us.length) continue;
+    p.tab = p.tab.map(t => ({...t, e: t.e.filter(e => !us.includes(e[0]))})).filter(t => t.e.length); } };
+  zmianyTab(LS.get('zmianyTab', []));
+  fetch(BAZA + 'api/wezly.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => { if (j && Array.isArray(j.wezly)) { const L = j.wezly.map(z => ({id: z.id, wezel: z.wezel, zmiany: {usun: (z.zmiany && z.zmiany.usun) || []}})); LS.set('zmianyTab', L); zmianyTab(L); } }).catch(() => {});
   fetch(BAZA + 'api/stan.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
     if (!j || !j.stany) return;
     const m = {}; for (const [id, zid] of Object.entries(j.stany)) { const z = j.zgloszenia[zid]; if (z) m[id] = z[0]; }

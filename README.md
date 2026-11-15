@@ -120,6 +120,11 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
 
 - **Oceny mieszkańców w trasowaniu**: Jedź pobiera przy starcie `api/stan.php` (zatwierdzone oceny, CORS dla aplikacji), zapamiętuje je w telefonie
   i nadpisuje nimi stan odcinków (`JZ.oceny`). Trudne (czerwone) odcinki: kara ×6 w trybie Bezpieczna, ×3 w Najkrótszej – także na trasach HUB.
+- **Migawka danych z mapy wspólnej w buildzie**: `dane/oceny_mapa.json` (id odcinka → stan, bez nicków) trafia do `stan/jedz.js` (`JEDZ.oceny`),
+  więc oceny działają od pierwszego uruchomienia, także bez sieci. Przesunięcia węzłów z panelu są w `signs_data.py` (`MOVE`), zatwierdzone zmiany
+  kierunków – w `directions.py`, a ich numery w `dane/wezly_zatwierdzone.json` (strona przestaje je pokazywać jako „czeka na wdrożenie”).
+  Niewdrożone jeszcze usunięcia kierunków Jedź stosuje w locie z `api/wezly.php`. Świeże dane: workflow „Dane z mapy wspólnej” na gałęzi
+  `wysokosci` (zmiana `live.txt`) → wydanie `dane-live` (stan/miejsca/wezly/trasy.json, publiczne dane bez kontaktów).
 - **Trasa alternatywna** (podgląd): wariant omijający główną trasę (kara ×1,8 dla jej odcinków, `opc.kara`) albo trasa innego trybu –
   pokazana, gdy wspólne < 75% i nie dłuższa niż +60%; jaśniejsza linia z dopiskiem (różnica km/min, droga trudna, DW, nieutwardzone), wybór stuknięciem.
 - **Objazd w trakcie jazdy**: co ~8 s patrzymy 60–700 m do przodu; droga trudna ≥ 200 m i objazd omijający ≥ 70% jej długości, nie dłuższy niż
