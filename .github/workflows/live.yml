@@ -1,0 +1,22 @@
+name: Dane z mapy wspolnej
+on:
+  push:
+    branches: [wysokosci]
+    paths: [.github/workflows/live.yml, live.txt]
+permissions:
+  contents: write
+jobs:
+  live:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pobierz publiczne dane (bez kontaktów)
+        run: |
+          mkdir out; B=https://rowerowy-strzebin.smart-ant.pl/api
+          for f in stan miejsca wezly trasy; do curl -fsS -A "HUB-rowerowy-Strzebin/1.0 (github.com/Bacman88/rowerowy-strzebin)" "$B/$f.php" -o out/$f.json && echo "$f ok $(wc -c < out/$f.json)"; done
+      - name: Wydanie
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete dane-live -y --cleanup-tag || true
+          gh release create dane-live --target wysokosci --title "Dane z mapy wspólnej (robocze)" --notes "Publiczne dane z api/*.php (bez kontaktów) do analizy i dostrojenia nawigacji." --prerelease out/*.json
