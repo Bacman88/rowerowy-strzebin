@@ -50,8 +50,9 @@ window.MIEJSCA = (() => {
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   // ik – opcjonalnie własny piktogram miejsca (np. basen przy typie „sport”)
-  const svg = (t, col = '#fff', size = 15, ik = null) => t === 'wc' && !ik
-    ? `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><text x="12" y="17.4" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="800" letter-spacing="-0.6" fill="${col}">WC</text></svg>`
+  const NAPIS = {wc: ['WC', 15, 17.4], parking: ['P', 19, 19]};   // piktogram jako napis (WC, P)
+  const svg = (t, col = '#fff', size = 15, ik = null) => NAPIS[t] && !ik
+    ? `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><text x="12" y="${NAPIS[t][2]}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="${NAPIS[t][1]}" font-weight="800" letter-spacing="-0.6" fill="${col}">${NAPIS[t][0]}</text></svg>`
     : `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${col}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IK[ik] || IKM[(TYP[t] || TYP.ciekawe).i] || IK[(TYP[t] || TYP.ciekawe).i] || IK.star || ''}</svg>`;
 
   const css = document.createElement('style');

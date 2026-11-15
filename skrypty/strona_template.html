@@ -431,6 +431,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       <div class="hp" aria-hidden="true"><label>Strona www <input type="text" name="www" tabindex="-1" autocomplete="off"></label></div>
       <button class="send" id="send" disabled>Wyślij zgłoszenie</button>
       <div class="msg" id="msg"></div>
+      <div class="msg ok" id="adm-info" hidden>Jesteś zalogowany jako administrator: to, co tu dodasz (oceny dróg, miejsca, węzły, trasy), od razu trafia na mapę – bez moderacji i bez limitu zgłoszeń.</div>
       <p class="rodo">Imię lub nick, komentarz i data przejazdu są widoczne publicznie po zatwierdzeniu. Kontakt (jeśli go podasz) widzi wyłącznie administrator strony. Adres IP zapisujemy tylko jako skrót, do ochrony przed spamem, i usuwamy po 30 dniach.</p>
     </form>
   </aside>
@@ -740,6 +741,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : tryb === 'wezly' ? WZ.gotowe()
     : tryb === 'trasa' ? TRASA.gotowe() && F.tnazwa.value.trim().length >= 3 : pin && F.typ.value)); }
   F.addEventListener('input', walid); F.addEventListener('change', walid);
+  fetch('api/ja.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => { if (j && j.admin) $('adm-info').hidden = false; }).catch(() => {});
   function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; try { m.scrollIntoView({block:'nearest', behavior:'smooth'}); } catch (e) {} }
   F.addEventListener('submit', async e => {
     e.preventDefault(); if ($('send').disabled) return;
@@ -755,6 +757,10 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.ok) throw new Error(j.blad || 'Nie udało się wysłać zgłoszenia.');
       try { localStorage.setItem('hub_nick', F.nick.value.trim()); } catch (e) {}
+      if (j.zatwierdzone) {   // administrator – zapisane od razu jako zatwierdzone; odświeżamy mapę, żeby to było widać
+        msg('Zapisane i od razu zatwierdzone (administrator). Odświeżam mapę…', true);
+        setTimeout(() => { location.hash = 'wspolna'; location.reload(); }, 1200); return;
+      }
       MOJE.dodaj(tryb, body, j.id);
       msg(tryb === 'wezly' ? 'Dziękujemy! Propozycja trafiła do sprawdzenia. Widzisz ją na mapie jako „Twoja propozycja”.'
         : tryb === 'trasa' ? 'Dziękujemy! Trasa trafiła do sprawdzenia – po zatwierdzeniu pojawi się na mapie jako trasa mieszkańców.' : tryb === 'drogi' ? 'Dziękujemy! Zgłoszenie trafiło do sprawdzenia – po zatwierdzeniu pojawi się na mapie.'

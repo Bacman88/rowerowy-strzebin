@@ -34,6 +34,7 @@ try {
     $db->prepare('INSERT INTO wezly (utworzono, wezel, lat, lon, slupek, zmiany, komentarz, nick, kontakt, ip) VALUES (?,?,?,?,?,?,?,?,?,?)')
        ->execute([hub_teraz(), $wezel, round($lat, 6), round($lon, 6), $slupek, json_encode(['usun' => $usun, 'dodaj' => $dodaj], JSON_UNESCAPED_UNICODE), $kom, $nick, $kontakt, $ip]);
     $id = (int)$db->lastInsertId();
+    if (hub_admin_zatwierdz($db, 'wezly', $id)) hub_json(['ok' => true, 'id' => $id, 'zatwierdzone' => true]);
     hub_powiadom("Propozycja zmiany węzła #$id", "Od: $nick\nWęzeł: " . ($wezel ?? 'nowy') . "\nUsuń: " . implode(', ', $usun) . "\nDodaj: " . implode(', ', array_column($dodaj, 'n')) . "\n\n$kom", 'wezly');
     hub_json(['ok' => true, 'id' => $id]);
 } catch (Throwable $e) {

@@ -34,7 +34,7 @@ try {
     $q = $db->prepare("SELECT id, kontakt, komentarz, data_przejazdu FROM zgloszenia WHERE ip = ? AND stan = ? AND moderacja = 'oczekuje' AND utworzono > ? ORDER BY id DESC");
     $q->execute([$ip, $stan, date('Y-m-d H:i:s', time() - 6 * 3600)]);
     $qo = $db->prepare('SELECT odcinek FROM zgloszenia_odcinki WHERE zgloszenie = ?');
-    foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $w) {
+    foreach (hub_admin() ? [] : $q->fetchAll(PDO::FETCH_ASSOC) as $w) {
         $qo->execute([$w['id']]); $byly = array_map('strval', $qo->fetchAll(PDO::FETCH_COLUMN)); sort($byly);
         if ($byly !== $klucz) continue;
         $db->prepare('UPDATE zgloszenia SET nick = ?, kontakt = ?, komentarz = ?, data_przejazdu = ? WHERE id = ?')
@@ -44,7 +44,7 @@ try {
     }
     $q = $db->prepare('SELECT COUNT(*) FROM zgloszenia WHERE ip = ? AND utworzono > ?');
     $q->execute([$ip, date('Y-m-d H:i:s', time() - 3600)]);
-    if ((int)$q->fetchColumn() >= 15) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);
+    if ((int)$q->fetchColumn() >= 15 && !hub_admin()) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);
 
     $db->beginTransaction();
     $db->prepare('INSERT INTO zgloszenia (utworzono, nick, kontakt, komentarz, stan, data_przejazdu, ip) VALUES (?,?,?,?,?,?,?)')
@@ -54,6 +54,7 @@ try {
     foreach ($odc as $o) $ins->execute([$id, $o]);
     $db->commit();
     $foto = hub_foto_zapisz($db, $in, 'zgloszenia', $id);
+    if (hub_admin_zatwierdz($db, 'zgloszenia', $id)) hub_json(['ok' => true, 'id' => $id, 'zatwierdzone' => true]);
 } catch (Throwable $e) {
     if (isset($db) && $db->inTransaction()) $db->rollBack();
     error_log('zglos.php: ' . $e->getMessage());

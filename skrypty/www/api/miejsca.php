@@ -21,6 +21,7 @@ try {
        ->execute([hub_teraz(), $typ, $nazwa, $opis, round($lat, 6), round($lon, 6), $nick, $kontakt, $ip]);
     $id = (int)$db->lastInsertId();
     $foto = hub_foto_zapisz($db, $in, 'miejsca', $id);
+    if ($adm = hub_admin_zatwierdz($db, 'miejsca', $id)) hub_json(['ok' => true, 'id' => $id, 'zatwierdzone' => true]);
     hub_powiadom("Nowe miejsce do zatwierdzenia #$id", "Od: $nick\nRodzaj: $typ\n$nazwa\n$opis" . ($foto ? "\n(ze zdjęciem)" : ''), 'miejsca');
     hub_json(['ok' => true, 'id' => $id]);
 } catch (Throwable $e) {

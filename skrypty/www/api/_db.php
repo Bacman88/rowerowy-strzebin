@@ -149,7 +149,38 @@ function hub_wejscie(): array {
 function hub_txt(array $in, string $k, int $max): string {
     return mb_substr(trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', (string)($in[$k] ?? ''))), 0, $max);
 }
+// Administrator zalogowany w panelu dostaje drugie ciasteczko „hub_adm” (ścieżka „/”, 8 h), dzięki któremu formularze mapy wspólnej
+// zapisują jego dodatki od razu jako zatwierdzone, bez limitu zgłoszeń i bez maila. Na serwerze trzymamy tylko skrót tokenu.
+function hub_adm_plik(string $t): string { return hub_cfg()['dane'] . '/sesje/adm_' . hash('sha256', $t); }
+function hub_admin(): bool {
+    static $ok = null; if ($ok !== null) return $ok;
+    $t = (string)($_COOKIE['hub_adm'] ?? '');
+    if (!preg_match('/^[a-f0-9]{48}$/', $t)) return $ok = false;
+    $f = hub_adm_plik($t); return $ok = is_file($f) && filemtime($f) > time() - 8 * 3600;
+}
+function hub_adm_ciastko(string $t, int $do): void {
+    setcookie('hub_adm', $t, ['expires' => $do, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict', 'secure' => !empty($_SERVER['HTTPS'])]);
+}
+function hub_admin_odnow(): void {   // wołane z panelu przy każdym wejściu zalogowanego administratora
+    $dir = hub_cfg()['dane'] . '/sesje'; if (!is_dir($dir)) @mkdir($dir, 0700, true);
+    $t = (string)($_COOKIE['hub_adm'] ?? '');
+    if (preg_match('/^[a-f0-9]{48}$/', $t) && is_file(hub_adm_plik($t))) { @touch(hub_adm_plik($t)); }
+    else { $t = bin2hex(random_bytes(24)); @file_put_contents(hub_adm_plik($t), '1', LOCK_EX); }
+    hub_adm_ciastko($t, time() + 8 * 3600);
+    foreach (glob($dir . '/adm_*') ?: [] as $f) if (filemtime($f) < time() - 8 * 3600) @unlink($f);
+}
+function hub_admin_wyloguj(): void {
+    $t = (string)($_COOKIE['hub_adm'] ?? ''); if (preg_match('/^[a-f0-9]{48}$/', $t)) @unlink(hub_adm_plik($t));
+    hub_adm_ciastko('', time() - 3600);
+}
+// po zapisie zgłoszenia z mapy: od administratora – od razu zatwierdzone (zdjęcie niepotrzebne). Zwraca true, gdy zatwierdzono.
+function hub_admin_zatwierdz(PDO $db, string $tab, int $id): bool {
+    if (!hub_admin()) return false;
+    $db->prepare("UPDATE $tab SET moderacja = 'zatwierdzone', moderowano = ? WHERE id = ?")->execute([hub_teraz(), $id]);
+    hub_foto_usun($db, $tab, $id); return true;
+}
 function hub_ip_limit(PDO $db): string {
+    if (hub_admin()) return '';   // administrator – bez limitu
     $ip = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . hub_cfg()['sol']);
     $od = date('Y-m-d H:i:s', time() - 3600); $n = 0;
     foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE ip = ? AND utworzono > ?"); $q->execute([$ip, $od]); $n += (int)$q->fetchColumn(); }

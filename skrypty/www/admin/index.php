@@ -32,7 +32,9 @@ if ($_SESSION['ok'] ?? false) {
 $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 $blad = '';
 
-if (isset($_GET['wyloguj'])) { session_destroy(); header('Location: ./'); exit; }
+if (isset($_GET['wyloguj'])) { hub_admin_wyloguj(); session_destroy(); header('Location: ./'); exit; }
+// zalogowany administrator: ciasteczko dla mapy publicznej – jego dodatki z mapy od razu zatwierdzone, bez limitu
+if ($_SESSION['ok'] ?? false) hub_admin_odnow();
 
 // podtrzymanie sesji z otwartego panelu
 if (isset($_GET['ping'])) hub_json(['ok' => (bool)($_SESSION['ok'] ?? false)]);
@@ -43,6 +45,7 @@ if (!($_SESSION['ok'] ?? false)) {
         if (hash_equals((string)$cfg['admin_haslo'], (string)$_POST['haslo'])) {
             session_regenerate_id(true);
             $_SESSION['ok'] = true; $_SESSION['csrf'] = bin2hex(random_bytes(16));
+            hub_admin_odnow();
             header('Location: ./'); exit;
         }
         sleep(2); $blad = 'Złe hasło';
@@ -72,6 +75,19 @@ try { $db = hub_db(); } catch (Throwable $e) {
        . '<br>PHP: <code>' . PHP_VERSION . '</code> · open_basedir: <code>' . $h((string)ini_get('open_basedir')) . '</code></p>'
        . '<p><a href="?wyloguj=1">wyloguj</a></p>';
     exit;
+}
+
+// nowe miejsce dodane przez administratora w edycji mapy – od razu zatwierdzone (bez limitu); odpowiedź JSON
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['akcja'] ?? '') === 'miejsce_dodaj') {
+    if (!hash_equals($_SESSION['csrf'] ?? '', (string)($_POST['csrf'] ?? ''))) hub_json(['blad' => 'Błędny token – odśwież stronę'], 400);
+    $typ = (string)($_POST['typ'] ?? ''); $lat = (float)($_POST['lat'] ?? 0); $lon = (float)($_POST['lon'] ?? 0);
+    if (!in_array($typ, TYPY_MIEJSC, true)) hub_json(['blad' => 'Wybierz rodzaj miejsca'], 400);
+    if ($lat < 50.40 || $lat > 50.85 || $lon < 18.55 || $lon > 19.25) hub_json(['blad' => 'Położenie poza mapą'], 400);
+    $nazwa = hub_txt($_POST, 'nazwa', 80); $opis = hub_txt($_POST, 'opis', 1000);
+    $db->prepare("INSERT INTO miejsca (utworzono, typ, nazwa, opis, lat, lon, nick, kontakt, ip, moderacja, moderowano) VALUES (?,?,?,?,?,?,?,?,?,'zatwierdzone',?)")
+       ->execute([hub_teraz(), $typ, $nazwa, $opis, round($lat, 6), round($lon, 6), 'Administrator', '', '', hub_teraz()]);
+    $id = (int)$db->lastInsertId();
+    hub_json(['ok' => true, 'm' => ['k' => "db:$id", 'typ' => $typ, 'nazwa' => $nazwa, 'opis' => $opis, 'lat' => round($lat, 6), 'lon' => round($lon, 6), 'nick' => 'Administrator', 'data' => date('Y-m-d')]]);
 }
 
 // korekta miejsca z mapy panelu (fetch): zapisz / ukryj / pokaż / cofnij – odpowiedź JSON
@@ -245,9 +261,20 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
 <main>
   <?php if ($tryb === 'mapa'): ?>
   <div class="list" id="ed">
-    <p class="m" style="margin-top:0">Kliknij miejsce na mapie albo wyszukaj je po nazwie. <b>Przeciągnij znacznik</b>, żeby go przesunąć, popraw rodzaj, nazwę lub opis i zapisz. Zmiany widać od razu na stronie. Ukryte miejsca widzisz tu półprzezroczyste.</p>
+    <p class="m" style="margin-top:0">Kliknij miejsce na mapie albo wyszukaj je po nazwie. Nowe miejsca dodasz przyciskiem „Dodaj nowe miejsce” – od razu zatwierdzone, bez limitu. <b>Przeciągnij znacznik</b>, żeby go przesunąć, popraw rodzaj, nazwę lub opis i zapisz. Zmiany widać od razu na stronie. Ukryte miejsca widzisz tu półprzezroczyste.</p>
     <input type="search" id="szukaj" placeholder="Szukaj: nazwa albo rodzaj (np. ławka, Zagroda)" style="width:100%;font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px">
     <div id="wyniki"></div>
+    <div style="margin-top:8px"><button class="ok" id="nw-start">+ Dodaj nowe miejsce</button> <span class="m" id="nw-pod"></span></div>
+    <div class="edbox" id="nw-form" hidden>
+      <div style="font-weight:700">Nowe miejsce</div>
+      <div class="m">Kliknij na mapie, gdzie ma stać (znacznik możesz potem przeciągnąć).</div>
+      <label class="fl">Rodzaj<select id="nw-typ"></select></label>
+      <label class="fl">Nazwa<input id="nw-nazwa" maxlength="80"></label>
+      <label class="fl">Opis<textarea id="nw-opis" maxlength="1000" rows="3"></textarea></label>
+      <div class="m">Położenie: <span id="nw-poz">– kliknij na mapie –</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><button class="ok" id="nw-zapisz" disabled>Dodaj na mapę</button><button id="nw-anuluj">Anuluj</button></div>
+      <div class="m" id="nw-msg"></div>
+    </div>
     <div class="edbox" id="ed-form" hidden>
       <div class="m" id="ed-zrodlo"></div>
       <label class="fl">Rodzaj<select id="ed-typ"></select></label>
@@ -505,6 +532,28 @@ setInterval(() => fetch('./?ping=1', {cache: 'no-store'}).catch(() => {}), 5 * 6
     $('wyniki').querySelectorAll('a').forEach(a => a.onclick = () => { $('wyniki').innerHTML = ''; wybierz(w[+a.dataset.i], true); });
   };
   fetch('../api/miejsca.php', {cache: 'no-store'}).then(r => r.json()).then(j => { P = P.concat((j.miejsca || []).map(m => ({...m}))); rysuj(); }).catch(() => rysuj());
+  // ---- dodawanie nowego miejsca (administrator: od razu zatwierdzone) ----
+  $('nw-typ').innerHTML = Object.entries(MIEJSCA.TYP).filter(([t]) => t !== 'stacja').map(([t, v]) => `<option value="${t}">${v.n}</option>`).join('');
+  let nw = null, nwOn = false;
+  const nwRys = () => { if (nw) nw.setIcon(MIEJSCA.icon({typ: $('nw-typ').value})); };
+  const nwStop = () => { nwOn = false; $('nw-form').hidden = true; $('nw-start').hidden = false; if (nw) { nw.remove(); nw = null; } map.getContainer().style.cursor = ''; };
+  $('nw-start').onclick = () => { nwOn = true; $('nw-form').hidden = false; $('nw-start').hidden = true; $('ed-form').hidden = true; wyb = null; rysuj();
+    $('nw-msg').textContent = ''; $('nw-poz').textContent = '– kliknij na mapie –'; $('nw-zapisz').disabled = true; map.getContainer().style.cursor = 'crosshair'; };
+  $('nw-anuluj').onclick = nwStop; $('nw-typ').onchange = nwRys;
+  const nwPoz = () => { const q = nw.getLatLng(); $('nw-poz').textContent = q.lat.toFixed(5) + ', ' + q.lng.toFixed(5); $('nw-zapisz').disabled = false; };
+  map.on('click', e => { if (!nwOn) return;
+    if (!nw) { nw = L.marker(e.latlng, {draggable: true, zIndexOffset: 2000, icon: MIEJSCA.icon({typ: $('nw-typ').value})}).on('dragend', nwPoz).addTo(map); } else nw.setLatLng(e.latlng);
+    nwPoz(); });
+  $('nw-zapisz').onclick = async () => {
+    if (!nw) return; const q = nw.getLatLng(), fd = new FormData();
+    for (const [k, v] of Object.entries({akcja: 'miejsce_dodaj', csrf: CSRF, typ: $('nw-typ').value, nazwa: $('nw-nazwa').value, opis: $('nw-opis').value, lat: q.lat, lon: q.lng})) fd.append(k, v);
+    $('nw-zapisz').disabled = true;
+    try {
+      const r = await fetch('./', {method: 'POST', body: fd, headers: {'Accept': 'application/json'}}); const j = await r.json().catch(() => ({blad: 'Sesja wygasła albo serwer chwilowo niedostępny – odśwież stronę i spróbuj ponownie'}));
+      if (!j.ok) throw new Error(j.blad || 'Nie udało się dodać');
+      P.push(j.m); $('nw-nazwa').value = ''; $('nw-opis').value = ''; nwStop(); wybierz(P[P.length - 1]); $('ed-msg').textContent = 'Dodano – miejsce jest już na stronie i w nawigacji.';
+    } catch (e) { $('nw-msg').textContent = '⚠ ' + e.message; $('nw-zapisz').disabled = false; }
+  };
   rysuj(); map.setView([50.617, 18.895], 14);
 })();
 <?php endif ?>
