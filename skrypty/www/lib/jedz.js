@@ -18,6 +18,14 @@
   const pokazDiag = () => { if (!NAT) return; const el = document.querySelector('#s-cel .stopka'); if (!el) return; let d = document.getElementById('diag'); if (!d) { d = document.createElement('div'); d.id = 'diag'; d.style.cssText = 'margin-top:6px;font-size:11px;opacity:.7'; el.appendChild(d); }
     d.textContent = 'Aplikacja · GPS w tle: ' + (PL.BackgroundGeolocation ? (diag.bg || 'gotowy') : 'brak') + ' · głos: ' + (PL.TextToSpeech ? 'tak' : 'brak') + ' · powiadomienia: ' + (PL.LocalNotifications ? 'tak' : 'brak'); };
   setTimeout(pokazDiag, 500);
+  // oceny dróg zatwierdzone w panelu (mapa wspólna) – najpierw zapamiętane w telefonie (działa bez zasięgu), potem świeże z serwera
+  let ocenyN = JZ.oceny(LS.get('oceny', {}));
+  fetch(BAZA + 'api/stan.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
+    if (!j || !j.stany) return;
+    const m = {}; for (const [id, zid] of Object.entries(j.stany)) { const z = j.zgloszenia[zid]; if (z) m[id] = z[0]; }
+    LS.set('oceny', m); ocenyN = JZ.oceny(m);
+    if (stan.T && !stan.jazda && $('s-mapa').classList.contains('on') && $('dol').querySelector('.staty')) podglad();   // podgląd już otwarty – policz z nowymi ocenami
+  }).catch(() => {});
   // zgłoszenia błędów i sugestii (lib/uwagi.js) – w aplikacji pod pełny adres strony
   if (NAT) { window.UWAGI_API = BAZA + 'api/uwagi.php'; window.UWAGI_BAZA = BAZA; }
   const zglos = zTrasa => window.UWAGI && UWAGI.otworz({gdzie: NAT ? 'aplikacja' : 'nawigacja', wersja: NAT ? 'aplikacja Android' : 'Jedź w przeglądarce',
@@ -344,6 +352,7 @@
   }
 
   // ===================== 3. jazda =====================
+  let zegarJ = null;
   let watch = null, sym = null, symV = 1, wake = null, poza = 0, ostPrzel = 0, idx = 0, wzdluz = 0, ostPoz = null, zapowiedz = new Set(), kierPokaz = null;
   async function budzik() { try { if ('wakeLock' in navigator) { wake = await navigator.wakeLock.request('screen'); } } catch (e) {} }
   document.addEventListener('visibilitychange', () => { if (stan.jazda && document.visibilityState === 'visible') budzik(); });
@@ -376,22 +385,69 @@
   function startJazdy(symulacja) {
     stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; Object.assign(tempo, {real: 0, mod: 0, t: 0, v: 0, k: 1}); zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
+    if (!symulacja) JZ.historia.start({cel: stan.celN, tryb: stan.tryb, rower: ST.RT});   // zapis przejazdu (tylko w telefonie)
     $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
     $('b-stop').onclick = koniecJazdy;
     widok(stan.T.ll[0], 17); B = brg(stan.T.ll[0], wDal(stan.T, 40)); if (kurs) obroc(true); else kompas();
     $('b-kurs').classList.remove('hide'); $('b-3d').classList.remove('hide'); trojwymiar();
     if (!sym) pozycja(stan.start, 20, true);
     if (sym) { symV = 1; $('b-sym').textContent = 'Symulacja: ×1'; sym.t = setInterval(() => { sym.d += 6 * symV; const p = wDal(stan.T, sym.d); pozycja(p, 5, sym.d); }, 1000); }
-    else watch = GEO.sledz((p, acc) => pozycja(p, acc), () => { $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Brak sygnału GPS'; }, 'Do: ' + stan.celN);
+    // zegar: co 5 s odśwież czas i godzinę przyjazdu także na postoju (GPS bez ruchu nie przysyła nowych pozycji) – stoisz,
+    // więc godzina przyjazdu przesuwa się do przodu, a prędkość spada do zera
+    clearInterval(zegarJ); zegarJ = setInterval(() => { if (!stan.jazda) return clearInterval(zegarJ); if (Date.now() - (tempo.t || 0) > 6000) tempo.v = 0; odswiez(); }, 5000);
+    if (!sym) watch = GEO.sledz((p, acc) => pozycja(p, acc), () => { $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Brak sygnału GPS'; }, 'Do: ' + stan.celN);
     odswiez();
   }
   $('b-sym').onclick = () => { symV = symV === 1 ? 3 : symV === 3 ? 8 : 1; $('b-sym').textContent = 'Symulacja: ×' + symV; };
+  // komunikat po zapisaniu przejazdu (na górze panelu)
+  function pokazZapis(z) {
+    if (!z) return; const d = document.createElement('div'); d.className = 'hzap';
+    d.innerHTML = `Zapisano przejazd: <b>${esc(JZ.historia.opis(z))}</b> · <a href="#" id="zap-hist">Moje przejazdy</a>`;
+    $('dol').prepend(d); $('zap-hist').onclick = e => { e.preventDefault(); przejazdy(); };
+  }
+  // ===================== moje przejazdy (historia i statystyki – tylko w telefonie) =====================
+  const dataTxt = t => new Date(t).toLocaleDateString('pl-PL', {day: 'numeric', month: 'short'}) + ', ' + new Date(t).toLocaleTimeString('pl-PL', {hour: '2-digit', minute: '2-digit'});
+  function przejazdy() {
+    ekran('s-mapa'); mapa(); panele('podglad'); warstwa.clearLayers(); $('gora').innerHTML = '';
+    const HI = JZ.historia, a = HI.lista(), st = HI.statystyki();
+    const bb = []; a.slice(0, 20).forEach(z => { const s = HI.slad(z); if (s.length > 1) { L.polyline(s, {color: '#7b3fa0', weight: 3, opacity: .35, interactive: false}).addTo(warstwa); bb.push(...s); } });
+    if (bb.length) map.fitBounds(L.latLngBounds(bb), {padding: [30, 30], paddingBottomRight: [20, window.innerHeight * .5]});
+    $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Moje przejazdy</div>
+      ${a.length ? `<div class="hstat"><div><b>${kmTxt(st.km)}</b><span>razem · ${st.n} przejazd${st.n === 1 ? '' : st.n < 5 ? 'y' : 'ów'}</span></div>
+        <div><b>${kmTxt(st.kmMies)}</b><span>w tym miesiącu</span></div><div><b>${HI.czasTxtD(st.ruch)}</b><span>w ruchu</span></div></div>
+        <div class="msg">Najdłuższy: ${kmTxt(st.najdl)}${st.vmax ? ' · najszybciej: ' + String(st.vmax).replace('.', ',') + ' km/h' : ''}</div>
+        <div class="hlista">${a.map(z => `<button type="button" class="hpoz" data-id="${z.id}"><span><b>${esc(z.cel ? '→ ' + z.cel : 'Przejazd')}</b><small>${dataTxt(z.data)} · ${esc(HI.opis(z))}</small></span><span aria-hidden="true">›</span></button>`).join('')}</div>
+        <button type="button" class="btn2" id="h-czysc" style="border-style:dashed">Usuń całą historię</button>`
+      : `<p class="msg">Nie masz jeszcze zapisanych przejazdów. Każda nawigacja dłuższa niż 200 m zapisze się tutaj sama – z trasą, czasem i prędkością.</p>`}
+      <p class="msg" style="font-size:12px">Historia jest zapisana tylko w tym telefonie – nie wysyłamy jej nigdzie.</p>`;
+    $('dol').querySelectorAll('.hpoz').forEach(b => b.onclick = () => przejazd(a.find(z => z.id === +b.dataset.id)));
+    if ($('h-czysc')) $('h-czysc').onclick = () => { if (confirm('Usunąć wszystkie zapisane przejazdy z tego telefonu?')) { HI.wyczysc(); przejazdy(); } };
+  }
+  function przejazd(z) {
+    const HI = JZ.historia, s = HI.slad(z); warstwa.clearLayers();
+    if (s.length > 1) { L.polyline(s, {color: '#fff', weight: 9, opacity: .9}).addTo(warstwa); L.polyline(s, {color: '#7b3fa0', weight: 5}).addTo(warstwa);
+      L.circleMarker(s[0], {radius: 7, color: '#fff', weight: 3, fillColor: '#2b9348', fillOpacity: 1}).addTo(warstwa);
+      L.circleMarker(s[s.length - 1], {radius: 7, color: '#fff', weight: 3, fillColor: '#b00020', fillOpacity: 1}).addTo(warstwa);
+      map.fitBounds(L.latLngBounds(s), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(window.innerHeight * .5, 380)]}); }
+    const sr = HI.sredniaKmh(z), R0 = ROWERY[z.rower];
+    $('dol').innerHTML = `<div class="uchwyt"></div><div class="msg">${dataTxt(z.data)}</div><div style="font-size:20px;font-weight:800">${esc(z.cel ? '→ ' + z.cel : 'Przejazd')}</div>
+      <div class="hstat"><div><b>${kmTxt(z.km)}</b><span>przejechane</span></div><div><b>${HI.czasTxtD(z.ruch || z.czas)}</b><span>w ruchu (razem ${HI.czasTxtD(z.czas)})</span></div>
+        <div><b>${sr ? sr.toFixed(1).replace('.', ',') : '–'}</b><span>śr. km/h${z.vmax ? ' · max ' + String(z.vmax).replace('.', ',') : ''}</span></div></div>
+      <div class="msg">${R0 ? 'Rower: ' + R0.n.toLowerCase() + ' · ' : ''}${z.tryb ? 'trasa: ' + ({bezp: 'Bezpieczna', krotko: 'Najkrótsza', szosa: 'Szosowa'}[z.tryb] || z.tryb) : ''}</div>
+      <div style="display:flex;gap:8px">${NAT ? '' : `<a class="btn2" id="h-gpx" style="flex:1;text-decoration:none;color:inherit;text-align:center" download="przejazd-${new Date(z.data).toISOString().slice(0, 10)}.gpx">Pobierz GPX</a>`}
+        <button type="button" class="btn2" id="h-usun" style="flex:1">Usuń</button></div>
+      <button type="button" class="btn2" id="h-lista">← Wszystkie przejazdy</button>`;
+    if ($('h-gpx')) $('h-gpx').href = URL.createObjectURL(new Blob([HI.gpx(z)], {type: 'application/gpx+xml'}));
+    $('h-usun').onclick = () => { if (confirm('Usunąć ten przejazd?')) { HI.usun(z.id); przejazdy(); } };
+    $('h-lista').onclick = przejazdy;
+  }
+  $('b-hist').onclick = przejazdy;
   function koniecJazdy() {
-    stan.jazda = false; if (watch) watch(); watch = null;
+    stan.jazda = false; clearInterval(zegarJ); if (watch) watch(); watch = null;
     if (sym) clearInterval(sym.t); sym = null; try { wake && wake.release(); } catch (e) {} wake = null;
     // po zakończeniu start = miejsce, w którym jesteś teraz (a nie to, skąd ruszyłeś) – podgląd pokazuje resztę drogi od Ciebie
     if (jaM) { const q = jaM.getLatLng(); stan.start = [q.lat, q.lng]; stan.startGPS = true; opiszStart(); jaM.remove(); jaM = null; }
-    if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); podglad();
+    if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); const zap = JZ.historia.koniec(); podglad(); pokazZapis(zap);
   }
   // rzut pozycji na trasę: szukamy w okolicy ostatniego znanego miejsca (żeby nie „przeskakiwać” na równoległy fragment)
   function rzut(T, p) {
@@ -412,6 +468,7 @@
     const teraz = Date.now(); acc = acc || 20;
     if (pozycja.ost && teraz - pozycja.ost.t < 3000 && acc > Math.max(25, pozycja.ost.acc * 2)) return;
     pozycja.ost = {t: teraz, acc};
+    if (!wSym) JZ.historia.punkt(p, acc);
     const r = rzut(T, p);
     const kierRuchu = ostPoz && dist(ostPoz, p) > 3 ? brg(ostPoz, p) : null; if (!ostPoz || dist(ostPoz, p) > 3) ostPoz = p;
     // ikona „ja” – strzałka w kierunku jazdy
@@ -441,8 +498,9 @@
   const tempo = {real: 0, mod: 0, t: 0, v: 0, k: 1};
   function tempoAkt(w1, w2) {
     const t = Date.now(), dt = tempo.t ? (t - tempo.t) / 1000 : 0; tempo.t = t;
-    if (!dt || dt > 30 || w2 <= w1) { if (dt > 3) tempo.v *= .5; return; }
-    const v = (w2 - w1) / dt; tempo.v = tempo.v ? tempo.v * .6 + v * .4 : v;
+    if (!dt || dt > 30 || w2 <= w1) { tempo.v *= dt > 3 ? .3 : .6; return; }   // stoisz – prędkość szybko spada
+    const v = (w2 - w1) / dt; if (v > 20) return;                 // skok GPS (ponad 70 km/h) – pomijamy
+    tempo.v = tempo.v ? tempo.v * .6 + v * .4 : v;
     if (v < 0.8) return;                                   // stoisz / prowadzisz rower – nie liczymy
     tempo.real += dt; tempo.mod += czasDo(stan.T, w2) - czasDo(stan.T, w1);
     tempo.k = Math.max(0.6, Math.min(2, (tempo.real + 120) / (tempo.mod + 120)));
@@ -500,7 +558,8 @@
     if (!stan.jazda) return;
     powiedz('Jesteś na miejscu'); navigator.vibrate && navigator.vibrate([100, 80, 100, 80, 200]);
     if (watch) watch(); watch = null; if (sym) clearInterval(sym.t); sym = null;
-    stan.jazda = false; try { wake && wake.release(); } catch (e) {}
+    stan.jazda = false; clearInterval(zegarJ); try { wake && wake.release(); } catch (e) {}
+    const zap = JZ.historia.koniec(); setTimeout(() => pokazZapis(zap), 0);
     if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); panele('podglad');
     $("gora").innerHTML = `<div class="pasek" style="padding-left:76px"><div class="r1"><div class="strz">${strzalkaSVG("cel", "#1d3b30", 40)}</div><div><div class="lab">Jesteś na miejscu</div><div class="co">${esc(stan.celN)}</div></div></div></div>`; $('gora').dataset.h = '';
     $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Dojechałeś! ${kmTxt(stan.T.m)}</div><p class="msg">Coś było nie tak z trasą albo drogą? Oceń drogę na mapie wspólnej – poprawimy trasy dla wszystkich.</p><div class="rzad"><a class="btn2" href="${BAZA}#wspolna" style="text-decoration:none;color:inherit">Oceń drogę</a><button type="button" class="btn2" id="b-nowy">Nowy cel</button></div>`;

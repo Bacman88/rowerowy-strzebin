@@ -118,6 +118,10 @@ Osobna strona do nawigacji na telefonie (można dodać do ekranu głównego jak 
   i udawanej aplikacji: `skrypty/test_jedz_ui.js` (Playwright) – oba uruchamia `publikuj_strone.sh` i przerywa publikację przy błędzie.
 - Mapa offline jest **na życzenie**: przycisk „Pobierz mapę offline (2,8 MB)” na ekranie startowym i w podglądzie trasy; bez tego rysujemy tylko nasze drogi.
 
+- **Oceny mieszkańców w trasowaniu**: Jedź pobiera przy starcie `api/stan.php` (zatwierdzone oceny, CORS dla aplikacji), zapamiętuje je w telefonie
+  i nadpisuje nimi stan odcinków (`JZ.oceny`). Trudne (czerwone) odcinki: kara ×6 w trybie Bezpieczna, ×3 w Najkrótszej – także na trasach HUB.
+- **Moje przejazdy** (`lib/jedz/historia.js`): ślad, długość, czas w ruchu, prędkość średnia i maks., statystyki, GPX – zapis tylko w telefonie (localStorage).
+- W trakcie jazdy zegar co 5 s odświeża czas i godzinę przyjazdu, także na postoju.
 - **Zgłoś błąd / sugestię**: `lib/uwagi.js` (okienko wspólne dla strony i Jedź, także w aplikacji) → `api/uwagi.php` (CORS dla aplikacji) → tabela `uwagi`,
   zakładka „Uwagi i błędy” w panelu i e-mail (bez kontaktu i bez trasy). Trasa (start/cel/tryb/rower) tylko po zaznaczeniu „Dołącz tę trasę”.
 

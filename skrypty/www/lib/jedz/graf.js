@@ -6,7 +6,8 @@
   const {ODC, J, rad, RZ, dist} = JZ;
   // ===================== graf dróg =====================
   const TRASY = new Set(J.trasy), ROWER = new Set(J.rower);
-  const F = {osm: 1, dobra: 1, srednia: 1.35, trudna: 2.2, nieprzejezdna: 50, brak: 1.25};
+  // kara za nawierzchnię w trybie Bezpieczna; trudne (czerwone) omijamy mocno – lepiej nadłożyć drogi niż przedzierać się przez piach
+  const F = {osm: 1, dobra: 1, srednia: 1.5, trudna: 6, nieprzejezdna: 50, brak: 1.25};
   const P = [], adj = [], klucz = new Map();
   // węzły: końce odcinków; końce leżące do 4 m od siebie łączymy (w OSM drogi leśne często „prawie” się stykają)
   const WS = new Map(), wk = p => Math.floor(p[0] * 2e4) + ':' + Math.floor(p[1] * 1.4e4);
@@ -31,7 +32,7 @@
   //  krotko – „Najkrótsza”: sama długość (omija tylko drogi ocenione jako nieprzejezdne, trudne lekko droższe)
   function koszt(s, opc) {
     const st = s[4] || 'brak';
-    if (opc.tryb === 'krotko') return s[6] * (st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 1.4 : 1);
+    if (opc.tryb === 'krotko') return s[6] * (st === 'nieprzejezdna' ? 50 : st === 'trudna' ? 3 : 1);
     // szosa – „prawie jak autem”: asfalt i drogi główne (wojewódzkie i krajowe bez kary, nawet lekko preferowane),
     // drogi nieutwardzone / bez oceny / leśne – mocno omijane; autostrad i ekspresówek nie ma w sieci dróg (odcinki.py)
     if (opc.tryb === 'szosa') {
@@ -41,7 +42,8 @@
       return s[6] * f;
     }
     let f = F[st] ?? 1.25;
-    if (TRASY.has(s[0])) f = Math.min(f, 1) * 0.9;   // drogi tras HUB są sprawdzone – bez kary „brak oceny”
+    // drogi tras HUB są sprawdzone – bez kary za „brak oceny”; ale ocena mieszkańców (średnia / trudna) liczy się także na trasach
+    if (TRASY.has(s[0])) f = (st === 'brak' || st === 'osm' ? Math.min(f, 1) : f) * 0.9;
     if (ROWER.has(s[0])) f = Math.min(f, 0.85);
     else if (DW(s)) f *= 6;
     return s[6] * f;
@@ -140,5 +142,13 @@
   const UTW = /asfalt|kostka|beton|płyty|plyty|paved|asphalt|concrete/i;
   // rodzaj nawierzchni do wykresu i prędkości: ocena mieszkańców / pomiar, a bez niej – utwardzona wg OSM albo „bez oceny”
   const stOdc = s => !s ? null : s[4] && s[4] !== 'osm' ? s[4] : (s[4] === 'osm' || UTW.test(s[3] || '')) ? 'osm' : 'brak';
-  Object.assign(JZ, {TRASY, ROWER, F, P, adj, DW, koszt, najblizszy, przyczep, trasuj, wDal, UTW, stOdc});
+  // oceny dróg zatwierdzone w panelu (api/stan.php) – nadpisują stan z pliku odcinków; {id odcinka: stan}
+  const ODCI = new Map(ODC.map(s => [s[0], s]));
+  function oceny(mapa) {
+    let n = 0; const AL = window.ODC_ALIASY || {};
+    const ustaw = (id, st) => { const s = ODCI.get(id); if (s && ['dobra', 'srednia', 'trudna', 'nieprzejezdna'].includes(st)) { s[4] = st; n++; } };
+    for (const [id, st] of Object.entries(mapa || {})) { ustaw(id, st); for (const nid of AL[id] || []) if (!(nid in mapa)) ustaw(nid, st); }
+    return n;
+  }
+  Object.assign(JZ, {oceny, TRASY, ROWER, F, P, adj, DW, koszt, najblizszy, przyczep, trasuj, wDal, UTW, stOdc});
 })();

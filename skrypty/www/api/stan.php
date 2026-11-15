@@ -1,6 +1,7 @@
 <?php
 // GET: aktualny stan odcinków z zatwierdzonych zgłoszeń (bez danych kontaktowych).
 require __DIR__ . '/_db.php';
+header('Access-Control-Allow-Origin: *');   // dane publiczne (bez kontaktów) – czyta je też aplikacja „Jedź” na Androidzie
 try {
     hub_dobowo();
     $db = hub_db();

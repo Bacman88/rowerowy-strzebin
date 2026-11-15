@@ -22,6 +22,10 @@ ok(!g.blad && g.m > 3800 && g.m < 5200, `Bezpieczna: ${(g.m / 1000).toFixed(2)} 
 ok(slupki(g).length >= 4, `przez słupki przy cmentarzu / w lesie: ${slupki(g).join(', ')}`);
 const gs = trasa(STRZEBIN, cel('GOSiR Koszęcin'), 'szosa');
 ok(nieutw(gs) < nieutw(g) / 3, `Szosowa omija drogi nieutwardzone: ${Math.round(nieutw(gs))} m wobec ${Math.round(nieutw(g))} m`);
+// ocena mieszkańców „trudna” z serwera (JZ.oceny) – trasa ma ominąć ten odcinek, także na trasach HUB
+{ const naj = g.seg.filter(Boolean).sort((a, b) => b[6] - a[6])[0], przed = naj[4];
+  JZ.oceny({[naj[0]]: 'trudna'}); const g2 = trasa(STRZEBIN, cel('GOSiR Koszęcin'), 'bezp');
+  ok(!g2.seg.some(s => s && s[0] === naj[0]), `omija odcinek oceniony jako trudny (${naj[0]}, ${Math.round(naj[6])} m): ${(g2.m / 1000).toFixed(2)} km`); naj[4] = przed; }
 console.log('Strzebiń → Kalety');
 const k = trasa(STRZEBIN, cel('Kalety'), 'bezp');
 ok(!k.blad && k.m > 6000 && k.m < 9500, `Bezpieczna: ${(k.m / 1000).toFixed(2)} km (6–9,5)`);
