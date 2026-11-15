@@ -1,0 +1,1772 @@
+[
+{
+"id": "node/228270598",
+"lat": 50.728529,
+"lon": 18.794561,
+"addr:city": "Lisów",
+"addr:street": "Stawowa",
+"name": "Piekarnia-Ciastkarnia Famuła",
+"shop": "bakery"
+},
+{
+"id": "node/548658001",
+"lat": 50.562924,
+"lon": 18.888545,
+"brand": "Biedronka",
+"name": "Biedronka",
+"operator": "Jeronimo Martins Polska S.A.",
+"shop": "supermarket"
+},
+{
+"id": "node/817172951",
+"lat": 50.634525,
+"lon": 18.843304,
+"name": "express market",
+"opening_hours": "Mo-Sa 07:00-21:00; Su 09:00-21:00",
+"shop": "supermarket"
+},
+{
+"id": "node/817184985",
+"lat": 50.635587,
+"lon": 18.840847,
+"addr:city": "Koszęcin",
+"addr:housenumber": "9",
+"addr:street": "Powstańców Śląskich",
+"brand": "Delikatesy Centrum",
+"name": "Delikatesy Centrum",
+"opening_hours": "Mo-Fr 06:00-21:00; Sa 06:00-20:00",
+"shop": "convenience"
+},
+{
+"id": "node/1254468886",
+"lat": 50.563702,
+"lon": 18.886952,
+"brand": "Lewiatan",
+"name": "Lewiatan",
+"shop": "convenience"
+},
+{
+"id": "node/1359713743",
+"lat": 50.549968,
+"lon": 18.701643,
+"addr:city": "Koty",
+"addr:housenumber": "2",
+"addr:street": "Potępska",
+"name": "Mini Market",
+"shop": "convenience"
+},
+{
+"id": "node/1390601024",
+"lat": 50.532281,
+"lon": 18.718937,
+"shop": "convenience"
+},
+{
+"id": "node/1404016268",
+"lat": 50.564251,
+"lon": 18.885438,
+"brand": "Lewiatan",
+"name": "Lewiatan",
+"shop": "convenience"
+},
+{
+"id": "node/1423483705",
+"lat": 50.532259,
+"lon": 18.722802,
+"brand": "Odido",
+"name": "Odido",
+"shop": "convenience"
+},
+{
+"id": "node/1430592016",
+"lat": 50.531965,
+"lon": 18.720568,
+"addr:city": "Tworóg",
+"addr:housenumber": "18B",
+"addr:street": "Zamkowa",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Sa 06:00-23:00",
+"shop": "convenience"
+},
+{
+"id": "node/1481147421",
+"lat": 50.532295,
+"lon": 18.720273,
+"shop": "convenience"
+},
+{
+"id": "node/1646893958",
+"lat": 50.549921,
+"lon": 18.96748,
+"shop": "convenience"
+},
+{
+"id": "node/1646995930",
+"lat": 50.551701,
+"lon": 18.956913,
+"shop": "convenience"
+},
+{
+"id": "node/1658022258",
+"lat": 50.564245,
+"lon": 18.885549,
+"name": "Drogeria",
+"shop": "convenience"
+},
+{
+"id": "node/1658022284",
+"lat": 50.564866,
+"lon": 18.885997,
+"shop": "bakery"
+},
+{
+"id": "node/1658022289",
+"lat": 50.564096,
+"lon": 18.884874,
+"name": "Cukiernia & Piekarnia",
+"shop": "convenience"
+},
+{
+"id": "node/1658039140",
+"lat": 50.563755,
+"lon": 18.888114,
+"name": "Więcek",
+"shop": "butcher"
+},
+{
+"id": "node/1658050932",
+"lat": 50.564377,
+"lon": 18.885815,
+"brand": "Społem",
+"name": "Społem",
+"shop": "convenience"
+},
+{
+"id": "node/1738271396",
+"lat": 50.564422,
+"lon": 18.884162,
+"name": "Ela Nelka",
+"shop": "bakery"
+},
+{
+"id": "node/1854109000",
+"lat": 50.62793,
+"lon": 18.84317,
+"brand": "Lewiatan",
+"name": "Lewiatan",
+"shop": "supermarket"
+},
+{
+"id": "node/1996117639",
+"lat": 50.673518,
+"lon": 18.680305,
+"name": "Piekarnia Łubowski",
+"shop": "bakery"
+},
+{
+"id": "node/2108597626",
+"lat": 50.566278,
+"lon": 18.661931,
+"addr:city": "Potępa",
+"addr:housenumber": "7",
+"addr:street": "Tarnogórska",
+"name": "Elban",
+"shop": "convenience"
+},
+{
+"id": "node/2154541994",
+"lat": 50.559216,
+"lon": 18.878822,
+"brand": "abc",
+"name": "abc",
+"shop": "convenience"
+},
+{
+"id": "node/2154542000",
+"lat": 50.559607,
+"lon": 18.877889,
+"name": "Sklep spożywczy \"Labus\"",
+"shop": "convenience"
+},
+{
+"id": "node/2154542002",
+"lat": 50.558827,
+"lon": 18.879123,
+"shop": "convenience"
+},
+{
+"id": "node/2186035761",
+"lat": 50.558587,
+"lon": 18.879618,
+"name": "Świat Elektroniki",
+"shop": "convenience"
+},
+{
+"id": "node/2206643999",
+"lat": 50.557512,
+"lon": 18.882349,
+"shop": "convenience"
+},
+{
+"id": "node/2347303781",
+"lat": 50.563996,
+"lon": 18.886029,
+"brand": "Świeżyzna",
+"name": "Świeżyzna",
+"shop": "butcher"
+},
+{
+"id": "node/2347303782",
+"lat": 50.56402,
+"lon": 18.885809,
+"name": "dawny MERKURY",
+"shop": "convenience"
+},
+{
+"id": "node/2403399863",
+"lat": 50.491606,
+"lon": 18.923057,
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Sa 06:00-23:00",
+"shop": "convenience"
+},
+{
+"id": "node/2597783307",
+"lat": 50.492741,
+"lon": 18.916946,
+"addr:city": "Miasteczko Śląskie",
+"addr:housenumber": "20",
+"addr:street": "Dworcowa",
+"name": "Express Market",
+"shop": "convenience"
+},
+{
+"id": "node/2891519854",
+"lat": 50.712572,
+"lon": 18.75499,
+"shop": "bakery"
+},
+{
+"id": "node/3074815299",
+"lat": 50.593927,
+"lon": 18.967416,
+"brand": "Odido",
+"name": "Odido",
+"opening_hours": "24/7",
+"shop": "convenience"
+},
+{
+"id": "node/3648876130",
+"lat": 50.549215,
+"lon": 18.9374,
+"name": "Delikatesy",
+"opening_hours": "Mo-Sa 06:00-21:00",
+"shop": "convenience"
+},
+{
+"id": "node/4359924281",
+"lat": 50.670441,
+"lon": 18.901809,
+"addr:street": "Wojska Polskiego",
+"brand": "Delikatesy Centrum",
+"name": "Delikatesy Centrum",
+"opening_hours": "Mo-Sa 06:00-21:30",
+"shop": "supermarket"
+},
+{
+"id": "node/4618208484",
+"lat": 50.634672,
+"lon": 18.842377,
+"name": "Łubowski",
+"opening_hours": "Mo-Fr 05:00-16:00; Sa 05:00-12:00, 07:00-13:00; Tu-Fr 07:00-16:00",
+"shop": "bakery"
+},
+{
+"id": "node/5011380222",
+"lat": 50.669222,
+"lon": 18.68717,
+"addr:city": "Lubliniec",
+"addr:housenumber": "3",
+"addr:street": "Plebiscytowa",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"operator": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "node/5300885205",
+"lat": 50.679696,
+"lon": 18.678564,
+"addr:city": "Lubliniec",
+"addr:housenumber": "20",
+"addr:street": "Oleska",
+"brand": "Biedronka",
+"name": "Biedronka",
+"opening_hours": "Mo-Sa 07:00-21:00; Su[-1] 09:00-21:00",
+"shop": "supermarket"
+},
+{
+"id": "node/5567998162",
+"lat": 50.607306,
+"lon": 18.709974,
+"addr:city": "Lubliniec",
+"addr:housenumber": "29",
+"addr:street": "Osiedle Posmyk",
+"name": "Mat",
+"opening_hours": "Apr-Aug Mo-Th 08:00-20:00; Apr-Aug Fr-Sa 08:00-21:00; Apr-Aug Su 09:00-20:00",
+"shop": "convenience"
+},
+{
+"id": "node/5567998168",
+"lat": 50.660679,
+"lon": 18.709398,
+"addr:city": "Lubliniec",
+"addr:housenumber": "10",
+"addr:street": "Droniowiczki",
+"opening_hours": "Mo-Fr 06:00-15:00; Sa 06:00-12:00",
+"shop": "convenience"
+},
+{
+"id": "node/5567998206",
+"lat": 50.675909,
+"lon": 18.686524,
+"addr:city": "Lubliniec",
+"addr:housenumber": "2",
+"addr:street": "Cegielniana",
+"brand": "Odido",
+"name": "Odido",
+"opening_hours": "Mo-Fr 06:00-20:00; Sa 06:30-15:00; Su 10:00-15:00",
+"shop": "convenience"
+},
+{
+"id": "node/5567998227",
+"lat": 50.673651,
+"lon": 18.685911,
+"addr:city": "Lubliniec",
+"addr:housenumber": "8a",
+"addr:street": "Tysiąclecia",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Sa 06:00-23:00; Su 10:00-20:00",
+"shop": "convenience"
+},
+{
+"id": "node/5585505124",
+"lat": 50.667383,
+"lon": 18.692618,
+"addr:city": "Lubliniec",
+"addr:housenumber": "1",
+"addr:street": "Wojciecha Korfantego",
+"name": "U Basi",
+"opening_hours": "Mo-Fr 07:00-19:00; Sa 07:00-17:00",
+"shop": "convenience"
+},
+{
+"id": "node/5615733377",
+"lat": 50.673427,
+"lon": 18.908529,
+"addr:city": "Boronów",
+"addr:housenumber": "2A",
+"addr:street": "Wolności",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Sa 06:00-20:00",
+"shop": "convenience"
+},
+{
+"id": "node/5615733378",
+"lat": 50.672079,
+"lon": 18.903886,
+"addr:city": "Boronów",
+"addr:housenumber": "1",
+"addr:street": "Wojska Polskiego",
+"brand": "Lewiatan",
+"name": "Lewiatan",
+"opening_hours": "Mo-Sa 06:30-20:00",
+"shop": "convenience"
+},
+{
+"id": "node/5782035296",
+"lat": 50.670855,
+"lon": 18.91477,
+"name": "Delikatesy Barbara Kubik, Adam Kubik, Tomasz Kubik S.C.",
+"opening_hours": "24/7",
+"shop": "convenience"
+},
+{
+"id": "node/6373755846",
+"lat": 50.728775,
+"lon": 18.793839,
+"shop": "convenience"
+},
+{
+"id": "node/6587927139",
+"lat": 50.670548,
+"lon": 18.705102,
+"addr:city": "Lubliniec",
+"addr:housenumber": "79",
+"addr:street": "Powstańców Śląskich",
+"brand": "Biedronka",
+"name": "Biedronka",
+"opening_hours": "Mo-Sa 06:30-22:00; Su[-1] 07:00-21:00",
+"operator": "Jeronimo Martins Polska S.A.",
+"shop": "supermarket"
+},
+{
+"id": "node/6587947929",
+"lat": 50.671287,
+"lon": 18.674317,
+"addr:city": "Lubliniec",
+"addr:housenumber": "30A",
+"addr:street": "Świętej Anny",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Su 06:00-23:00",
+"shop": "convenience"
+},
+{
+"id": "node/6587948065",
+"lat": 50.666557,
+"lon": 18.674063,
+"addr:city": "Lubliniec",
+"addr:housenumber": "3",
+"addr:street": "Marii Skłodowskiej-Curie",
+"brand": "Kaufland",
+"name": "Kaufland",
+"opening_hours": "Mo-Sa 07:00-22:00; Su[-1] 07:00-21:00",
+"shop": "supermarket"
+},
+{
+"id": "node/6587948080",
+"lat": 50.670754,
+"lon": 18.673576,
+"addr:city": "Lubliniec",
+"addr:housenumber": "42",
+"addr:street": "Świętej Anny",
+"name": "Profit",
+"opening_hours": "Mo-Sa 07:00-21:00",
+"shop": "supermarket"
+},
+{
+"id": "node/6587948083",
+"lat": 50.667876,
+"lon": 18.66616,
+"addr:city": "Lubliniec",
+"addr:housenumber": "4A",
+"addr:street": "Karola Szymanowskiego",
+"name": "Profit",
+"opening_hours": "Mo-Sa 06:30-20:30",
+"shop": "convenience"
+},
+{
+"id": "node/6592295204",
+"lat": 50.662431,
+"lon": 18.687901,
+"addr:city": "Lubliniec",
+"addr:housenumber": "34",
+"addr:street": "Pawła Stalmacha",
+"name": "Łubowski",
+"opening_hours": "Mo-Fr 05:00-20:00; Sa 05:00-14:00",
+"shop": "bakery"
+},
+{
+"id": "node/6592295206",
+"lat": 50.662723,
+"lon": 18.68779,
+"addr:city": "Lubliniec",
+"addr:housenumber": "34",
+"addr:street": "Pawła Stalmacha",
+"name": "Markus",
+"opening_hours": "Mo-Fr 06:00-20:00; Sa 07:00-15:00",
+"shop": "convenience"
+},
+{
+"id": "node/6610981020",
+"lat": 50.673634,
+"lon": 18.680138,
+"addr:city": "Lubliniec",
+"addr:housenumber": "2d",
+"addr:street": "Opolska",
+"brand": "Odido",
+"name": "Odido",
+"opening_hours": "Mo-Fr 06:00-19:00; Sa 06:00-13:00",
+"shop": "convenience"
+},
+{
+"id": "node/6610981021",
+"lat": 50.672317,
+"lon": 18.685455,
+"addr:city": "Lubliniec",
+"addr:housenumber": "5",
+"addr:street": "Tysiąclecia",
+"brand": "Lewiatan",
+"name": "Lewiatan",
+"opening_hours": "Mo-Fr 06:00-21:00; Sa 09:00-19:00",
+"shop": "supermarket"
+},
+{
+"id": "node/6668094503",
+"lat": 50.663207,
+"lon": 18.68838,
+"addr:city": "Lubliniec",
+"addr:housenumber": "31",
+"addr:street": "Pawła Stalmacha",
+"name": "Kampa",
+"opening_hours": "Mo-Fr 06:30-19:30; Sa 06:30-13:00",
+"shop": "bakery"
+},
+{
+"id": "node/6672830564",
+"lat": 50.665057,
+"lon": 18.686349,
+"addr:city": "Lubliniec",
+"addr:housenumber": "23",
+"addr:street": "Franciszka Żwirki i Stanisława Wigury",
+"name": "Więcek",
+"opening_hours": "Tu-Fr 07:30-16:00; Sa 07:30-13:00",
+"shop": "butcher"
+},
+{
+"id": "node/6672830571",
+"lat": 50.663285,
+"lon": 18.688188,
+"addr:city": "Lubliniec",
+"addr:housenumber": "31",
+"addr:street": "Pawła Stalmacha",
+"opening_hours": "Tu-Fr 06:00-16:00; Sa 07:00-12:00",
+"shop": "butcher"
+},
+{
+"id": "node/6672830573",
+"lat": 50.669091,
+"lon": 18.692343,
+"name": "Pomidorek",
+"opening_hours": "Mo-Fr 09:00-17:00; Sa 08:00-14:00",
+"shop": "convenience"
+},
+{
+"id": "node/6986045908",
+"lat": 50.664874,
+"lon": 18.685588,
+"addr:city": "Lubliniec",
+"addr:housenumber": "19",
+"addr:street": "Franciszka Żwirki i Stanisława Wigury",
+"opening_hours": "Mo-Fr 06:00-17:00; Sa 06:00-13:00",
+"shop": "convenience"
+},
+{
+"id": "node/6986045919",
+"lat": 50.670003,
+"lon": 18.689667,
+"addr:city": "Lubliniec",
+"addr:housenumber": "6",
+"addr:street": "Ignacego Jana Paderewskiego",
+"opening_hours": "Mo-Fr 06:00-17:00; Sa 06:00-13:00",
+"shop": "convenience"
+},
+{
+"id": "node/7600564064",
+"lat": 50.508369,
+"lon": 18.775239,
+"brand": "abc",
+"name": "abc",
+"shop": "convenience"
+},
+{
+"id": "node/7642768136",
+"lat": 50.502754,
+"lon": 18.940572,
+"addr:city": "Miasteczko Śląskie",
+"addr:housenumber": "150",
+"addr:street": "Śląska",
+"brand": "Moya",
+"name": "Moya",
+"opening_hours": "Mo-Su 05:00-23:00",
+"shop": "convenience"
+},
+{
+"id": "node/7756725123",
+"lat": 50.668032,
+"lon": 18.908373,
+"addr:city": "Boronów",
+"addr:housenumber": "52",
+"addr:street": "3 Maja",
+"name": "Sklep Spożywczo Przemysłowy",
+"shop": "convenience"
+},
+{
+"id": "node/7762534126",
+"lat": 50.679057,
+"lon": 18.676677,
+"addr:city": "Lubliniec",
+"addr:housenumber": "11",
+"addr:street": "Oleska",
+"name": "Moran Artykuły Niemieckie i Zachodnioeuropejskie",
+"opening_hours": "Mo-Fr 09:00-18:00; Sa 09:00-14:00",
+"shop": "convenience"
+},
+{
+"id": "node/7791418364",
+"lat": 50.67214,
+"lon": 18.898853,
+"addr:city": "Boronów",
+"addr:housenumber": "2",
+"addr:street": "Dolna",
+"brand": "abc",
+"name": "abc",
+"shop": "convenience"
+},
+{
+"id": "node/7791421989",
+"lat": 50.671964,
+"lon": 18.899054,
+"addr:city": "Boronów",
+"addr:housenumber": "2",
+"addr:street": "Dolna",
+"shop": "butcher"
+},
+{
+"id": "node/7810667294",
+"lat": 50.674861,
+"lon": 18.905767,
+"addr:city": "Boronów",
+"addr:housenumber": "4",
+"addr:street": "Powstańców Śląskich",
+"shop": "bakery"
+},
+{
+"id": "node/7923034686",
+"lat": 50.638263,
+"lon": 18.840252,
+"addr:city": "Koszęcin",
+"addr:housenumber": "4",
+"addr:street": "Lubliniecka",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Sa 06:00-23:00; Su 11:00-20:00",
+"shop": "convenience"
+},
+{
+"id": "node/8274581215",
+"lat": 50.493846,
+"lon": 18.911538,
+"name": "Masarnia Borowe",
+"shop": "butcher"
+},
+{
+"id": "node/8274584617",
+"lat": 50.493809,
+"lon": 18.911671,
+"name": "Majchrzyk Piekarnia Ciastkarnia Ł.M-Maj",
+"shop": "bakery"
+},
+{
+"id": "node/8371713015",
+"lat": 50.664845,
+"lon": 18.687434,
+"addr:city": "Lubliniec",
+"addr:housenumber": "23A",
+"addr:street": "Pawła Stalmacha",
+"brand": "Żabka",
+"name": "Żabka",
+"shop": "convenience"
+},
+{
+"id": "node/8870311585",
+"lat": 50.672452,
+"lon": 18.68853,
+"access": "yes",
+"defibrillator:location": "W recepcji na lewej ścianie",
+"emergency": "defibrillator",
+"indoor": "yes",
+"opening_hours": "24/7"
+},
+{
+"id": "node/8870311586",
+"lat": 50.668922,
+"lon": 18.682498,
+"access": "yes",
+"defibrillator:location": "Rynek Miasta Lubliniec",
+"emergency": "defibrillator",
+"name": "Defibrylator AED",
+"opening_hours": "24/7",
+"operator": "UM Lubliniec"
+},
+{
+"id": "node/8870358118",
+"lat": 50.674508,
+"lon": 18.67445,
+"access": "permit",
+"defibrillator:location": "Młyńska 27",
+"emergency": "defibrillator",
+"indoor": "yes",
+"name": "Defibrylator AED",
+"opening_hours": "Mo-Fr 08:00-17:00",
+"operator": "Ottimo Systems"
+},
+{
+"id": "node/8870363486",
+"lat": 50.673203,
+"lon": 18.689322,
+"access": "yes",
+"defibrillator:location": "Na scianie",
+"emergency": "defibrillator",
+"indoor": "no",
+"name": "Defibrylator AED",
+"opening_hours": "24/7",
+"operator": "UM Lubliniec"
+},
+{
+"id": "node/8870363487",
+"lat": 50.656908,
+"lon": 18.675578,
+"access": "yes",
+"defibrillator:location": "Przy bramie",
+"emergency": "defibrillator",
+"name": "Defibrylator AED",
+"opening_hours": "24/7",
+"operator": "UM Lubliniec"
+},
+{
+"id": "node/8870363488",
+"lat": 50.682188,
+"lon": 18.677441,
+"access": "yes",
+"defibrillator:location": "Stanowisko Kierowania KP PSP",
+"emergency": "defibrillator",
+"name": "Defibrylator AED",
+"opening_hours": "24/7",
+"operator": "Komenda Powiatowa PSP Lubliniec"
+},
+{
+"id": "node/9203576000",
+"lat": 50.680306,
+"lon": 18.69433,
+"addr:city": "Lubliniec",
+"addr:street": "Częstochowska",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Sa 06:00-23:00",
+"shop": "convenience"
+},
+{
+"id": "node/9203576003",
+"lat": 50.673967,
+"lon": 18.683765,
+"addr:city": "Lubliniec",
+"addr:housenumber": "14",
+"addr:street": "Częstochowska",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Sa 06:00-23:00",
+"shop": "convenience"
+},
+{
+"id": "node/9244020850",
+"lat": 50.499677,
+"lon": 18.938583,
+"addr:city": "Miasteczko Śląskie",
+"addr:housenumber": "75",
+"addr:street": "Woźnicka",
+"brand": "Shell",
+"name": "Shell",
+"opening_hours": "24/7",
+"shop": "convenience"
+},
+{
+"id": "node/9334249324",
+"lat": 50.658825,
+"lon": 18.693293,
+"addr:city": "Lubliniec",
+"addr:housenumber": "28",
+"addr:street": "Piaskowa",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Su 06:00-23:00",
+"shop": "convenience"
+},
+{
+"id": "node/9441954076",
+"lat": 50.531909,
+"lon": 18.725019,
+"access": "private",
+"defibrillator:location": "Samochód ratowniczo-gaśniczy",
+"emergency": "defibrillator",
+"operator": "OSP Tworóg"
+},
+{
+"id": "node/9441955535",
+"lat": 50.550251,
+"lon": 18.702375,
+"access": "private",
+"defibrillator:location": "Samochód ratowniczo-gaśniczy",
+"emergency": "defibrillator",
+"operator": "OSP Tworóg"
+},
+{
+"id": "node/9450649857",
+"lat": 50.637962,
+"lon": 18.841521,
+"access": "private",
+"defibrillator:location": "Samochód ratowniczo-gaśniczy",
+"emergency": "defibrillator",
+"operator": "OSP Koszęcin"
+},
+{
+"id": "node/9450680030",
+"lat": 50.644177,
+"lon": 18.764925,
+"access": "private",
+"defibrillator:location": "Samochód ratowniczo-gaśniczy",
+"emergency": "defibrillator",
+"operator": "OSP Rusinowice"
+},
+{
+"id": "node/9466540189",
+"lat": 50.511888,
+"lon": 18.781108,
+"access": "private",
+"defibrillator:location": "Samochód ratowniczo-gaśniczy",
+"emergency": "defibrillator",
+"operator": "OSP Boruszowice - Hańsku"
+},
+{
+"id": "node/9466931729",
+"lat": 50.726039,
+"lon": 19.00553,
+"access": "private",
+"addr:city": "Konopiska",
+"addr:housenumber": "20",
+"addr:street": "Opolska",
+"defibrillator:location": "Samochód ratowniczo-gaśniczy",
+"emergency": "defibrillator",
+"operator": "OSP Konopiska"
+},
+{
+"id": "node/9776491997",
+"lat": 50.537096,
+"lon": 18.828153,
+"shop": "convenience"
+},
+{
+"id": "node/10227047517",
+"lat": 50.717796,
+"lon": 18.803836,
+"access": "private",
+"defibrillator:location": "Samochód ratowniczo-gaśniczy",
+"emergency": "defibrillator",
+"indoor": "yes"
+},
+{
+"id": "node/11016962528",
+"lat": 50.616391,
+"lon": 18.904931,
+"brand": "Delikatesy Centrum",
+"name": "Delikatesy Centrum",
+"opening_hours": "Mo-Sa 06:00-21:00",
+"shop": "supermarket"
+},
+{
+"id": "node/11016962529",
+"lat": 50.611618,
+"lon": 19.000523,
+"brand": "Delikatesy Centrum",
+"name": "Delikatesy Centrum",
+"shop": "supermarket"
+},
+{
+"id": "node/11468157719",
+"lat": 50.616305,
+"lon": 18.913421,
+"addr:city": "Strzebiń",
+"addr:housenumber": "29A",
+"addr:street": "1 Maja",
+"defibrillator:location": "42-288 Strzebiń ul.1-Maja 29A",
+"emergency": "defibrillator",
+"indoor": "yes",
+"opening_hours": "24/7",
+"operator": "Ochotnicza Straż Pożarna STRZEBIŃ"
+},
+{
+"id": "node/11866255544",
+"lat": 50.695193,
+"lon": 18.834967,
+"emergency": "defibrillator",
+"name": "AED"
+},
+{
+"id": "node/12041627769",
+"lat": 50.496169,
+"lon": 18.811982,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/12094263832",
+"lat": 50.727052,
+"lon": 19.007822,
+"name": "Jędryka",
+"shop": "bakery"
+},
+{
+"id": "node/12094263835",
+"lat": 50.72762,
+"lon": 19.008255,
+"brand": "Lewiatan",
+"name": "Lewiatan",
+"shop": "supermarket"
+},
+{
+"id": "node/12095900764",
+"lat": 50.726512,
+"lon": 19.00775,
+"brand": "Lewiatan",
+"name": "Lewiatan",
+"shop": "supermarket"
+},
+{
+"id": "node/12095961814",
+"lat": 50.726635,
+"lon": 19.008582,
+"brand": "Borek",
+"name": "Borek",
+"shop": "bakery"
+},
+{
+"id": "node/12302404692",
+"lat": 50.630779,
+"lon": 18.84236,
+"access": "yes",
+"defibrillator:location": "obok wejścia",
+"emergency": "defibrillator",
+"indoor": "no",
+"opening_hours": "24/7"
+},
+{
+"id": "node/12325621912",
+"lat": 50.565995,
+"lon": 18.660821,
+"access": "permissive",
+"defibrillator:location": "Ochotnicza Straż Pożarna w Potępie",
+"emergency": "defibrillator",
+"indoor": "yes",
+"opening_hours": "24/7",
+"operator": "Defibrylator AED OSP Potępa"
+},
+{
+"id": "node/12327253089",
+"lat": 50.671793,
+"lon": 18.833441,
+"emergency": "defibrillator",
+"indoor": "yes"
+},
+{
+"id": "node/12415065401",
+"lat": 50.514991,
+"lon": 18.738825,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "yes"
+},
+{
+"id": "node/12658500501",
+"lat": 50.634317,
+"lon": 18.841329,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/12685681033",
+"lat": 50.71117,
+"lon": 18.752057,
+"addr:city": "Kochanowice",
+"brand": "Żabka",
+"name": "Żabka",
+"shop": "convenience"
+},
+{
+"id": "node/12734162630",
+"lat": 50.569397,
+"lon": 18.879242,
+"brand": "abc",
+"name": "abc",
+"shop": "convenience"
+},
+{
+"id": "node/12829009901",
+"lat": 50.634331,
+"lon": 18.838813,
+"access": "customers",
+"defibrillator:location": "Zespół Pieśni i Tańca Śląsk im. S. Hadyny",
+"emergency": "defibrillator",
+"indoor": "yes"
+},
+{
+"id": "node/12883414901",
+"lat": 50.654005,
+"lon": 18.68892,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/13077829683",
+"lat": 50.73076,
+"lon": 18.793793,
+"addr:city": "Lisów",
+"addr:housenumber": "18",
+"addr:street": "Częstochowska",
+"brand": "Żabka",
+"name": "Żabka",
+"opening_hours": "Mo-Sa 06:00-23:00, Su 08:00-22:00",
+"shop": "convenience"
+},
+{
+"id": "node/13086833959",
+"lat": 50.608628,
+"lon": 19.000239,
+"name": "Sklep",
+"shop": "convenience"
+},
+{
+"id": "node/13086863017",
+"lat": 50.610647,
+"lon": 19.00057,
+"name": "Sklep",
+"shop": "convenience"
+},
+{
+"id": "node/13131623201",
+"lat": 50.634267,
+"lon": 18.839773,
+"access": "private",
+"defibrillator:location": "Zespół Pieśni i Tańca Śląsk im. Stanisława Hadyny",
+"emergency": "defibrillator",
+"indoor": "no",
+"operator": "Zespół Pieśni i Tańca Śląsk im Stanisława Hadyny "
+},
+{
+"id": "node/13286265168",
+"lat": 50.666636,
+"lon": 18.682093,
+"access": "customers",
+"defibrillator:location": "przy wejściu głównym przy stanowisku ochrony",
+"emergency": "defibrillator",
+"indoor": "yes",
+"opening_hours": "Mo 07:00-18:00; Tu-Fr 07:00-15:00; Sa-Su, PH off"
+},
+{
+"id": "node/13386952302",
+"lat": 50.615072,
+"lon": 18.965066,
+"access": "permit",
+"emergency": "defibrillator"
+},
+{
+"id": "node/13582210085",
+"lat": 50.726432,
+"lon": 19.010238,
+"access": "yes",
+"defibrillator:location": "w czarnej kapsule na ścianie żłobka",
+"emergency": "defibrillator",
+"indoor": "no",
+"opening_hours": "24/7"
+},
+{
+"id": "node/13605361074",
+"lat": 50.492411,
+"lon": 18.910811,
+"access": "yes",
+"defibrillator:location": "w czarnej kapsule na ścianie biblioteki",
+"emergency": "defibrillator",
+"indoor": "no",
+"opening_hours": "24/7"
+},
+{
+"id": "node/13612156187",
+"lat": 50.489729,
+"lon": 18.948652,
+"access": "yes",
+"defibrillator:location": "w czarnej kapsule na ścianie remizy OSP",
+"emergency": "defibrillator",
+"indoor": "no",
+"opening_hours": "24/7"
+},
+{
+"id": "node/13639287275",
+"lat": 50.503762,
+"lon": 19.012195,
+"access": "yes",
+"defibrillator:location": "przy wejściu do kościoła",
+"emergency": "defibrillator",
+"indoor": "no",
+"opening_hours": "24/7"
+},
+{
+"id": "node/13722332026",
+"lat": 50.671092,
+"lon": 18.706938,
+"access": "yes",
+"defibrillator:location": "Budynek RD, parter, sala POK",
+"emergency": "defibrillator",
+"indoor": "yes",
+"operator": "Tauron"
+},
+{
+"id": "node/13830349801",
+"lat": 50.532214,
+"lon": 18.708713,
+"access": "permit",
+"emergency": "defibrillator",
+"indoor": "yes"
+},
+{
+"id": "node/13910465101",
+"lat": 50.728653,
+"lon": 18.79427,
+"access": "private",
+"emergency": "defibrillator",
+"indoor": "yes"
+},
+{
+"id": "node/13974587201",
+"lat": 50.673083,
+"lon": 18.738592,
+"access": "permit",
+"defibrillator:location": "Urządzenie jest dostępne dla wszystkich osób w godzinach pracy firmy.",
+"emergency": "defibrillator",
+"indoor": "yes",
+"opening_hours": "Mo-Fr 07:00-15:00",
+"operator": "Napkins Sp. z o.o."
+},
+{
+"id": "node/14203822801",
+"lat": 50.586044,
+"lon": 18.70598,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14257188401",
+"lat": 50.706951,
+"lon": 18.685301,
+"access": "yes",
+"defibrillator:location": "kapsuła zewnętrzna na budynku remizy",
+"emergency": "defibrillator",
+"indoor": "no",
+"opening_hours": "24/7",
+"operator": "Ochotnicza Straż Pożarna w Kochcicach"
+},
+{
+"id": "node/14309932126",
+"lat": 50.681646,
+"lon": 19.006685,
+"defibrillator:location": "Przy głównym wejściu po prawej stronie",
+"emergency": "defibrillator",
+"operator": "Szkoła"
+},
+{
+"id": "node/14311548962",
+"lat": 50.561406,
+"lon": 18.892283,
+"defibrillator:location": "Wejście głowne firmy Hemarpol",
+"emergency": "defibrillator",
+"indoor": "yes",
+"opening_hours": "24/7"
+},
+{
+"id": "node/14349345501",
+"lat": 50.671667,
+"lon": 18.687417,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14349347302",
+"lat": 50.669464,
+"lon": 18.688258,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14349356501",
+"lat": 50.666231,
+"lon": 18.68459,
+"access": "permit",
+"emergency": "defibrillator"
+},
+{
+"id": "node/14349358201",
+"lat": 50.664486,
+"lon": 18.693958,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14349366001",
+"lat": 50.676599,
+"lon": 18.679469,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14349368401",
+"lat": 50.671236,
+"lon": 18.686295,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14372891401",
+"lat": 50.565645,
+"lon": 18.883264,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14372904901",
+"lat": 50.564205,
+"lon": 18.883847,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14372904902",
+"lat": 50.561948,
+"lon": 18.893186,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14372908001",
+"lat": 50.564154,
+"lon": 18.887014,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14372929101",
+"lat": 50.559023,
+"lon": 18.878645,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14372949301",
+"lat": 50.551731,
+"lon": 18.953882,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14372961501",
+"lat": 50.555539,
+"lon": 18.894194,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "node/14372974501",
+"lat": 50.569437,
+"lon": 18.879213,
+"access": "yes",
+"emergency": "defibrillator",
+"indoor": "no"
+},
+{
+"id": "way/102481276",
+"lat": 50.529587,
+"lon": 18.716793,
+"addr:city": "Tworóg",
+"addr:housenumber": "1",
+"addr:street": "Tarnogórska",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"shop": "supermarket"
+},
+{
+"id": "way/121174723",
+"lat": 50.529363,
+"lon": 18.716054,
+"addr:city": "Tworóg",
+"addr:housenumber": "2A",
+"addr:street": "Zamkowa",
+"brand": "Biedronka",
+"name": "Biedronka",
+"opening_hours": "Mo-Sa 06:00-23:30",
+"operator": "Jeronimo Martins Polska S.A.",
+"shop": "supermarket"
+},
+{
+"id": "way/132754464",
+"lat": 50.494918,
+"lon": 18.924348,
+"addr:city": "Miasteczko Śląskie",
+"addr:housenumber": "20A",
+"addr:street": "Woźnicka",
+"brand": "Biedronka",
+"name": "Biedronka",
+"operator": "Jeronimo Martins Polska S.A.",
+"shop": "supermarket"
+},
+{
+"id": "way/133414086",
+"lat": 50.491141,
+"lon": 18.946681,
+"brand": "Żabka",
+"name": "Żabka",
+"shop": "convenience"
+},
+{
+"id": "way/133555559",
+"lat": 50.493843,
+"lon": 18.912207,
+"addr:city": "Miasteczko Śląskie",
+"addr:housenumber": "44",
+"addr:street": "Dworcowa",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"operator": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/254385974",
+"lat": 50.67244,
+"lon": 18.910402,
+"addr:city": "Boronów",
+"addr:housenumber": "2",
+"addr:street": "Wolności",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Su 06:00-23:00",
+"shop": "supermarket"
+},
+{
+"id": "way/254414049",
+"lat": 50.634703,
+"lon": 18.988179,
+"addr:city": "Kamienica",
+"addr:housenumber": "13a",
+"addr:street": "Lubliniecka",
+"shop": "convenience"
+},
+{
+"id": "way/254414266",
+"lat": 50.633586,
+"lon": 18.992155,
+"shop": "convenience"
+},
+{
+"id": "way/254414473",
+"lat": 50.636685,
+"lon": 18.995771,
+"name": "Usnacht Józef. Zakład piekarsko - ciastkarski",
+"shop": "bakery"
+},
+{
+"id": "way/254430034",
+"lat": 50.634691,
+"lon": 18.846782,
+"addr:city": "Koszęcin",
+"addr:housenumber": "12B",
+"addr:street": "Juliusza Ligonia",
+"brand": "Biedronka",
+"name": "Biedronka",
+"operator": "Jeronimo Martins Polska S.A.",
+"shop": "supermarket"
+},
+{
+"id": "way/254502957",
+"lat": 50.670283,
+"lon": 18.669002,
+"addr:city": "Lubliniec",
+"addr:housenumber": "21",
+"addr:street": "Lisowicka",
+"brand": "Aldi",
+"name": "Aldi",
+"opening_hours": "Mo-Sa 07:00-21:00; Su[-1] 09:00-18:00",
+"shop": "supermarket"
+},
+{
+"id": "way/254503576",
+"lat": 50.669694,
+"lon": 18.686611,
+"addr:city": "Lubliniec",
+"addr:housenumber": "11a",
+"addr:street": "Karola Miarki",
+"brand": "Carrefour Market",
+"name": "Carrefour Market",
+"opening_hours": "Mo-Fr 08:00-21:00; Sa 07:00-21:00; Su[-1] 09:00-17:00",
+"shop": "supermarket"
+},
+{
+"id": "way/254509197",
+"lat": 50.665057,
+"lon": 18.679557,
+"addr:city": "Lubliniec",
+"addr:housenumber": "48",
+"addr:street": "Grunwaldzka",
+"opening_hours": "Mo-Fr 07:00-16:00; Sa 07:00-14:00",
+"shop": "convenience"
+},
+{
+"id": "way/254511595",
+"lat": 50.66722,
+"lon": 18.687256,
+"addr:city": "Lubliniec",
+"addr:housenumber": "9",
+"addr:street": "Pawła Stalmacha",
+"brand": "Biedronka",
+"name": "Biedronka",
+"opening_hours": "Mo 05:00-24:00; Th-Fr 00:00-24:00; Sa 00:00-23:00",
+"operator": "Jeronimo Martins Polska S.A.",
+"shop": "supermarket"
+},
+{
+"id": "way/254511827",
+"lat": 50.67058,
+"lon": 18.678945,
+"addr:city": "Lubliniec",
+"addr:housenumber": "6",
+"addr:street": "Targowa",
+"brand": "Lidl",
+"name": "Lidl",
+"opening_hours": "Mo-Th 07:00-21:00; Fr-Sa 07:00-22:00; Su[-1] 09:00-18:00",
+"shop": "supermarket"
+},
+{
+"id": "way/254515053",
+"lat": 50.666582,
+"lon": 18.673127,
+"addr:city": "Lubliniec",
+"addr:housenumber": "3",
+"addr:street": "Marii Skłodowskiej-Curie",
+"brand": "Kaufland",
+"name": "Kaufland",
+"opening_hours": "Mo-Sa 07:00-22:00; Su[-1] 07:00-21:00",
+"shop": "supermarket"
+},
+{
+"id": "way/254518056",
+"lat": 50.67189,
+"lon": 18.744382,
+"addr:city": "Sadów",
+"addr:housenumber": "95",
+"addr:street": "Powstańców Śląskich",
+"name": "Delikatesy Kubik",
+"opening_hours": "24/7",
+"shop": "convenience"
+},
+{
+"id": "way/254520107",
+"lat": 50.693109,
+"lon": 18.712468,
+"shop": "convenience"
+},
+{
+"id": "way/254538939",
+"lat": 50.708638,
+"lon": 18.750457,
+"addr:city": "Kochanowice",
+"addr:housenumber": "25",
+"addr:street": "Częstochowska",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"operator": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/254590258",
+"lat": 50.719651,
+"lon": 18.802074,
+"addr:city": "Chwostek",
+"addr:housenumber": "32",
+"addr:street": "Gustawa Morcinka",
+"name": "Sklep spożywczy Raczek",
+"shop": "convenience"
+},
+{
+"id": "way/254590506",
+"lat": 50.695301,
+"lon": 18.835406,
+"addr:city": "Hadra",
+"addr:housenumber": "4",
+"addr:street": "Piaskowa",
+"shop": "convenience"
+},
+{
+"id": "way/254591157",
+"lat": 50.728868,
+"lon": 18.793568,
+"addr:city": "Lisów",
+"addr:housenumber": "7",
+"addr:street": "Budowlanych",
+"brand": "Lewiatan",
+"name": "Lewiatan",
+"shop": "convenience"
+},
+{
+"id": "way/254592873",
+"lat": 50.71739,
+"lon": 18.891994,
+"addr:city": "Olszyna",
+"addr:housenumber": "8A",
+"addr:street": "Klonowa",
+"shop": "convenience"
+},
+{
+"id": "way/257762247",
+"lat": 50.669723,
+"lon": 18.761439,
+"addr:city": "Sadów",
+"addr:housenumber": "22A",
+"addr:street": "Powstańców Śląskich",
+"shop": "deli"
+},
+{
+"id": "way/263473794",
+"lat": 50.564895,
+"lon": 18.884116,
+"brand": "Dino",
+"name": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/303155105",
+"lat": 50.619664,
+"lon": 18.970361,
+"addr:city": "Babienica",
+"addr:housenumber": "6",
+"addr:street": "Główna",
+"shop": "supermarket"
+},
+{
+"id": "way/332100735",
+"lat": 50.710074,
+"lon": 18.693354,
+"shop": "convenience"
+},
+{
+"id": "way/362537944",
+"lat": 50.727289,
+"lon": 19.007593,
+"addr:city": "Konopiska",
+"addr:housenumber": "1A",
+"addr:street": "Częstochowska",
+"name": "Jędrycha",
+"shop": "butcher"
+},
+{
+"id": "way/374166424",
+"lat": 50.668043,
+"lon": 18.692263,
+"addr:city": "Lubliniec",
+"addr:housenumber": "2",
+"addr:street": "Cmentarna",
+"brand": "Netto",
+"name": "Netto",
+"opening_hours": "Mo-Sa 06:00-21:00; Su[-1] 08:00-20:00",
+"operator": "Netto Sp. z o.o.",
+"shop": "supermarket"
+},
+{
+"id": "way/489810345",
+"lat": 50.613183,
+"lon": 18.967589,
+"addr:city": "Psary",
+"addr:housenumber": "54A",
+"addr:street": "Główna",
+"name": "GS Sklep nr 10 Psary",
+"shop": "convenience"
+},
+{
+"id": "way/489810346",
+"lat": 50.612936,
+"lon": 18.967466,
+"addr:city": "Psary",
+"addr:housenumber": "54",
+"addr:street": "Główna",
+"shop": "convenience"
+},
+{
+"id": "way/489810348",
+"lat": 50.613468,
+"lon": 18.968708,
+"addr:city": "Psary",
+"addr:housenumber": "60",
+"addr:street": "Główna",
+"name": "Więcek",
+"shop": "butcher"
+},
+{
+"id": "way/522169984",
+"lat": 50.625327,
+"lon": 18.843581,
+"addr:city": "Koszęcin",
+"addr:housenumber": "5D",
+"addr:street": "Cegielniana",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"operator": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/582926161",
+"lat": 50.671839,
+"lon": 18.833572,
+"addr:city": "Cieszowa",
+"addr:housenumber": "4",
+"addr:street": "Słoneczna",
+"emergency": "defibrillator",
+"name": "Ochotnicza Straż Pożarna Cieszowa"
+},
+{
+"id": "way/701477053",
+"lat": 50.687102,
+"lon": 18.671305,
+"addr:city": "Lubliniec",
+"addr:housenumber": "68",
+"addr:street": "Oleska",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"operator": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/737677101",
+"lat": 50.617523,
+"lon": 18.969862,
+"addr:city": "Psary",
+"addr:housenumber": "88",
+"addr:street": "Główna",
+"name": "Express Market",
+"shop": "supermarket"
+},
+{
+"id": "way/846034313",
+"lat": 50.728978,
+"lon": 18.794622,
+"addr:city": "Lisów",
+"addr:housenumber": "4",
+"addr:street": "Handlowa",
+"name": "Market Graand",
+"shop": "convenience"
+},
+{
+"id": "way/848311988",
+"lat": 50.680594,
+"lon": 18.69445,
+"addr:city": "Lubliniec",
+"addr:housenumber": "87a",
+"addr:street": "Częstochowska",
+"name": "Profit",
+"opening_hours": "Mo-Sa 06:00-20:00",
+"shop": "supermarket"
+},
+{
+"id": "way/1024309541",
+"lat": 50.611511,
+"lon": 18.919967,
+"addr:city": "Strzebiń",
+"addr:housenumber": "12",
+"addr:street": "Poprzeczna",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"operator": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/1024310523",
+"lat": 50.668765,
+"lon": 18.761564,
+"addr:city": "Sadów",
+"addr:housenumber": "6",
+"addr:street": "Rusinowicka",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"operator": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/1024313792",
+"lat": 50.726382,
+"lon": 18.9583,
+"addr:city": "Aleksandria Pierwsza",
+"addr:housenumber": "265/267",
+"addr:street": "Gościnna",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30; Su 08:30-20:00",
+"operator": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/1052955016",
+"lat": 50.49042,
+"lon": 18.946043,
+"addr:city": "Miasteczko Śląskie",
+"addr:housenumber": "75",
+"addr:street": "Śląska",
+"name": "Gigant 2",
+"shop": "convenience"
+},
+{
+"id": "way/1158187205",
+"lat": 50.613682,
+"lon": 18.905406,
+"addr:city": "Strzebiń",
+"addr:housenumber": "66E",
+"addr:street": "Lubliniecka",
+"brand": "Stokrotka Market",
+"name": "Stokrotka Market",
+"shop": "supermarket"
+},
+{
+"id": "way/1198267127",
+"lat": 50.680091,
+"lon": 18.695035,
+"addr:city": "Lubliniec",
+"addr:housenumber": "80",
+"addr:street": "Częstochowska",
+"brand": "Dino",
+"name": "Dino",
+"shop": "supermarket"
+},
+{
+"id": "way/1422882719",
+"lat": 50.490774,
+"lon": 18.945833,
+"addr:city": "Miasteczko Śląskie",
+"addr:housenumber": "77",
+"addr:street": "Śląska",
+"brand": "Dino",
+"name": "Dino",
+"opening_hours": "Mo-Sa 06:00-22:30",
+"shop": "supermarket"
+}
+]

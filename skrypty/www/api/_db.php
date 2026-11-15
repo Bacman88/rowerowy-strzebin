@@ -6,8 +6,8 @@ date_default_timezone_set('Europe/Warsaw');
 ob_start();   // przypadkowe ostrzeżenia PHP nie mogą zepsuć odpowiedzi JSON (hub_json czyści bufor)
 
 const STANY = ['dobra', 'srednia', 'trudna', 'nieprzejezdna'];
-const TYPY_MIEJSC = ['lawka', 'wiata', 'piknik', 'widok', 'zabawa', 'woda', 'serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'apteczka', 'info',
-    'jedzenie', 'kawa', 'bar', 'nocleg', 'ciekawe', 'zabytek', 'kosciol', 'przyroda', 'sport'];
+const TYPY_MIEJSC = ['lawka', 'wiata', 'piknik', 'widok', 'zabawa', 'woda', 'serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'aed', 'apteczka', 'info',
+    'jedzenie', 'kawa', 'bar', 'sklep', 'nocleg', 'ciekawe', 'zabytek', 'kosciol', 'przyroda', 'sport'];
 
 function hub_cfg(): array {
     static $c = null;

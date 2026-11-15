@@ -2,14 +2,20 @@
 // Wspólne dla obu map na stronie i panelu. Piktogramy: te same co na tabliczkach (Tabler Icons, MIT) – lib/ikony.js.
 window.MIEJSCA = (() => {
   const IK = window.IKONY || {};
-  const C = {zielony:'#237647', grafit:'#505C66', czerwony:'#902B38', braz:'#81552F', pomar:'#B96516'};
+  const C = {zielony:'#237647', grafit:'#505C66', czerwony:'#902B38', braz:'#81552F', pomar:'#B96516', aed:'#00853F'};
+  // piktogramy tylko na mapie (tabliczki zostają przy swoich): huśtawka zamiast „roller coastera”, serce z błyskawicą (AED), koszyk (sklep)
+  const IKM = {
+    hustawka: '<path d="M3 4h18"/><path d="M6 4l-3 16"/><path d="M18 4l3 16"/><path d="M10 4v9"/><path d="M14 4v9"/><path d="M9 13h6v2h-6z"/>',
+    aed: '<path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/><path d="M12.5 8.5l-2 3.5h3l-2 3.5"/>',
+    sklep: '<path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 17h-11v-14h-2"/><path d="M6 5l14 1l-1 7h-13"/>',
+  };
   // g = warstwa: odpoczynek | serwis (rower i udogodnienia) | ciekawe (ciekawe miejsca, jedzenie i nocleg)
   const TYP = {
     lawka:    {n:'Ławka', i:'rest', c:C.zielony, g:'odpoczynek'},
     wiata:    {n:'Wiata', i:'pavilion', c:C.zielony, g:'odpoczynek'},
     piknik:   {n:'Piknik / ognisko', i:'campfire', c:C.zielony, g:'odpoczynek'},
     widok:    {n:'Punkt widokowy', i:'view', c:C.zielony, g:'odpoczynek'},
-    zabawa:   {n:'Plac zabaw', i:'playground', c:C.pomar, g:'odpoczynek'},
+    zabawa:   {n:'Plac zabaw', i:'hustawka', c:C.pomar, g:'odpoczynek'},
     woda:     {n:'Woda pitna', i:'droplet', c:C.zielony, g:'odpoczynek'},
     serwis:   {n:'Serwis rowerowy', i:'service', c:C.grafit, g:'serwis'},
     stacja:   {n:'Stacja napraw rowerów', i:'service', c:C.grafit, g:'serwis'},
@@ -17,11 +23,13 @@ window.MIEJSCA = (() => {
     wypozycz: {n:'Wypożyczalnia rowerów', i:'rental', c:C.grafit, g:'serwis'},
     wc:       {n:'WC', i:'wc', c:C.grafit, g:'serwis'},
     parking:  {n:'Parking', i:'parking', c:C.grafit, g:'serwis'},
-    apteczka: {n:'Pierwsza pomoc / AED', i:'firstaid', c:C.grafit, g:'serwis'},
+    aed:      {n:'Defibrylator AED', i:'aed', c:C.aed, g:'serwis'},
+    apteczka: {n:'Pierwsza pomoc', i:'firstaid', c:C.grafit, g:'serwis'},
     info:     {n:'Tablica informacyjna', i:'information', c:C.grafit, g:'serwis'},
     jedzenie: {n:'Restauracja / jedzenie', i:'restaurant', c:C.czerwony, g:'ciekawe'},
     kawa:     {n:'Kawiarnia', i:'coffee', c:C.czerwony, g:'ciekawe'},
     bar:      {n:'Bar / piwo', i:'bar', c:C.czerwony, g:'ciekawe'},
+    sklep:    {n:'Sklep spożywczy', i:'sklep', c:C.czerwony, g:'ciekawe'},
     nocleg:   {n:'Nocleg', i:'bed', c:C.czerwony, g:'ciekawe'},
     ciekawe:  {n:'Ciekawe miejsce', i:'star', c:C.braz, g:'ciekawe'},
     zabytek:  {n:'Zabytek / pomnik', i:'heritage', c:C.braz, g:'ciekawe'},
@@ -32,16 +40,17 @@ window.MIEJSCA = (() => {
   // kolejność i grupy w formularzu
   const GRUPY = [
     ['Odpoczynek', ['lawka', 'wiata', 'piknik', 'widok', 'zabawa', 'woda']],
-    ['Rower i udogodnienia', ['serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'apteczka', 'info']],
-    ['Jedzenie i nocleg', ['jedzenie', 'kawa', 'bar', 'nocleg']],
+    ['Rower i udogodnienia', ['serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'aed', 'apteczka', 'info']],
+    ['Jedzenie i nocleg', ['jedzenie', 'kawa', 'bar', 'sklep', 'nocleg']],
     ['Ciekawe miejsca', ['ciekawe', 'zabytek', 'kosciol', 'przyroda', 'sport']],
   ];
   const WARSTWY = {odpoczynek:'odpoczynek', serwis:'rower i udogodnienia', ciekawe:'ciekawe miejsca, jedzenie, nocleg'};
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   // ik – opcjonalnie własny piktogram miejsca (np. basen przy typie „sport”)
-  const svg = (t, col = '#fff', size = 15, ik = null) =>
-    `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${col}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IK[ik] || IK[(TYP[t] || TYP.ciekawe).i] || IK.star || ''}</svg>`;
+  const svg = (t, col = '#fff', size = 15, ik = null) => t === 'wc' && !ik
+    ? `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><text x="12" y="17.4" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="800" letter-spacing="-0.6" fill="${col}">WC</text></svg>`
+    : `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${col}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IK[ik] || IKM[(TYP[t] || TYP.ciekawe).i] || IK[(TYP[t] || TYP.ciekawe).i] || IK.star || ''}</svg>`;
 
   const css = document.createElement('style');
   css.textContent = `.mj{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}

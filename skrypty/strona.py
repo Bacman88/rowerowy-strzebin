@@ -75,6 +75,23 @@ for f in json.load(open("../dane/osm_gmina.geojson"))["features"]:
            "zabawa" if q.get("leisure") == "playground" else "stojak" if q.get("amenity") == "bicycle_parking" else None)
     if typ and hull.contains(Point(g["coordinates"])):
         places.append(dict(k=f"osm:{q.get('@id', '')}", typ=typ, nazwa=q.get("name", ""), opis="", lat=g["coordinates"][1], lon=g["coordinates"][0], osm=1))
+# 15.11.2026: AED i sklepy spożywcze z OSM (../dane/osm_poi.json – workflow „POI AED i sklepy” na gałęzi wysokosci); bez AED w wozach strażackich (access=private)
+if os.path.exists("../dane/osm_poi.json"):
+    _SKL = {"convenience": "sklep spożywczy", "supermarket": "supermarket", "bakery": "piekarnia", "butcher": "mięsny", "greengrocer": "warzywniak", "general": "sklep", "deli": "delikatesy", "farm": "sklep z gospodarstwa", "food": "sklep spożywczy"}
+    for q in json.load(open("../dane/osm_poi.json")):
+        if not hull.contains(Point(q["lon"], q["lat"])): continue
+        adr = " ".join(x for x in [q.get("addr:street") or q.get("addr:place"), q.get("addr:housenumber")] if x)
+        godz = q.get("opening_hours", "")
+        if q.get("emergency") == "defibrillator":
+            if q.get("access") in ("private", "no"): continue
+            gdzie = q.get("defibrillator:location", "")
+            opis = "\n".join(x for x in [gdzie, ("wewnątrz budynku" if q.get("indoor") == "yes" else "na zewnątrz" if q.get("indoor") == "no" else ""),
+                                         ("dostępny: " + godz if godz else ""), (q.get("operator") or "")] if x)
+            places.append(dict(k=f"osm:{q['id']}", typ="aed", nazwa="AED" + (" – " + q["name"] if q.get("name") and "AED" not in q["name"] and "efibryl" not in q["name"] else ""), opis=opis, lat=q["lat"], lon=q["lon"], osm=1))
+        elif q.get("shop"):
+            nz = q.get("name") or q.get("brand") or _SKL.get(q["shop"], "sklep").capitalize()
+            opis = "\n".join(x for x in [_SKL.get(q["shop"], "sklep").capitalize() if (q.get("name") or q.get("brand")) else "", adr, ("godziny: " + godz if godz else "")] if x)
+            places.append(dict(k=f"osm:{q['id']}", typ="sklep", nazwa=nz, opis=opis, lat=q["lat"], lon=q["lon"], osm=1))
 # wspólne odcinki tras: każda trasa dzielona na kawałki o stałym zestawie tras; na stronie rysowane obok siebie (przesunięcie)
 import re as _re, collections as _col
 _ord = lambda i: (int(_re.match(r"\d+", i).group()), i)
