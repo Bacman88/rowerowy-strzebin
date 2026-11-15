@@ -88,6 +88,8 @@ if os.path.exists("../dane/osm_poi.json"):
             opis = "\n".join(x for x in [gdzie, ("wewnątrz budynku" if q.get("indoor") == "yes" else "na zewnątrz" if q.get("indoor") == "no" else ""),
                                          ("dostępny: " + godz if godz else ""), (q.get("operator") or "")] if x)
             places.append(dict(k=f"osm:{q['id']}", typ="aed", nazwa="AED" + (" – " + q["name"] if q.get("name") and "AED" not in q["name"] and "efibryl" not in q["name"] else ""), opis=opis, lat=q["lat"], lon=q["lon"], osm=1))
+        elif q.get("amenity") == "pharmacy":
+            places.append(dict(k=f"osm:{q['id']}", typ="apteka", nazwa=q.get("name") or "Apteka", opis="\n".join(x for x in [adr, ("godziny: " + godz if godz else "")] if x), lat=q["lat"], lon=q["lon"], osm=1))
         elif q.get("shop"):
             nz = q.get("name") or q.get("brand") or _SKL.get(q["shop"], "sklep").capitalize()
             opis = "\n".join(x for x in [_SKL.get(q["shop"], "sklep").capitalize() if (q.get("name") or q.get("brand")) else "", adr, ("godziny: " + godz if godz else "")] if x)

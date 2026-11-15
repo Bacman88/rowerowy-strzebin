@@ -7,6 +7,7 @@ window.MIEJSCA = (() => {
   const IKM = {
     hustawka: '<path d="M3 4h18"/><path d="M6 4l-3 16"/><path d="M18 4l3 16"/><path d="M10 4v9"/><path d="M14 4v9"/><path d="M9 13h6v2h-6z"/>',
     aed: '<path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/><path d="M12.5 8.5l-2 3.5h3l-2 3.5"/>',
+    apteka: '<path d="M9 3h6v6h6v6h-6v6h-6v-6h-6v-6h6z"/>',
     sklep: '<path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 17h-11v-14h-2"/><path d="M6 5l14 1l-1 7h-13"/>',
   };
   // g = warstwa: odpoczynek | serwis (rower i udogodnienia) | ciekawe (ciekawe miejsca, jedzenie i nocleg)
@@ -25,6 +26,7 @@ window.MIEJSCA = (() => {
     parking:  {n:'Parking', i:'parking', c:C.grafit, g:'serwis'},
     aed:      {n:'Defibrylator AED', i:'aed', c:C.aed, g:'serwis'},
     apteczka: {n:'Pierwsza pomoc', i:'firstaid', c:C.grafit, g:'serwis'},
+    apteka:   {n:'Apteka', i:'apteka', c:C.zielony, g:'serwis'},
     info:     {n:'Tablica informacyjna', i:'information', c:C.grafit, g:'serwis'},
     jedzenie: {n:'Restauracja / jedzenie', i:'restaurant', c:C.czerwony, g:'ciekawe'},
     kawa:     {n:'Kawiarnia', i:'coffee', c:C.czerwony, g:'ciekawe'},
@@ -40,7 +42,7 @@ window.MIEJSCA = (() => {
   // kolejność i grupy w formularzu
   const GRUPY = [
     ['Odpoczynek', ['lawka', 'wiata', 'piknik', 'widok', 'zabawa', 'woda']],
-    ['Rower i udogodnienia', ['serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'aed', 'apteczka', 'info']],
+    ['Rower i udogodnienia', ['serwis', 'stojak', 'wypozycz', 'wc', 'parking', 'aed', 'apteczka', 'apteka', 'info']],
     ['Jedzenie i nocleg', ['jedzenie', 'kawa', 'bar', 'sklep', 'nocleg']],
     ['Ciekawe miejsca', ['ciekawe', 'zabytek', 'kosciol', 'przyroda', 'sport']],
   ];

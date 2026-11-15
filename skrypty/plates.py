@@ -66,6 +66,7 @@ def layout(d, W, entries, size, two_line):
     items, ok = [], True
     multi = two_line and len(entries) == 1
     for i, (name, km, ico, rts) in enumerate(entries):
+        if ico == "wc" and name.strip().upper() == "WC": ico = None   # napis „WC” już mówi wszystko – bez dublującego piktogramu
         if multi:
             w_ = name.split(" ")
             l1, l2 = min(((" ".join(w_[:k]), " ".join(w_[k:])) for k in range(1, len(w_))), key=lambda t: max(width(t[0], size), width(t[1], size)))

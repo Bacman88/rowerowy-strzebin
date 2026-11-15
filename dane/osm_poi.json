@@ -18,6 +18,12 @@
 "shop": "supermarket"
 },
 {
+"id": "node/694196914",
+"lat": 50.635333,
+"lon": 18.84156,
+"amenity": "pharmacy"
+},
+{
 "id": "node/817172951",
 "lat": 50.634525,
 "lon": 18.843304,
@@ -88,6 +94,14 @@
 "name": "Żabka",
 "opening_hours": "Mo-Sa 06:00-23:00",
 "shop": "convenience"
+},
+{
+"id": "node/1472205799",
+"lat": 50.563662,
+"lon": 18.888186,
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Apteka Vita"
 },
 {
 "id": "node/1481147421",
@@ -175,6 +189,14 @@
 "shop": "convenience"
 },
 {
+"id": "node/2154541992",
+"lat": 50.559021,
+"lon": 18.878592,
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Apteka \"Rodzinna\""
+},
+{
 "id": "node/2154541994",
 "lat": 50.559216,
 "lon": 18.878822,
@@ -233,6 +255,27 @@
 "shop": "convenience"
 },
 {
+"id": "node/2403399868",
+"lat": 50.492582,
+"lon": 18.923185,
+"addr:city": "Miasteczko Śląskie",
+"addr:housenumber": "18",
+"addr:street": "Rynek",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Apteka Św.Jerzego"
+},
+{
+"id": "node/2412000635",
+"lat": 50.617621,
+"lon": 18.900136,
+"addr:city": "Strzebiń",
+"addr:housenumber": "5",
+"addr:street": "Dworcowa",
+"amenity": "pharmacy",
+"name": "Apteka \"Na Dworcu\""
+},
+{
 "id": "node/2597783307",
 "lat": 50.492741,
 "lon": 18.916946,
@@ -276,12 +319,59 @@
 "shop": "supermarket"
 },
 {
+"id": "node/4618015823",
+"lat": 50.671014,
+"lon": 18.678497,
+"addr:city": "Lubliniec",
+"addr:housenumber": "4",
+"addr:street": "Targowa",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Arnika",
+"opening_hours": "24/7"
+},
+{
+"id": "node/4618017946",
+"lat": 50.669723,
+"lon": 18.685107,
+"addr:city": "Lubliniec",
+"addr:housenumber": "15H",
+"addr:street": "Karola Miarki",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Centrum",
+"opening_hours": "Mo-Fr 08:00-20:00; Sa 08:00-16:00"
+},
+{
 "id": "node/4618208484",
 "lat": 50.634672,
 "lon": 18.842377,
 "name": "Łubowski",
 "opening_hours": "Mo-Fr 05:00-16:00; Sa 05:00-12:00, 07:00-13:00; Tu-Fr 07:00-16:00",
 "shop": "bakery"
+},
+{
+"id": "node/4693456221",
+"lat": 50.670389,
+"lon": 18.682979,
+"addr:city": "Lubliniec",
+"addr:housenumber": "17",
+"addr:street": "Adama Mickiewicza",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"opening_hours": "Mo-Fr 08:00-20:00; Sa 08:00-14:00"
+},
+{
+"id": "node/4983372122",
+"lat": 50.668281,
+"lon": 18.685526,
+"addr:city": "Lubliniec",
+"addr:housenumber": "2",
+"addr:street": "Pawła Stalmacha",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Pod Złotą Wagą",
+"opening_hours": "Mo-Fr 07:00-20:00; Sa 07:00-14:00; Su 08:00-15:00"
 },
 {
 "id": "node/5011380222",
@@ -297,6 +387,17 @@
 "shop": "supermarket"
 },
 {
+"id": "node/5011384621",
+"lat": 50.668802,
+"lon": 18.683665,
+"addr:city": "Lubliniec",
+"addr:housenumber": "8",
+"addr:street": "Józefa Lompy",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"opening_hours": "Mo-Fr 08:00-20:00; Sa 08:00-14:00"
+},
+{
 "id": "node/5300885205",
 "lat": 50.679696,
 "lon": 18.678564,
@@ -307,6 +408,55 @@
 "name": "Biedronka",
 "opening_hours": "Mo-Sa 07:00-21:00; Su[-1] 09:00-21:00",
 "shop": "supermarket"
+},
+{
+"id": "node/5454529946",
+"lat": 50.679544,
+"lon": 18.678688,
+"addr:city": "Lubliniec",
+"addr:housenumber": "20 E",
+"addr:street": "Oleska",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Apteka Artfarm",
+"opening_hours": "Mo-Fr 08:00-20:00; Sa 08:00-18:00; Su 09:00-18:00"
+},
+{
+"id": "node/5454529955",
+"lat": 50.666701,
+"lon": 18.67401,
+"addr:city": "Lubliniec",
+"addr:housenumber": "3",
+"addr:street": "Marii Skłodowskiej-Curie",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Lekosfera",
+"opening_hours": "Mo-Fr 07:30-21:30; Sa 08:00-21:00; Su[-1] 09:00-21:00",
+"operator": "Dolnośląska Grupa Apteczna"
+},
+{
+"id": "node/5454529956",
+"lat": 50.664304,
+"lon": 18.683073,
+"addr:city": "Lubliniec",
+"addr:housenumber": "5",
+"addr:street": "Majdanek",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Apteka Wdz",
+"opening_hours": "Mo-Fr 08:00-22:00; Sa 08:00-16:00"
+},
+{
+"id": "node/5454529957",
+"lat": 50.669676,
+"lon": 18.686014,
+"addr:city": "Lubliniec",
+"addr:housenumber": "15C",
+"addr:street": "Karola Miarki",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Zdrowit",
+"opening_hours": "Mo-Fr 07:00-20:00; Sa 08:00-20:00"
 },
 {
 "id": "node/5567998162",
@@ -352,6 +502,43 @@
 "name": "Żabka",
 "opening_hours": "Mo-Sa 06:00-23:00; Su 10:00-20:00",
 "shop": "convenience"
+},
+{
+"id": "node/5567998228",
+"lat": 50.674668,
+"lon": 18.684301,
+"addr:city": "Lubliniec",
+"addr:housenumber": "17",
+"addr:street": "Częstochowska",
+"amenity": "pharmacy",
+"brand": "Dbam o Zdrowie",
+"dispensing": "yes",
+"name": "Dbam o Zdrowie",
+"opening_hours": "Mo-Su 08:00-20:00"
+},
+{
+"id": "node/5567998229",
+"lat": 50.669007,
+"lon": 18.682047,
+"addr:city": "Lubliniec",
+"addr:housenumber": "6",
+"addr:street": "Plac Konrada Mańki",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Nowa",
+"opening_hours": "Mo-Sa 08:00-20:00"
+},
+{
+"id": "node/5567998232",
+"lat": 50.665924,
+"lon": 18.686572,
+"addr:city": "Lubliniec",
+"addr:housenumber": "16",
+"addr:street": "Pawła Stalmacha",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Eliksir",
+"opening_hours": "Mo-Fr 07:30-20:00; Sa 08:00-14:00"
 },
 {
 "id": "node/5585505124",
@@ -582,10 +769,24 @@
 "addr:city": "Miasteczko Śląskie",
 "addr:housenumber": "150",
 "addr:street": "Śląska",
+"amenity": "fuel",
 "brand": "Moya",
 "name": "Moya",
 "opening_hours": "Mo-Su 05:00-23:00",
 "shop": "convenience"
+},
+{
+"id": "node/7732016465",
+"lat": 50.67228,
+"lon": 18.909808,
+"addr:city": "Boronów",
+"addr:housenumber": "5",
+"addr:street": "Wolności",
+"amenity": "pharmacy",
+"brand": "Dbam o Zdrowie",
+"dispensing": "yes",
+"name": "Dbam o Zdrowie",
+"opening_hours": "Mo-Fr 08:00-18:00; Sa 08:00-13:00"
 },
 {
 "id": "node/7756725123",
@@ -771,6 +972,7 @@
 "addr:city": "Miasteczko Śląskie",
 "addr:housenumber": "75",
 "addr:street": "Woźnicka",
+"amenity": "fuel",
 "brand": "Shell",
 "name": "Shell",
 "opening_hours": "24/7",
@@ -844,6 +1046,106 @@
 "defibrillator:location": "Samochód ratowniczo-gaśniczy",
 "emergency": "defibrillator",
 "operator": "OSP Konopiska"
+},
+{
+"id": "node/9627619492",
+"lat": 50.496209,
+"lon": 18.924023,
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Apteka Moje Zdrowie"
+},
+{
+"id": "node/9627619495",
+"lat": 50.53232,
+"lon": 18.721773,
+"addr:city": "Tworóg",
+"addr:housenumber": "47",
+"addr:street": "Zamkowa",
+"amenity": "pharmacy",
+"dispensing": "yes"
+},
+{
+"id": "node/9627685546",
+"lat": 50.531788,
+"lon": 18.717982,
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Mariańska"
+},
+{
+"id": "node/9713842305",
+"lat": 50.707579,
+"lon": 18.751259,
+"addr:city": "Kochanowice",
+"addr:housenumber": "2 D",
+"addr:street": "Lubliniecka",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Apteka Dla Wszystkich"
+},
+{
+"id": "node/9713902781",
+"lat": 50.63431,
+"lon": 18.844921,
+"addr:city": "Koszęcin",
+"addr:housenumber": "11D",
+"addr:street": "Juliusza Ligonia",
+"amenity": "pharmacy",
+"dispensing": "yes"
+},
+{
+"id": "node/9713932558",
+"lat": 50.634574,
+"lon": 18.992933,
+"addr:city": "Kamienica",
+"addr:housenumber": "31",
+"addr:street": "Częstochowska",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Kalma"
+},
+{
+"id": "node/9713947087",
+"lat": 50.612293,
+"lon": 18.966272,
+"addr:city": "Psary",
+"addr:housenumber": "44",
+"addr:street": "Główna",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Libra"
+},
+{
+"id": "node/9713947472",
+"lat": 50.670601,
+"lon": 18.753458,
+"addr:city": "Sadów",
+"addr:housenumber": "45A",
+"addr:street": "Powstańców Śląskich",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Na Górce"
+},
+{
+"id": "node/9713952000",
+"lat": 50.728491,
+"lon": 18.793899,
+"addr:city": "Lisów",
+"addr:housenumber": "64",
+"addr:street": "Stawowa",
+"amenity": "pharmacy",
+"dispensing": "yes"
+},
+{
+"id": "node/9713957317",
+"lat": 50.636549,
+"lon": 18.84122,
+"addr:city": "Koszęcin",
+"addr:housenumber": "14",
+"addr:street": "Powstańców Śląskich",
+"amenity": "pharmacy",
+"dispensing": "yes"
 },
 {
 "id": "node/9776491997",
@@ -1553,6 +1855,15 @@
 "shop": "supermarket"
 },
 {
+"id": "way/298793521",
+"lat": 50.631755,
+"lon": 18.841394,
+"addr:city": "Koszęcin",
+"addr:housenumber": "8A",
+"addr:street": "Jana Sobieskiego",
+"amenity": "pharmacy"
+},
+{
 "id": "way/303155105",
 "lat": 50.619664,
 "lon": 18.970361,
@@ -1639,6 +1950,7 @@
 "addr:city": "Cieszowa",
 "addr:housenumber": "4",
 "addr:street": "Słoneczna",
+"amenity": "fire_station",
 "emergency": "defibrillator",
 "name": "Ochotnicza Straż Pożarna Cieszowa"
 },
@@ -1664,6 +1976,17 @@
 "addr:street": "Główna",
 "name": "Express Market",
 "shop": "supermarket"
+},
+{
+"id": "way/846034309",
+"lat": 50.707566,
+"lon": 18.751242,
+"addr:city": "Kochanowice",
+"addr:housenumber": "2D",
+"addr:street": "Lubliniecka",
+"amenity": "pharmacy",
+"dispensing": "yes",
+"name": "Apteka Dla Wszystkich"
 },
 {
 "id": "way/846034313",

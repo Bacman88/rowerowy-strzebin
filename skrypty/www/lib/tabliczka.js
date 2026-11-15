@@ -23,6 +23,7 @@ window.TABLICZKA = (() => {
   function layout(d, W, entries, size, two, gap, rt) {
     const g = geometry(d, W); const items = []; let ok = true; const multi = two && entries.length === 1;
     entries.forEach(([name, km, ico, rts], i) => {
+      if (ico === 'wc' && /^wc$/i.test(String(name).trim())) ico = null;   // napis „WC” bez dublującego piktogramu
       let lines, bases, ky;
       if (multi) {
         const w_ = name.split(' '); let best = null;
