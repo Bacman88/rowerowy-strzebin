@@ -1,0 +1,24 @@
+name: POI AED i sklepy
+on:
+  push:
+    branches: [wysokosci]
+    paths: [pobierz_poi.py, .github/workflows/poi.yml]
+permissions:
+  contents: write
+jobs:
+  poi:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python pobierz_poi.py
+        timeout-minutes: 15
+      - name: Wydanie z danymi
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete poi -y --cleanup-tag || true
+          gh release create poi --target wysokosci --title "AED i sklepy spożywcze (dane robocze)" --notes "Dane © współtwórcy OpenStreetMap (ODbL)." --prerelease poi.json
