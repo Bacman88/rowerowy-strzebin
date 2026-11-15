@@ -16,7 +16,7 @@
   const PL = NAT ? {BackgroundGeolocation: wtyczka('BackgroundGeolocation'), TextToSpeech: wtyczka('TextToSpeech'), LocalNotifications: wtyczka('LocalNotifications')} : {};
   const diag = {};
   const pokazDiag = () => { if (!NAT) return; const el = document.querySelector('#s-cel .stopka'); if (!el) return; let d = document.getElementById('diag'); if (!d) { d = document.createElement('div'); d.id = 'diag'; d.style.cssText = 'margin-top:6px;font-size:11px;opacity:.7'; el.appendChild(d); }
-    d.textContent = 'Aplikacja · GPS w tle: ' + (PL.BackgroundGeolocation ? (diag.bg || 'gotowy') : 'brak') + ' · głos: ' + (PL.TextToSpeech ? 'tak' : 'brak') + ' · powiadomienia: ' + (PL.LocalNotifications ? 'tak' : 'brak'); };
+    d.textContent = 'Aplikacja · GPS w tle: ' + (PL.BackgroundGeolocation ? (diag.bg || 'gotowy') : 'brak') + ' · głos: ' + (PL.TextToSpeech ? (diag.glos || 'tak') : 'brak') + ' · powiadomienia: ' + (PL.LocalNotifications ? 'tak' : 'brak'); };
   setTimeout(pokazDiag, 500);
   // oceny dróg zatwierdzone w panelu (mapa wspólna) – najpierw zapamiętane w telefonie (działa bez zasięgu), potem świeże z serwera
   let ocenyN = JZ.oceny(LS.get('oceny', (window.JEDZ && JEDZ.oceny) || {}));
@@ -157,7 +157,7 @@
         let id = null, stop = false;
         // Android 13+: bez zgody na powiadomienia usługa nie pokaże „nawigacja aktywna”
         const zgodaPow = !stara && PL.LocalNotifications ? PL.LocalNotifications.requestPermissions().catch(() => {}) : Promise.resolve();
-        zgodaPow.then(() => stop ? null : PL.BackgroundGeolocation.addWatcher({backgroundTitle: 'Jedź – nawigacja aktywna', backgroundMessage: opis || 'Prowadzimy Cię trasą rowerową', requestPermissions: true, stale: !!stara, distanceFilter: 0},
+        zgodaPow.then(() => stop ? null : PL.BackgroundGeolocation.addWatcher({backgroundTitle: 'Jedź – nawigacja aktywna', backgroundMessage: opis || 'Prowadzimy Cię trasą rowerową', requestPermissions: true, stale: !!stara, distanceFilter: !stara && LS.get('oszcz', false) ? 8 : 0},
           (loc, err) => { if (err) { if (err.code === 'NOT_AUTHORIZED') blad('zgoda'); else blad(); return; } if (loc) cb([loc.latitude, loc.longitude], loc.accuracy, loc.bearing); })
           .then(w => { id = w; if (stop) PL.BackgroundGeolocation.removeWatcher({id}); }))
           .catch(e => { diag.bg = 'błąd: ' + (e && e.message || e); pokazDiag(); });
@@ -370,6 +370,8 @@
       <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${ST.VU} km/h · ${tempoNazwa(ST.VU)}</b></div>
         <input type="range" id="p-tempo" min="8" max="40" step="1" value="${ST.VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
         <div class="tskala"><span>spacerowo</span><span>rekreacyjnie</span><span>sportowo</span><span>wyczynowo</span></div></div>
+      <div class="tempo oszcz"><label><input type="checkbox" id="p-oszcz"${LS.get('oszcz', false) ? ' checked' : ''}> <b>Oszczędzanie baterii</b><span>ekran może zgasnąć – prowadzi głos, GPS rzadziej na prostych</span></label>
+        <button type="button" class="moff-b" id="p-glostest">Test głosu</button></div>
       ${wykresBlok(T)}
       <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich i krajowych: ${kmTxt(T.km.dw)}.` : 'Bez dróg wojewódzkich i krajowych.'}</div>
       <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}Jedź</button>
@@ -391,6 +393,8 @@
       const o = ostrzezenie(T, inne); $('p-ostrz').textContent = o; $('p-ostrz').hidden = !o;
     });
     $('b-jedz').onclick = () => startJazdy(false);
+    $('p-oszcz').onchange = e => LS.set('oszcz', e.target.checked);
+    $('p-glostest').onclick = () => { if (!stan.glos) { stan.glos = true; LS.set('glos', true); } powiedz('Test głosu. Za 100 metrów skręć w prawo.', true); };
     $('b-zglos').onclick = () => zglos(true);
     if ($('b-alt')) $('b-alt').onclick = () => wybierzAlt(alt);
     $('p-offline-b').onclick = () => { const b = $('p-offline-b'); b.disabled = true; b.textContent = 'Pobieram…';
@@ -422,7 +426,8 @@
   // ===================== 3. jazda =====================
   let zegarJ = null;
   let watch = null, sym = null, symV = 1, wake = null, poza = 0, ostPrzel = 0, idx = 0, wzdluz = 0, ostPoz = null, zapowiedz = new Set(), kierPokaz = null;
-  async function budzik() { try { if ('wakeLock' in navigator) { wake = await navigator.wakeLock.request('screen'); } } catch (e) {} }
+  // ekran włączony w czasie jazdy – chyba że wybrano „Oszczędzanie baterii” (wtedy prowadzi głos, ekran gaśnie jak zwykle)
+  async function budzik() { if (LS.get('oszcz', false)) return; try { if ('wakeLock' in navigator) { wake = await navigator.wakeLock.request('screen'); } } catch (e) {} }
   document.addEventListener('visibilitychange', () => { if (stan.jazda && document.visibilityState === 'visible') budzik(); });
   // ---- mapa obrócona „kierunkiem jazdy do góry”: kontener mapy to kwadrat o boku = przekątnej ekranu,
   //      środek kwadratu (= Twoja pozycja) w 62% wysokości ekranu, obrót CSS wokół środka
@@ -453,6 +458,7 @@
   function startJazdy(symulacja) {
     stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; pytano.clear(); Object.assign(tempo, {real: 0, mod: 0, t: 0, v: 0, k: 1}); zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
+    if (!symulacja) powiedz('Ruszamy. Do celu ' + kmTxt(stan.T.m) + '.');
     if (!symulacja) JZ.historia.start({cel: stan.celN, tryb: stan.tryb, rower: ST.RT});   // zapis przejazdu (tylko w telefonie)
     $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
     $('b-stop').onclick = koniecJazdy;
@@ -665,10 +671,20 @@
     $('b-nowy').onclick = () => { stan.start = jaM ? [jaM.getLatLng().lat, jaM.getLatLng().lng] : stan.start; if (jaM) { jaM.remove(); jaM = null; } ekran('s-cel'); };
   }
   // głos
-  function powiedz(t) {
+  // głos: w aplikacji syntezator Androida (działa też przy zgaszonym ekranie), gdy zawiedzie – głos przeglądarki;
+  // przy teście (pokaz = true) czytelny komunikat, co zrobić, gdy telefon nie ma polskiego głosu
+  function glosWeb(t) { if (!window.speechSynthesis) return false; try { const u = new SpeechSynthesisUtterance(t); u.lang = 'pl-PL'; u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); return true; } catch (e) { return false; } }
+  function glosBlad(e, pokaz) { diag.glos = 'błąd: ' + (e && e.message || e || '?'); pokazDiag();
+    if (pokaz) alert('Telefon nie odtworzył komunikatu głosowego.\n\nSprawdź głośność multimediów i w Ustawieniach Androida: Ułatwienia dostępu → Zamiana tekstu na mowę – wybierz syntezator Google i pobierz język polski.'); }
+  function powiedz(t, pokaz) {
     if (!stan.glos) return;
-    if (NAT && PL.TextToSpeech) { PL.TextToSpeech.speak({text: t, lang: 'pl-PL', rate: 1.0, category: 'playback'}).catch(() => {}); return; }
-    if (!window.speechSynthesis) return; try { const u = new SpeechSynthesisUtterance(t); u.lang = 'pl-PL'; u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
+    if (NAT && PL.TextToSpeech) {
+      PL.TextToSpeech.speak({text: t, lang: 'pl-PL', rate: 1.0, volume: 1.0, category: 'playback'}).then(() => { diag.glos = 'działa'; })
+        .catch(e => PL.TextToSpeech.speak({text: t, rate: 1.0, volume: 1.0}).then(() => { diag.glos = 'działa (domyślny język)'; })
+          .catch(e2 => { if (!glosWeb(t)) glosBlad(e2 || e, pokaz); }));
+      return;
+    }
+    if (!glosWeb(t) && pokaz) glosBlad('brak syntezatora mowy w przeglądarce', true); }
   function glosIkona() { $('b-glos').innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/>${stan.glos ? '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>' : '<path d="M17 9l5 6M22 9l-5 6"/>'}</svg>`; $('b-glos').ariaLabel = stan.glos ? 'Wyłącz komunikaty głosowe' : 'Włącz komunikaty głosowe'; }
   $('b-glos').onclick = () => { stan.glos = !stan.glos; LS.set('glos', stan.glos); glosIkona(); if (stan.glos) powiedz('Komunikaty głosowe włączone'); };
   $('b-srodek').onclick = () => { sledz = true; $('b-srodek').classList.add('hide'); if (kurs && stan.jazda) obroc(true); if (jaM) map.setView(jaM.getLatLng(), Math.max(map.getZoom(), 16), {animate: !obrocona}); };
