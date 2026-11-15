@@ -15,7 +15,7 @@ cp "$SRC/stan/odcinki.js" "$SRC/stan/jedz.js" "$DST/stan/"
 [ -f "$SRC/stan/podklad.js" ] && cp "$SRC/stan/podklad.js" "$DST/stan/" || echo "window.PODKLAD=null;" > "$DST/stan/podklad.js"
 [ -f "$SRC/stan/wysokosci.js" ] && cp "$SRC/stan/wysokosci.js" "$DST/stan/" || echo "window.WYS=null;" > "$DST/stan/wysokosci.js"
 STRONA="https://rowerowy-strzebin.smart-ant.pl/"
-sed -i -e "s|href=\"\./\"|href=\"$STRONA\"|g" -e "s|href=\"polityka-prywatnosci.html\"|href=\"${STRONA}polityka-prywatnosci.html\"|g" \
+sed -i -e "s|href=\"\./\"|href=\"$STRONA\"|g" -e "s|href=\"polityka-prywatnosci.html\"|href=\"${STRONA}polityka-prywatnosci.html\"|g" -e "s|href=\"\./#faq\"|href=\"${STRONA}#faq\"|g" \
        -e 's|<link rel="manifest" href="jedz.webmanifest">||' "$DST/index.html"
 # biblioteka Capacitora (bez bundlera): udostępnia wtyczki natywne – BackgroundGeolocation, TextToSpeech, LocalNotifications
 cp "$(dirname "$0")/node_modules/@capacitor/core/dist/capacitor.js" "$DST/capacitor-core.js"

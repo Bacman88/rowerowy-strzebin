@@ -114,6 +114,7 @@ section{padding:46px 0 10px}
 section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.faq{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:0 0 8px;padding:0 16px}.faq summary{cursor:pointer;font-weight:700;font-size:16px;padding:13px 0 13px 4px;margin-left:14px;list-style-position:outside}.faq[open] summary{border-bottom:1px solid var(--line)}.faq p{margin:10px 0 14px;line-height:1.55}
 .card h3{margin:0 0 6px;font-size:17px}
 .card p{margin:0;color:var(--muted);font-size:14.5px}
 .dl{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -330,6 +331,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
     <a href="#jak"><span class="num">5</span>Jak to działa</a>
     <a href="#r4"><span class="num">6</span>Relacja do znaków R-4</a>
     <a href="#pobierz"><span class="num">7</span>Do pobrania</a>
+    <a href="#faq"><span class="num">8</span>Pytania i odpowiedzi</a>
   </nav>
 </header>
 
@@ -535,6 +537,13 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 {{DOWNLOADS}}
   </ul>
   <p class="tag" style="margin-top:12px">Ślady GPX każdej trasy pobierzesz z listy tras przy mapie.</p>
+</section>
+
+<section id="faq" class="msec">
+  <h2><span class="num">8</span>Pytania i odpowiedzi</h2>
+{{FAQ}}
+  <p class="tag" style="margin-top:12px">Nie ma tu Twojego pytania? <a href="#" onclick="UWAGI.otworz({gdzie:'strona', wersja:'strona'});return false">Napisz do nas</a>.</p>
+  <script type="application/ld+json">{{FAQ_LD}}</script>
 </section>
 
 <footer>

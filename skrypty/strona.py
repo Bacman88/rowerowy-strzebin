@@ -208,7 +208,12 @@ dl += (f'\n<li class="dl-m"><span class="dl-t">Generator tabliczek (wzór „HUB
 # mapa stanu dróg ze zgłoszeniami (PHP + baza poza public_html); odcinki dorabia odcinki.py
 shutil.copytree("www", S, dirs_exist_ok=True)
 n_posts = len(posts); n_pl = sum(len(p["imgs"]) for p in posts)
-html = open("strona_template.html").read().replace("{{DOWNLOADS}}", dl).replace("{{NPOSTS}}", str(n_posts)).replace("{{NPLATES}}", str(n_pl)).replace(
+# 15.11.2026: pytania i odpowiedzi (faq.json) – sekcja na stronie i dane strukturalne FAQPage dla wyszukiwarek
+import html as _hh
+FAQ = json.load(open("faq.json"))
+faq_html = "\n".join(f'<details class="faq"><summary>{_hh.escape(q)}</summary><p>{_hh.escape(a)}</p></details>' for q, a in FAQ)
+faq_ld = json.dumps({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in FAQ]}, ensure_ascii=False).replace("</", "<\\/")
+html = open("strona_template.html").read().replace("{{DOWNLOADS}}", dl).replace("{{FAQ}}", faq_html).replace("{{FAQ_LD}}", faq_ld).replace("{{NPOSTS}}", str(n_posts)).replace("{{NPLATES}}", str(n_pl)).replace(
     "{{NROUTES}}", str(sum(1 for r in routes if not r["alt"])))
 # 12.11.2026: sekcja „Dlaczego nie znaki R-4” – teksty wspólne z opisem PDF (teksty.py)
 import html as _h, sys as _sy
