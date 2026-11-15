@@ -16,6 +16,8 @@ const URL = (process.argv[2] || 'http://127.0.0.1:8799/') + 'jedz.html';
     await p.click('#pobl-chipy button[data-k=apteka]');
     ok(await p.waitForSelector('#pobl-lista:not(.hide) button', {timeout: 8000}).then(() => true, () => false), 'w pobliżu: najbliższe apteki');
     await p.click('#pobl-chipy button[data-k=apteka]');
+    await p.fill('#szukaj', '49'); await p.waitForTimeout(300);
+    ok(/Węzeł 49/.test(await p.textContent('#wyniki > :first-child')), 'szukanie węzła po numerze („49”)');
     await p.fill('#szukaj', 'GOSiR'); await p.waitForTimeout(500);
     ok(await p.$$eval('#wyniki > *', x => x.length) > 0, 'wyniki wyszukiwania');
     await p.locator('#wyniki button, #wyniki li, #wyniki div').first().click();

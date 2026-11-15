@@ -60,14 +60,24 @@
   })();
   const TYPM = {stacja: 'Stacja napraw rowerów', serwis: 'Serwis rowerowy', wiata: 'Wiata', lawka: 'Ławka', piknik: 'Piknik / ognisko', widok: 'Punkt widokowy', woda: 'Woda', jedzenie: 'Jedzenie', kawa: 'Kawiarnia', bar: 'Bar', nocleg: 'Nocleg', kosciol: 'Kościół / kapliczka', zabytek: 'Zabytek', przyroda: 'Przyroda', sport: 'Sport', zabawa: 'Plac zabaw', wc: 'WC', aed: 'Defibrylator AED', apteka: 'Apteka', pkp: 'Kolej', autobus: 'Przystanek autobusowy', sklep: 'Sklep spożywczy', parking: 'Parking', ciekawe: 'Ciekawe miejsce'};
   const MIEJSCA = (H.places || []).filter(p => p.nazwa && p.typ !== 'lawka').map(p => ({n: p.nazwa, s: (TYPM[p.typ] || 'Miejsce') + (najblizszaMiejscowosc([p.lat, p.lon]) ? ' · ' + najblizszaMiejscowosc([p.lat, p.lon]) : ''), lat: p.lat, lon: p.lon, typ: 'p'}));
-  const WSZYSTKO = [...CELE, ...MIEJSCA, ...ULICE].map(x => ({...x, q: norm(x.n + ' ' + x.s)}));
+  // węzły (słupki) HUB: wpisz „49”, „w49” albo „węzeł 49”; położenie bierzemy z H.posts w chwili wyboru (przesunięcia z panelu)
+  const WEZLY = H.posts.map(p => ({n: 'Węzeł ' + p.nr, s: p.loc || 'węzeł HUB', p, typ: 'w', nr: p.nr}));
+  const WSZYSTKO = [...CELE, ...MIEJSCA, ...ULICE, ...WEZLY].map(x => ({...x, q: norm(x.n + ' ' + x.s + (x.typ === 'w' ? ' slupek w' + x.nr : ''))}));
+  const celXY = x => x.p ? [x.p.lat, x.p.lon] : [x.lat, x.lon];
   function szukaj(q) {
-    q = norm(q.trim()); if (q.length < 2) return [];
+    q = norm(q.trim());
+    const nr = q.match(/^(?:w|wezel|wezla|slupek|nr)?\s*\.?\s*(\d{1,3})$/);   // sam numer – węzeł na pierwszym miejscu
+    if (nr) { const w = WSZYSTKO.find(x => x.typ === 'w' && x.nr === +nr[1]); if (q.length < 2) return w ? [w] : [];
+      const reszta = q.length >= 2 ? szukajTekst(q).filter(x => x !== w) : []; return (w ? [w] : []).concat(reszta).slice(0, 12); }
+    return szukajTekst(q);
+  }
+  function szukajTekst(q) {
+    if (q.length < 2) return [];
     const sl = q.split(/\s+/);
     return WSZYSTKO.map(x => {
       if (!sl.every(w => x.q.includes(w))) return null;
       const n = norm(x.n).replace(/^ul\. /, ''); let sc = n.startsWith(q) ? 0 : n.includes(' ' + q) ? 1 : 2;
-      sc += {m: 0, p: .3, u: .6}[x.typ];
+      sc += {m: 0, p: .3, u: .6, w: .9}[x.typ];
       return [sc, x];
     }).filter(Boolean).sort((a, b) => a[0] - b[0] || a[1].n.length - b[1].n.length).slice(0, 12).map(a => a[1]);
   }
@@ -76,11 +86,12 @@
     const el = $('wyniki');
     el.classList.toggle('hide', !lista.length); $('szybkie').classList.toggle('hide', !!lista.length);
     el.innerHTML = lista.map((x, i) => { const [bg, kol, d] = IKW[x.typ] || IKW.g;
+      if (x.typ === 'w') return `<button type="button" role="option" data-i="${i}"><span class="ik" style="background:#1d3b30;color:#fff;border-radius:50%;font-size:${x.nr > 9 ? 14 : 16}px">${x.nr}</span><span><span class="t">${esc(x.n)}</span><br><span class="s">${esc(x.s)}</span></span></button>`;
       return `<button type="button" role="option" data-i="${i}"><span class="ik" style="background:${bg}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${kol}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg></span><span><span class="t">${esc(x.n)}</span><br><span class="s">${esc(x.s)}</span></span></button>`; }).join('');
-    el.querySelectorAll('button').forEach(b => b.onclick = () => { const x = lista[+b.dataset.i]; ustawCel([x.lat, x.lon], x.n, x.s); });
+    el.querySelectorAll('button').forEach(b => b.onclick = () => { const x = lista[+b.dataset.i]; ustawCel(celXY(x), x.n, x.s); });
   }
   $('szukaj').addEventListener('input', e => pokazWyniki(szukaj(e.target.value)));
-  $('szukaj').addEventListener('keydown', e => { if (e.key === 'Enter') { const w = szukaj(e.target.value); if (w[0]) ustawCel([w[0].lat, w[0].lon], w[0].n, w[0].s); } });
+  $('szukaj').addEventListener('keydown', e => { if (e.key === 'Enter') { const w = szukaj(e.target.value); if (w[0]) ustawCel(celXY(w[0]), w[0].n, w[0].s); } });
   const SZYBKIE = [['Strzebiń', ''], ['Bukowiec', ''], ['Koszęcin', ''], ['Kalety', ''], ['Boronów', ''], ['Leśno Rajza', 'g'], ['Stacja napraw', 's']];
   $('chipy').innerHTML = SZYBKIE.map(([n, c]) => `<button type="button" class="${c}">${n}</button>`).join('');
   $('chipy').querySelectorAll('button').forEach(b => b.onclick = () => {
