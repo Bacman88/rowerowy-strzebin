@@ -6,7 +6,13 @@ header('Cache-Control: no-store, no-cache, must-revalidate, private, max-age=0')
 header('Pragma: no-cache'); header('Expires: 0');
 header('X-LiteSpeed-Cache-Control: no-cache');   // Joton/LiteSpeed: panel nigdy z pamięci podręcznej serwera
 header('X-Robots-Tag: noindex');
-session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict', 'secure' => !empty($_SERVER['HTTPS']), 'path' => '/admin/']);
+// sesje we własnym katalogu (poza public_html) i ważne 8 h – domyślne sesje hostingu znikały po ~24 min bez ruchu,
+// a wtedy zapis z mapy (fetch) dostawał stronę logowania zamiast JSON („Unexpected token '<'”)
+$sesje = hub_cfg()['dane'] . '/sesje';
+if (!is_dir($sesje)) @mkdir($sesje, 0700, true);
+if (is_dir($sesje) && is_writable($sesje)) session_save_path($sesje);
+ini_set('session.gc_maxlifetime', (string)(8 * 3600));
+session_set_cookie_params(['lifetime' => 8 * 3600, 'httponly' => true, 'samesite' => 'Strict', 'secure' => !empty($_SERVER['HTTPS']), 'path' => '/admin/']);
 session_name('hub_admin');
 session_start();
 
@@ -28,7 +34,11 @@ $blad = '';
 
 if (isset($_GET['wyloguj'])) { session_destroy(); header('Location: ./'); exit; }
 
+// podtrzymanie sesji z otwartego panelu
+if (isset($_GET['ping'])) hub_json(['ok' => (bool)($_SESSION['ok'] ?? false)]);
 if (!($_SESSION['ok'] ?? false)) {
+    // zapytanie z mapy panelu (fetch) bez sesji – czytelny komunikat zamiast strony logowania
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['akcja'])) hub_json(['blad' => 'Sesja wygasła – odśwież stronę i zaloguj się ponownie'], 401);
     if ($cfg['admin_haslo'] !== '' && isset($_POST['haslo'])) {
         if (hash_equals((string)$cfg['admin_haslo'], (string)$_POST['haslo'])) {
             session_regenerate_id(true);
@@ -391,6 +401,8 @@ document.querySelectorAll('.z[data-zm]').forEach(el => {
 const pierwszy = document.querySelector('.z');
 map.setView([50.62, 18.88], 12);
 if (pierwszy) pierwszy.click();
+// podtrzymanie sesji, dopóki panel jest otwarty
+setInterval(() => fetch('./?ping=1', {cache: 'no-store'}).catch(() => {}), 5 * 60 * 1000);
 <?php if ($tryb === 'slupki'): ?>
 // ===== Przesuwanie węzłów: korekty położenia słupków w tabeli korekty_wezlow =====
 (() => {
@@ -421,7 +433,7 @@ if (pierwszy) pierwszy.click();
   async function wyslij(op) {
     const fd = new FormData(); fd.append('akcja', 'wezel_poz'); fd.append('csrf', CSRF); fd.append('nr', wyb.nr); fd.append('op', op);
     if (op === 'zapisz') { fd.append('lat', poz[0]); fd.append('lon', poz[1]); }
-    try { const r = await fetch('./', {method: 'POST', body: fd, headers: {'Accept': 'application/json'}}); const j = await r.json();
+    try { const r = await fetch('./', {method: 'POST', body: fd, headers: {'Accept': 'application/json'}}); const j = await r.json().catch(() => ({blad: 'Sesja wygasła albo serwer chwilowo niedostępny – odśwież stronę i spróbuj ponownie'}));
       if (!j.ok) throw new Error(j.blad || 'Nie udało się zapisać');
       KW = j.wezly || {}; wybierz(wyb); $('sl-msg').textContent = op === 'zapisz' ? 'Zapisano – nowe położenie jest już na stronie i w nawigacji.' : 'Przywrócono oryginalne położenie.';
     } catch (e) { $('sl-msg').textContent = '⚠ ' + e.message; }
@@ -477,7 +489,7 @@ if (pierwszy) pierwszy.click();
     const fd = new FormData(); fd.append('akcja', 'korekta'); fd.append('csrf', CSRF); fd.append('klucz', wyb.k); fd.append('op', op);
     for (const [k, v] of Object.entries(pola)) fd.append(k, v);
     try {
-      const r = await fetch('./', {method: 'POST', body: fd, headers: {'Accept': 'application/json'}}); const j = await r.json();
+      const r = await fetch('./', {method: 'POST', body: fd, headers: {'Accept': 'application/json'}}); const j = await r.json().catch(() => ({blad: 'Sesja wygasła albo serwer chwilowo niedostępny – odśwież stronę i spróbuj ponownie'}));
       if (!j.ok) throw new Error(j.blad || 'Nie udało się zapisać');
       K = j.korekty || {}; wybierz(wyb); $('ed-msg').textContent = 'Zapisano – zmiana jest już na stronie.';
     } catch (e) { $('ed-msg').textContent = '⚠ ' + e.message; }
