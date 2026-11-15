@@ -46,7 +46,9 @@ def bearing(path):
 close = lambda a, b, t=35: abs((a - b + 180) % 360 - 180) <= t
 
 posts = D["posts"]; places = D["places"]
-VILLAGES = sorted({pl["name"] for p in posts for pl in p["plates"] if not pl.get("lr") and not pl.get("poi")} & set(places))
+# 15.11.2026 (Bartosz): Kuczów jako osobny cel, podpisany „Kalety-Kuczów” (słupki 22, 29, 35)
+if "Kuczów" in places: places["Kalety-Kuczów"] = places["Kuczów"]
+VILLAGES = sorted(({pl["name"] for p in posts for pl in p["plates"] if not pl.get("lr") and not pl.get("poi")} | {"Kalety-Kuczów"}) & set(places))
 MAJOR = {"Koszęcin", "Kalety", "Boronów", "Strzebiń"}
 MAXKM, NEAR = 12.0, 0.5
 USE_MAJOR = False   # bez dokładania „ważnych celów” – tylko pokrycie kierunków + ciągłość
@@ -150,20 +152,20 @@ MANUAL = {
  19: ["Strzebiń", "Kalety", "Piasek"],
  20: ["Koszęcin", "Prądy", "Bukowiec", "Kurzychowe", "Kalety"],
  21: ["Łazy", "Psary", "Kurzychowe", "Kalety"],
- 22: ["Bukowiec", "Piasek", "Strzebiń", "Kalety"],
+ 22: ["Bukowiec", "Piasek", "Strzebiń", "Kalety", "Kalety-Kuczów"],
  23: ["Strzebiń", "Koszęcin", "Boronów"],
  24: ["Prądy", "Koszęcin"],
  25: ["Kalety", "Kurzychowe", "Łazy"],
  26: ["Łazy", "Kalety"],
  27: ["Prądy", "Koszęcin", "Dubiele", "Boronów"],
  28: ["Strzebiń", "Kalety"],   # 15.11.2026: zatwierdzona zmiana z mapy wspólnej – droga na wschód maksymalnie trudna, bez Bukowca i Piasku
- 29: ["Bukowiec", "Piasek", "Strzebiń", "Kalety"],
+ 29: ["Bukowiec", "Piasek", "Strzebiń", "Kalety", "Kalety-Kuczów"],
  30: ["Dubiele", "Kalety"],
  31: ["Strzebiń", "Kalety", "Piasek"],
  32: ["Strzebiń", "Kalety", "Piasek"],
  33: ["Kalety", "Strzebiń", "Dubiele", "Piasek"],
  34: ["Kalety", "Strzebiń", "Dubiele", "Piasek", "Sośnica"],
- 35: ["Bukowiec", "Piasek", "Kalety"],
+ 35: ["Bukowiec", "Piasek", "Kalety", "Kalety-Kuczów"],
  36: ["Prądy", "Strzebiń", "Koszęcin"],
  37: ["Prądy", "Strzebiń", "Koszęcin"],
  38: ["Prądy", "Strzebiń", "Koszęcin"],

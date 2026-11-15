@@ -200,7 +200,7 @@ POIS = [
     # 5.11.2026 – Bartosz: pomnik (plus code JVFF+MF), stacje napraw z funduszu sołeckiego 2027, Bistro Moderno
     dict(name="Pomnik J. Ligonia", lon=18.873688, lat=50.624188, cat="brown", icon="heritage"),
     dict(name="Stacja napraw", lon=18.873688, lat=50.624188, cat="gray", icon="service", planned=True),
-    dict(name="WC", lon=18.891312, lat=50.615687, cat="gray", icon="wc", planned=True, force=[2, 3]),   # przy boisku – jedna tabliczka z „Stacja napraw”
+    dict(name="Toaleta", lon=18.891312, lat=50.615687, cat="gray", icon="wc", planned=True, force=[2, 3]),   # przy boisku – jedna tabliczka z „Stacja napraw”
     dict(name="Stacja napraw", lon=18.891312, lat=50.615687, cat="gray", icon="service", planned=True, force=[2, 3]),
     dict(name="Boisko Strzebiń", lon=18.8912, lat=50.6152, cat="orange", icon="football"),   # boisko LKS Victoria
     dict(name="Kapliczka w Łazach", lon=18.93025, lat=50.63627, cat="brown", icon="church"),   # przy placu zabaw „Basia” (wg Bartosza)
