@@ -323,7 +323,7 @@
     // dopisek w miejscu najdalszym od głównej trasy
     const M = stan.T.ll.filter((_, i) => i % 3 === 0); let best = null, bd = -1;
     for (let i = 0; i < A.ll.length; i += 2) { let m = 1e9; for (const q of M) m = Math.min(m, dist(A.ll[i], q)); if (m > bd) { bd = m; best = A.ll[i]; } }
-    if (best && bd > 30) L.marker(best, {icon: L.divIcon({className: '', html: `<div class="alt-et">${esc(c.txt.split(' · ').slice(0, 2).join(' · '))}</div>`, iconSize: null})}).on('click', kl).addTo(g);
+    if (best && bd > 30) L.marker(best, {icon: L.divIcon({className: '', html: `<div class="alt-et">${esc((c.typ === 'zwykla' ? 'główna · ' : '') + c.txt.split(' · ')[0])}</div>`, iconSize: null})}).on('click', kl).addTo(g);
     g.eachLayer(l => l.bringToBack && l.bringToBack());
   }
   function wybierzAlt(c) {
