@@ -276,6 +276,25 @@ st.append(Paragraph("Projekt powstał tak, by dało się go wprowadzić w każdy
                     "sołectwo po sołectwie, a trasy sąsiednich sołectw połączą się w jedną gminną sieć – bez zamawiania za każdym razem projektu od zera. "
                     "Już teraz trasy pokazowe prowadzą do Koszęcina, Kalet, Boronowa, Babienicy, Psar, Drutarni i Sośnicy – a Sośnica, z hotelem i restauracją, to naturalne miejsce wypadowe dla rowerzystów.", P))
 
+st.append(Paragraph("Zgodność z Programem Rozwoju Dróg Rowerowych powiatu lublinieckiego 2021–2030", H2))
+st.append(Paragraph("Gmina Koszęcin jest stroną <b>Programu Rozwoju Dróg Rowerowych na terenie gmin powiatu lublinieckiego na lata 2021–2030</b>, "
+                    "opracowanego wspólnie przez Powiat Lubliniecki i osiem gmin (liderem porozumienia jest Gmina Lubliniec). Program wprost wskazuje kierunki, "
+                    "na których leży HUB Strzebiń:", P))
+st += bullets([
+    "<b>Zadanie Gminy Koszęcin: „Budowa drogi rowerowej na odcinku Wierzbie–Koszęcin oraz Koszęcin–Strzebiń–Bukowiec”</b> – termin 2022–2027, "
+    "prognozowany koszt 14 mln zł. Oznakowanie HUB i rowerowa obwodnica DW 906 (trasa 1: Bukowiec–Strzebiń) to tani pierwszy krok na tym samym kierunku: "
+    "pokazuje ruch rowerowy i bezpieczne objazdy już dziś, zanim powstanie droga rowerowa.",
+    "<b>Korytarz regionalny Konopiska – Koszęcin – Kalety</b> (13,4 km, z tego tylko 2 km istniejących dróg) oraz <b>Lubliniec – Koszęcin – Woźniki – Koziegłowy</b> "
+    "(53 km) – nasze trasy łączą Koszęcin z Kaletami i Bukowcem istniejącymi drogami gminnymi i leśnymi.",
+    "<b>„Aktualizacja i ujednolicenie oznakowania przebiegu dróg rowerowych na terenie powiatu lublinieckiego”</b> (zadanie Gminy Lubliniec, 2022–2025) – "
+    "projekt tabliczek HUB jest gotowy do uzgodnienia z jednolitym oznakowaniem powiatu.",
+    "Diagnoza programu: w gminie Koszęcin „cały system dróg rowerowych jest dopiero w trakcie powstawania”. Program przewiduje kierunek "
+    "„Budowa i modernizacja infrastruktury towarzyszącej adekwatnej dla ruchu rowerowego wraz z systemem oznakowania” oraz produkt wizerunkowy "
+    "promujący ruch rowerowy w powiecie – HUB (oznakowanie, stacje napraw z funduszu sołeckiego 2027, mapa i nawigacja „Jedź”) wpisuje się w oba.",
+    "Program przyjmuje pojęcie „drogi rowerowe” obejmujące także trasy na terenach leśnych – tak jak sieć HUB, prowadzona w dużej części drogami "
+    "Nadleśnictwa Koszęcin."])
+st.append(Paragraph("Źródło: Program Rozwoju Dróg Rowerowych na terenie gmin powiatu lublinieckiego na lata 2021–2030 (wersja z 26.08.2021, wozniki.pl).", SMALL))
+
 st.append(Paragraph("Spójność z sąsiadami – Program Rozwoju Tras Rowerowych powiatu tarnogórskiego", H2))
 st.append(Paragraph("Sąsiedni powiat tarnogórski realizuje <b>Program Rozwoju Tras Rowerowych na lata 2022–2030</b>, przyjęty na podstawie listu intencyjnego "
                     "Powiatu Tarnogórskiego i dziewięciu gmin – w tym <b>Kalet</b> (Kalety, Krupski Młyn, Miasteczko Śląskie, Ożarowice, Radzionków, Świerklaniec, "
