@@ -116,10 +116,24 @@ while _ROW:
     _linie.append(ln)
 LINIE += [{"typ": "rower", "osm": 1, "ll": [[round(a, 6), round(b, 6)] for a, b in ln]} for ln in _linie]
 
+# 16.11.2026: szlaki rowerowe z OSM (Leśno Rajza, Liswarciański) – nawigacja „do szlaku” prowadzi do najbliższego punktu samego szlaku
+SZLAKI = []
+for f in json.load(open("../dane/osm2_clean.geojson"))["features"]:
+    p = f["properties"]; nz = p.get("name") or ""
+    if p.get("route") != "bicycle" or not (p.get("ref") == "LR" or "Liswarcia" in nz): continue
+    g = f["geometry"]; parts = g["coordinates"] if g["type"] == "MultiLineString" else [g["coordinates"]]
+    linie = []
+    for part in parts:
+        ln = []
+        for lon, lat in part:   # co ~40 m wystarczy do szukania najbliższego punktu
+            if not ln or math.dist(xy(lat, lon), xy(*ln[-1])) > 40: ln.append([round(lat, 5), round(lon, 5)])
+        if len(ln) > 1: linie.append(ln)
+    SZLAKI.append({"n": "Leśno Rajza" if p.get("ref") == "LR" else "Liswarciański Szlak Rowerowy", "linie": linie})
+
 # zatwierdzone oceny dróg z mapy wspólnej (migawka z api/stan.php: id odcinka → stan) – działają od pierwszego uruchomienia, także bez sieci;
 # świeże oceny aplikacja i tak dociąga z serwera przy starcie
 import os
 OCENY = json.load(open("../dane/oceny_mapa.json")) if os.path.exists("../dane/oceny_mapa.json") else {}
-open(f"{OUT}/stan/jedz.js", "w").write("window.JEDZ=" + json.dumps({"trasy": T, "rower": R, "chodnik": C, "linie": LINIE, "oceny": OCENY}, separators=(",", ":")) + ";")
+open(f"{OUT}/stan/jedz.js", "w").write("window.JEDZ=" + json.dumps({"trasy": T, "rower": R, "chodnik": C, "linie": LINIE, "oceny": OCENY, "szlaki": SZLAKI}, separators=(",", ":")) + ";")
 km = lambda ids: sum(s[6] for s in ODC if s[0] in set(ids)) / 1000
 print(f"jedź: odcinki na trasach {len(T)} ({km(T):.0f} km), DW z drogą rowerową obok {len(R)} ({km(R):.1f} km), z szerokim chodnikiem {len(C)} ({km(C):.1f} km), linii na mapę {len(LINIE)}")

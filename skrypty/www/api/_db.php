@@ -2,6 +2,14 @@
 // Wspólne: konfiguracja, baza, kopia dobowa. Plik nie jest wywoływany bezpośrednio.
 // Konfiguracja leży POZA public_html: /var/www/<witryna>/hub_config.php (wdrożenie jej nie nadpisuje).
 declare(strict_types=1);
+// 16.11.2026: API czyta i zapisuje też aplikacja „Jedź” na Androidzie (inny origin: https://localhost) – CORS dla wszystkich plików api/
+// (dane publiczne bez kontaktów, zapisy przez moderację; bez ciasteczek – Allow-Credentials nie ustawiamy)
+if (basename(dirname($_SERVER['SCRIPT_FILENAME'] ?? '')) === 'api') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') { http_response_code(204); exit; }
+}
 date_default_timezone_set('Europe/Warsaw');
 ob_start();   // przypadkowe ostrzeżenia PHP nie mogą zepsuć odpowiedzi JSON (hub_json czyści bufor)
 

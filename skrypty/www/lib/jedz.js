@@ -46,7 +46,8 @@
     const d = document.createElement('div'); d.className = 'moff-w'; el.prepend(d); mapaOfflinePanel();
   }, 0);
   // ===================== wyszukiwanie celu =====================
-  const CELE = (H.cele || []).map(c => ({n: c.n, s: c.cat === 'blue' ? 'Miejscowość' : 'Cel z drogowskazów', lat: c.lat, lon: c.lon, typ: 'm'}));
+  const CELE = (H.cele || []).filter(c => !/Rajza|Liswarcia/.test(c.n)).map(c => ({n: c.n, s: c.cat === 'blue' ? 'Miejscowość' : 'Cel z drogowskazów', lat: c.lat, lon: c.lon, typ: 'm'}))
+    .concat(((window.JEDZ && JEDZ.szlaki) || []).map(s => ({n: s.n, s: 'szlak rowerowy – najbliższy wjazd', typ: 'm', szlak: s.n})));
   const MIEJSCOWOSCI = (H.cele || []).filter(c => c.cat === 'blue');
   const najblizszaMiejscowosc = p => { let b = null, bd = Infinity; for (const c of MIEJSCOWOSCI) { const d = dist(p, [c.lat, c.lon]); if (d < bd) { bd = d; b = c.n; } } return b; };
   const ULICE = (() => {
@@ -88,16 +89,16 @@
     el.innerHTML = lista.map((x, i) => { const [bg, kol, d] = IKW[x.typ] || IKW.g;
       if (x.typ === 'w') return `<button type="button" role="option" data-i="${i}"><span class="ik" style="background:#1d3b30;color:#fff;border-radius:50%;font-size:${x.nr > 9 ? 14 : 16}px">${x.nr}</span><span><span class="t">${esc(x.n)}</span><br><span class="s">${esc(x.s)}</span></span></button>`;
       return `<button type="button" role="option" data-i="${i}"><span class="ik" style="background:${bg}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${kol}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg></span><span><span class="t">${esc(x.n)}</span><br><span class="s">${esc(x.s)}</span></span></button>`; }).join('');
-    el.querySelectorAll('button').forEach(b => b.onclick = () => { const x = lista[+b.dataset.i]; ustawCel(celXY(x), x.n, x.s); });
+    el.querySelectorAll('button').forEach(b => b.onclick = () => { const x = lista[+b.dataset.i]; if (x.szlak) return doSzlaku(x.szlak); ustawCel(celXY(x), x.n, x.s); });
   }
   $('szukaj').addEventListener('input', e => pokazWyniki(szukaj(e.target.value)));
-  $('szukaj').addEventListener('keydown', e => { if (e.key === 'Enter') { const w = szukaj(e.target.value); if (w[0]) ustawCel(celXY(w[0]), w[0].n, w[0].s); } });
+  $('szukaj').addEventListener('keydown', e => { if (e.key === 'Enter') { const w = szukaj(e.target.value); if (w[0]) { if (w[0].szlak) doSzlaku(w[0].szlak); else ustawCel(celXY(w[0]), w[0].n, w[0].s); } } });
   const SZYBKIE = [['Strzebiń', ''], ['Bukowiec', ''], ['Koszęcin', ''], ['Kalety', ''], ['Boronów', ''], ['Leśno Rajza', 'g'], ['Stacja napraw', 's']];
   $('chipy').innerHTML = SZYBKIE.map(([n, c]) => `<button type="button" class="${c}">${n}</button>`).join('');
   $('chipy').querySelectorAll('button').forEach(b => b.onclick = () => {
     const n = b.textContent;
     if (n === 'Stacja napraw') { const s = (H.places || []).filter(p => p.typ === 'stacja'); const ja = stan.start || [50.616, 18.897]; s.sort((a, c) => dist(ja, [a.lat, a.lon]) - dist(ja, [c.lat, c.lon])); if (s[0]) ustawCel([s[0].lat, s[0].lon], 'Stacja napraw rowerów', s[0].opis || ''); return; }
-    if (n === 'Leśno Rajza') { const best = najblizszyPunktTrasy('7'); if (best) ustawCel(best, 'Leśno Rajza', 'najbliższy punkt szlaku'); return; }
+    if (n === 'Leśno Rajza') return doSzlaku('Leśno Rajza');
     const c = (H.cele || []).find(c => c.n === n); if (c) ustawCel([c.lat, c.lon], c.n, 'Miejscowość');
   });
   // ---- miejsca (POI): stałe z data.js + zatwierdzone z mapy wspólnej (api/miejsca.php) z poprawkami administratora
@@ -159,6 +160,19 @@
     for (const [m, i] of wid) L.marker([m.lat, m.lon], {icon: MJ.icon(m), title: m.nazwa || MJ.TYP[m.typ].n, zIndexOffset: 100})
       .bindPopup(() => MJ.popup(m).replace(/<\/div>\s*$/, '') + (stan.jazda ? '' : `<button type="button" class="jt" data-i="${i}">Jedź tutaj</button>`) + '</div>', {maxWidth: 260}).addTo(poiL);
   };
+  // nawigacja do szlaku (Leśno Rajza, Liswarciański): kilka najbliższych punktów szlaku (co najmniej 400 m od siebie),
+  // dla każdego trasa po drogach – wybieramy najkrótszą, czyli najbliższe miejsce, w którym naprawdę wjedziesz na szlak
+  function doSzlaku(nazwa) {
+    const sz = ((window.JEDZ && JEDZ.szlaki) || []).find(s => s.n === nazwa); if (!sz) return;
+    const licz = ja => {
+      const pkt = sz.linie.flat().map(p => [p, dist(ja, p)]).sort((a, b) => a[1] - b[1]), kand = [];
+      for (const [p] of pkt) { if (kand.every(q => dist(q, p) > 400)) kand.push(p); if (kand.length >= 5) break; }
+      let best = null; for (const p of kand) { const T = trasuj(ja, p, {tryb: stan.tryb}); if (!T.blad && (!best || T.m < best.m)) best = {p, m: T.m}; }
+      if (best) ustawCel(best.p, nazwa, 'najbliższy wjazd na szlak');
+    };
+    if (stan.start) return licz(stan.start);
+    gps(p => { stan.start = p; opiszStart(); licz(p); }, () => licz([50.616, 18.897]));
+  }
   function najblizszyPunktTrasy(id) {
     const r = H.routes.find(r => String(r.id) === id); if (!r) return null;
     const ja = stan.start || [50.616, 18.897]; let b = null, bd = Infinity;
