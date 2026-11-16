@@ -97,24 +97,18 @@ def odsun(ll):
     # wygładzenie (średnia z sąsiadów) – rzut na załamania osi daje drobne ząbki
     return [out[0]] + [[round((out[i - 1][0] + out[i][0] + out[i + 1][0]) / 3, 6), round((out[i - 1][1] + out[i][1] + out[i + 1][1]) / 3, 6)] for i in range(1, len(out) - 1)] + [out[-1]]
 LINIE = [{"typ": "rower", "ll": odsun(l)} for l in ciagi] + [{"typ": "chodnik", "ll": odsun(l)} for l in chodniki]
-# 16.11.2026: pełnoprawne drogi dla rowerów z OpenStreetMap (highway=cycleway) – osobne drogi, rysowane po swojej geometrii.
-# Sklejamy kolejne odcinki w dłuższe linie (mniej obiektów na mapie).
-_ROW = [[[s[7][i], s[7][i + 1]] for i in range(0, len(s[7]), 2)] for s in ODC if s[1] == "droga rowerowa"]
-_kl = lambda p: (round(p[0], 5), round(p[1], 5))
-_linie = []
-while _ROW:
-    ln = _ROW.pop(); zm = True
-    while zm:
-        zm = False
-        for i, o in enumerate(_ROW):
-            if _kl(o[0]) == _kl(ln[-1]): ln += o[1:]
-            elif _kl(o[-1]) == _kl(ln[-1]): ln += o[::-1][1:]
-            elif _kl(o[-1]) == _kl(ln[0]): ln = o[:-1] + ln
-            elif _kl(o[0]) == _kl(ln[0]): ln = o[::-1][:-1] + ln
-            else: continue
-            _ROW.pop(i); zm = True; break
-    _linie.append(ln)
-LINIE += [{"typ": "rower", "osm": 1, "ll": [[round(a, 6), round(b, 6)] for a, b in ln]} for ln in _linie]
+# 16.11.2026: drogi dla rowerów z OpenStreetMap – highway=cycleway oraz ciągi pieszo-rowerowe (footway/path z bicycle=designated);
+# rysowane po swojej geometrii, a odcinki sieci, które nimi biegną, nawigacja traktuje jak drogę rowerową (preferowane)
+OSMR = []
+for f in json.load(open("../dane/osm_gmina.geojson"))["features"]:
+    p = f["properties"]; g = f.get("geometry") or {}
+    if g.get("type") not in ("LineString", "MultiLineString") or p.get("bicycle") in ("no", "dismount"): continue
+    if not (p.get("highway") == "cycleway" or (p.get("highway") in ("footway", "path") and p.get("bicycle") == "designated")): continue
+    for part in (g["coordinates"] if g["type"] == "MultiLineString" else [g["coordinates"]]):
+        if len(part) > 1: OSMR.append([[round(lat, 6), round(lon, 6)] for lon, lat in part])
+R_OSM = [i for i in wybierz(Siatka(lines_xy(OSMR)), 6, .8) if i not in set(R)] if OSMR else []
+R = R + R_OSM
+LINIE += [{"typ": "rower", "osm": 1, "ll": ln} for ln in OSMR]
 
 # 16.11.2026: szlaki rowerowe z OSM (Leśno Rajza, Liswarciański) – nawigacja „do szlaku” prowadzi do najbliższego punktu samego szlaku
 SZLAKI = []
@@ -136,4 +130,4 @@ import os
 OCENY = json.load(open("../dane/oceny_mapa.json")) if os.path.exists("../dane/oceny_mapa.json") else {}
 open(f"{OUT}/stan/jedz.js", "w").write("window.JEDZ=" + json.dumps({"trasy": T, "rower": R, "chodnik": C, "linie": LINIE, "oceny": OCENY, "szlaki": SZLAKI}, separators=(",", ":")) + ";")
 km = lambda ids: sum(s[6] for s in ODC if s[0] in set(ids)) / 1000
-print(f"jedź: odcinki na trasach {len(T)} ({km(T):.0f} km), DW z drogą rowerową obok {len(R)} ({km(R):.1f} km), z szerokim chodnikiem {len(C)} ({km(C):.1f} km), linii na mapę {len(LINIE)}")
+print(f"jedź: odcinki na trasach {len(T)} ({km(T):.0f} km), z drogą rowerową (DW obok ścieżki + ścieżki z OSM) {len(R)} ({km(R):.1f} km), z szerokim chodnikiem {len(C)} ({km(C):.1f} km), linii na mapę {len(LINIE)}")
