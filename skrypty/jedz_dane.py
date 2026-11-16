@@ -97,6 +97,24 @@ def odsun(ll):
     # wygładzenie (średnia z sąsiadów) – rzut na załamania osi daje drobne ząbki
     return [out[0]] + [[round((out[i - 1][0] + out[i][0] + out[i + 1][0]) / 3, 6), round((out[i - 1][1] + out[i][1] + out[i + 1][1]) / 3, 6)] for i in range(1, len(out) - 1)] + [out[-1]]
 LINIE = [{"typ": "rower", "ll": odsun(l)} for l in ciagi] + [{"typ": "chodnik", "ll": odsun(l)} for l in chodniki]
+# 16.11.2026: pełnoprawne drogi dla rowerów z OpenStreetMap (highway=cycleway) – osobne drogi, rysowane po swojej geometrii.
+# Sklejamy kolejne odcinki w dłuższe linie (mniej obiektów na mapie).
+_ROW = [[[s[7][i], s[7][i + 1]] for i in range(0, len(s[7]), 2)] for s in ODC if s[1] == "droga rowerowa"]
+_kl = lambda p: (round(p[0], 5), round(p[1], 5))
+_linie = []
+while _ROW:
+    ln = _ROW.pop(); zm = True
+    while zm:
+        zm = False
+        for i, o in enumerate(_ROW):
+            if _kl(o[0]) == _kl(ln[-1]): ln += o[1:]
+            elif _kl(o[-1]) == _kl(ln[-1]): ln += o[::-1][1:]
+            elif _kl(o[-1]) == _kl(ln[0]): ln = o[:-1] + ln
+            elif _kl(o[0]) == _kl(ln[0]): ln = o[::-1][:-1] + ln
+            else: continue
+            _ROW.pop(i); zm = True; break
+    _linie.append(ln)
+LINIE += [{"typ": "rower", "osm": 1, "ll": [[round(a, 6), round(b, 6)] for a, b in ln]} for ln in _linie]
 
 # zatwierdzone oceny dróg z mapy wspólnej (migawka z api/stan.php: id odcinka → stan) – działają od pierwszego uruchomienia, także bez sieci;
 # świeże oceny aplikacja i tak dociąga z serwera przy starcie

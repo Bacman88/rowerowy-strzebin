@@ -48,6 +48,8 @@
     let f = F[st] ?? 1.25;
     // drogi tras HUB są sprawdzone – bez kary za „brak oceny”; ale ocena mieszkańców (średnia / trudna) liczy się także na trasach
     if (TRASY.has(s[0])) f = (st === 'brak' || st === 'osm' ? Math.min(f, 1) : f) * 0.9;
+    // pełnoprawna droga dla rowerów (OSM highway=cycleway) – preferowana jak droga rowerowa wzdłuż DW (bez kary za brak oceny)
+    if (s[1] === 'droga rowerowa') f = (st === 'brak' || st === 'osm' ? Math.min(f, 1) : f) * 0.85;
     if (ROWER.has(s[0])) f = Math.min(f, 0.85);
     else if (CHODNIK.has(s[0])) f = Math.min(f, 1.1);
     else if (DW(s)) f *= 6;
