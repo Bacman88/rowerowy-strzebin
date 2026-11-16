@@ -91,7 +91,10 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .hstat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.hstat div{background:var(--bg);border-radius:12px;padding:8px 10px}.hstat b{display:block;font-size:18px}.hstat span{font-size:12px;color:var(--muted)}
 .hlista{display:flex;flex-direction:column;gap:6px}.hpoz{display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:inherit;cursor:pointer}
 .ocs{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:900;background:#fff;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:14px 14px 12px}
-.ocs h3{margin:0 0 2px;font-size:18px}.ocs .o{color:#56665c;font-size:13.5px;margin-bottom:10px}
+.ocs h3{margin:0 0 2px;font-size:18px}
+.poik{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0 4px}.poik label{display:flex;align-items:center;justify-content:flex-start;text-align:left;gap:8px;padding:7px 8px;border:1px solid #dfe7e2;border-radius:10px;font-size:14px;cursor:pointer}
+.poik input{width:18px;height:18px;margin:0;accent-color:#00737e}.poik .mj{width:24px;height:24px;flex:none;border-radius:7px;display:grid;place-items:center}
+.poiz{display:flex;gap:14px;font-size:13.5px;margin-top:4px}.poiz button{all:unset;cursor:pointer;color:#00737e;font-weight:700}.ocs .o{color:#56665c;font-size:13.5px;margin-bottom:10px}
 .oc4{display:grid;grid-template-columns:1fr 1fr;gap:8px}.oc4 button{all:unset;cursor:pointer;text-align:center;border-radius:14px;padding:12px 6px;color:#fff;font-weight:800;font-size:16px}
 .oc4 button span{display:block;font-size:26px;line-height:1.1}.ocs .an{all:unset;cursor:pointer;display:block;text-align:center;margin-top:10px;color:#56665c;font-weight:600;padding:6px}
 .ocs input{width:100%;box-sizing:border-box;font:inherit;padding:9px 11px;border:1px solid #cfd8d3;border-radius:10px;margin:0 0 10px}
@@ -212,6 +215,7 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
   <button type="button" class="okr hide" id="wstecz" aria-label="Wróć" style="top:calc(14px + env(safe-area-inset-top));left:14px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
   <div id="prawe" style="position:absolute;right:12px;z-index:650;display:flex;flex-direction:column;gap:8px">
     <button type="button" class="okr hide" id="b-glos" aria-label="Komunikaty głosowe" style="position:static"></button>
+    <button type="button" class="okr" id="b-poi" aria-label="Które miejsca pokazywać na mapie" style="position:static"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><path d="M9.5 9h5M12 6.5v5"/></svg></button>
     <button type="button" class="okr hide" id="b-ocen" aria-label="Oceń drogę, którą jedziesz" style="position:static"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button>
     <button type="button" class="okr hide" id="b-kurs" aria-label="Obracaj mapę w kierunku jazdy" style="position:static"></button>
     <button type="button" class="okr hide" id="b-3d" aria-label="Widok pochylony (3D)" style="position:static">3D</button>
@@ -221,6 +225,7 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
   <button type="button" class="sym hide" id="b-sym">Symulacja: ×1</button>
   <div class="dol" id="dol"></div>
   <div class="ocs hide" id="ocs" role="dialog" aria-label="Oceń drogę"></div>
+  <div class="ocs hide" id="poiu" role="dialog" aria-label="Miejsca na mapie"></div>
   <div id="atryb" style="position:absolute;right:6px;z-index:590;font-size:10.5px;color:#56665c;background:rgba(255,255,255,.75);padding:1px 6px;border-radius:4px;bottom:4px">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">OpenStreetMap</a></div>
 </section>
 

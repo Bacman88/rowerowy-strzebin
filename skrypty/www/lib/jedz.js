@@ -74,12 +74,17 @@
   }
   function szukajTekst(q) {
     if (q.length < 2) return [];
-    const sl = q.split(/\s+/);
+    // numer domu („Lubliniecka 47”, „sienkiewicza 5a”) – adresów z numerami nie mamy, więc szukamy samej ulicy
+    let sl = q.split(/\s+/).filter(Boolean); const bezNr = sl.filter(w => !/^\d+[a-z]?(\/\d+)?$/.test(w));
+    if (bezNr.length && bezNr.length < sl.length) { sl = bezNr; q = bezNr.join(' '); }
+    // przy równym dopasowaniu bliższe wyniki wyżej (ta sama ulica jest w kilku miejscowościach)
+    const ja = (typeof stan !== 'undefined' && stan.start) || [50.616, 18.897];
     return WSZYSTKO.map(x => {
       if (!sl.every(w => x.q.includes(w))) return null;
-      const n = norm(x.n).replace(/^ul\. /, ''); let sc = n.startsWith(q) ? 0 : n.includes(' ' + q) ? 1 : 2;
+      const n = norm(x.n).replace(/^ul\. /, ''); let sc = n.startsWith(q) || n.startsWith(sl[0]) ? 0 : n.includes(' ' + sl[0]) ? 1 : 2;
       sc += {m: 0, p: .3, u: .6, w: .9}[x.typ];
-      return [sc, x];
+      const xy = x.p ? [x.p.lat, x.p.lon] : [x.lat, x.lon];
+      return [sc + Math.min(dist(ja, xy) / 40000, .29), x];
     }).filter(Boolean).sort((a, b) => a[0] - b[0] || a[1].n.length - b[1].n.length).slice(0, 12).map(a => a[1]);
   }
   const IKW = {m: ['#e7eef8', '#0759A7', 'M3 21h18M5 21V10l7-5 7 5v11M10 21v-6h4v6'], u: ['#dfe9e4', '#1d3b30', 'M4 20 10 4M20 20 14 4M12 6v2M12 11v2M12 16v2'], p: ['#f3e9dc', '#81552F', 'M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12zM12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5'], g: ['#e5e7eb', '#1d2a23', 'M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z']};
@@ -144,6 +149,25 @@
   // ---- miejsca na mapie nawigacji: AED, apteki i stacje napraw od przybliżenia 13, reszta od 15; dotknięcie – opis i „Jedź tutaj”.
   //      Rysujemy tylko znaczniki w widocznym obszarze (z zapasem) – setki znaczników poza ekranem spowalniały by mapę na telefonie.
   let poiL = null, poiKlucz = '';
+  // wybór miejsc na mapie (przycisk z pinezką): kategorie pamiętane w telefonie
+  const POIK = [['aed', 'AED', ['aed', 'apteczka']], ['apteka', 'Apteki', ['apteka']], ['sklep', 'Sklepy', ['sklep']], ['jedzenie', 'Jedzenie', ['jedzenie', 'kawa', 'bar']],
+    ['wc', 'WC', ['wc']], ['autobus', 'Przystanki', ['autobus', 'pkp']], ['stacja', 'Serwis rowerowy', ['stacja', 'serwis', 'wypozycz', 'stojak']],
+    ['wiata', 'Odpoczynek', ['wiata', 'piknik', 'lawka', 'widok', 'woda', 'zabawa']], ['ciekawe', 'Ciekawe miejsca', ['ciekawe', 'zabytek', 'kosciol', 'przyroda', 'sport']],
+    ['nocleg', 'Nocleg', ['nocleg']], ['parking', 'Parking i inne', []]];
+  const poiKat = t => (POIK.find(k => k[2].includes(t)) || POIK[POIK.length - 1])[0];
+  let poiOff = new Set(LS.get('poiOff', []));
+  $('b-poi').onclick = () => {
+    if (!MJ) return; const el = $('poiu'); if (!el.classList.contains('hide')) { el.classList.add('hide'); return; }
+    el.innerHTML = `<h3>Miejsca na mapie</h3><div class="o">Wybierz, co pokazywać (widać po przybliżeniu mapy).</div>
+      <div class="poik">${POIK.map(([k, n]) => `<label><input type="checkbox" data-k="${k}"${poiOff.has(k) ? '' : ' checked'}><span class="mj" style="background:${(MJ.TYP[k] || MJ.TYP.parking).c}">${MJ.svg(MJ.TYP[k] ? k : 'parking', '#fff', 15)}</span>${n}</label>`).join('')}</div>
+      <div class="poiz"><button type="button" id="poi-all">Wszystkie</button><button type="button" id="poi-none">Żadne</button></div><button type="button" class="an" id="poi-ok">Gotowe</button>`;
+    el.classList.remove('hide'); $('ocs').classList.add('hide');
+    const ust = () => { poiOff = new Set([...el.querySelectorAll('input')].filter(i => !i.checked).map(i => i.dataset.k)); LS.set('poiOff', [...poiOff]); poiKlucz = ''; rysujPOI.widok(); };
+    el.querySelectorAll('input').forEach(i => i.onchange = ust);
+    $('poi-all').onclick = () => { el.querySelectorAll('input').forEach(i => i.checked = true); ust(); };
+    $('poi-none').onclick = () => { el.querySelectorAll('input').forEach(i => i.checked = false); ust(); };
+    $('poi-ok').onclick = () => el.classList.add('hide');
+  };
   const WAZNE = ['aed', 'apteka', 'stacja'];
   function rysujPOI() {
     if (!map || !MJ) return;
@@ -154,7 +178,7 @@
   rysujPOI.widok = () => {
     if (!poiL) return;
     const z = map.getZoom(), bb = map.getBounds().pad(0.3);
-    const wid = z < 13 ? [] : MSC.map((m, i) => [m, i]).filter(([m]) => MJ.TYP[m.typ] && (z >= 15 || WAZNE.includes(m.typ)) && bb.contains([m.lat, m.lon]));
+    const wid = z < 13 ? [] : MSC.map((m, i) => [m, i]).filter(([m]) => MJ.TYP[m.typ] && !poiOff.has(poiKat(m.typ)) && (z >= 15 || WAZNE.includes(m.typ)) && bb.contains([m.lat, m.lon]));
     const k = wid.map(x => x[1]).join(',') + '|' + stan.jazda; if (k === poiKlucz) return; poiKlucz = k;
     poiL.clearLayers();
     for (const [m, i] of wid) L.marker([m.lat, m.lon], {icon: MJ.icon(m), title: m.nazwa || MJ.TYP[m.typ].n, zIndexOffset: 100})

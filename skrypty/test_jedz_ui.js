@@ -26,6 +26,9 @@ const URL = (process.argv[2] || 'http://127.0.0.1:8799/') + 'jedz.html';
     await p.locator('#wyniki button, #wyniki li, #wyniki div').first().click();
     ok(await p.waitForSelector('.staty', {timeout: 15000}).then(() => true, () => false), 'podgląd trasy');
     ok(await p.$eval('.manew', e => e.getBoundingClientRect().height) > 100, 'lista „Po drodze” widoczna');
+    await p.click('#b-poi'); ok(await p.$$eval('#poiu .poik input', x => x.length) >= 10, 'wybór miejsc na mapie');
+    await p.click('#poi-none'); ok(await p.$$eval('.leaflet-marker-pane .mj', x => x.length) === 0, 'miejsca ukryte po „Żadne”');
+    await p.click('#poi-all'); await p.click('#poi-ok');
     await p.click('#b-symstart'); await p.waitForTimeout(3000);
     ok(/km/.test(await p.textContent('#j-zost')), 'jazda (symulacja)');
     // ocena drogi w trakcie jazdy: gwiazdka → 4 przyciski → podziękowanie, ocena w kolejce do wysłania
