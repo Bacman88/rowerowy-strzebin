@@ -60,6 +60,9 @@ UF = [f for f in features(json.load(open(UMAP))) if f.get("geometry", {}).get("t
 linia = lambda f: [(c[1], c[0]) for c in f["geometry"]["coordinates"]]
 ciagi = [linia(f) for f in UF if f["properties"].get("Typ drogi") == "ciąg pieszo-rowerowy"]
 chodniki = [linia(f) for f in UF if f["properties"].get("Typ drogi") == "chodnik pieszy"]
+# 16.11.2026 (Bartosz): droga rowerowa wzdłuż DW 906 (ul. Lubliniecka) w Koszęcinie, po południowo-zachodniej stronie –
+# od przystanku Koszęcin Lubliniecka do skrzyżowania z Powstańców Śląskich (nie ma jej jeszcze w uMap)
+ciagi.append([(50.641757, 18.831126), (50.641477, 18.831766), (50.640997, 18.832936), (50.640227, 18.834846), (50.638967, 18.837916), (50.638377, 18.839386), (50.637997, 18.840336)])
 GLOWNE = {s[0] for s in ODC if s[1] in ("droga wojewódzka", "droga krajowa")}
 R = [i for i in wybierz(Siatka(lines_xy(ciagi)), 25, .6) if i in GLOWNE] if ciagi else []
 # szeroki chodnik wzdłuż DW (ludzie jeżdżą nim jako bezpieczniejszą alternatywą) – osobna lista: bez kary za DW, ale trochę wolniej
