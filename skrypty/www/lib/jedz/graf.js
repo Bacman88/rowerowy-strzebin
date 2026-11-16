@@ -45,6 +45,14 @@
       if (DW(s) || ROWER.has(s[0])) f *= 0.9;
       return s[6] * f;
     }
+    // pieszo – wędrówki: nawierzchnia prawie bez znaczenia (piach nie przeszkadza), ścieżki i drogi leśne lekko preferowane,
+    // drogi wojewódzkie i krajowe bez chodnika ani drogi rowerowej obok – ×4 (pobocze ruchliwej drogi to nie spacer)
+    if (opc.tryb === 'pieszo') {
+      let f = {nieprzejezdna: 20, trudna: 1.2, srednia: 1.05}[st] || 1;
+      if (s[1] === 'ścieżka piesza' || s[1] === 'ścieżka' || s[1] === 'droga leśna/polna') f *= 0.9;
+      if (DW(s) && !ROWER.has(s[0]) && !CHODNIK.has(s[0])) f *= 4;
+      return s[6] * f;
+    }
     let f = F[st] ?? 1.25;
     // drogi tras HUB są sprawdzone – bez kary za „brak oceny”; ale ocena mieszkańców (średnia / trudna) liczy się także na trasach
     if (TRASY.has(s[0])) f = (st === 'brak' || st === 'osm' ? Math.min(f, 1) : f) * 0.9;

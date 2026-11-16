@@ -15,9 +15,11 @@
     gorski:   {n: 'Górski',      g: 12, vmax: 35, s: {srednia: .92, trudna: .72, brak: .9}},
     elektryk: {n: 'Elektryczny', g: 4,  vmax: 35, s: {srednia: .8,  trudna: .55, brak: .8}},   // wspomaganie: podjazdy prawie bez zwalniania
   };
+  // pieszo (16.11.2026): wędrówki po lesie – nawierzchnia prawie bez znaczenia, podjazdy lekko spowalniają; tempo 3–7 km/h
+  const PIESZO = {n: 'Pieszo', g: 3, vmax: 7, s: {srednia: .95, trudna: .85, brak: .95}};
   // stan roweru i tempa – wspólny obiekt, zmieniany też w interfejsie (podgląd trasy)
   const RT0 = ROWERY[LS.get('rower', 'miejski')] ? LS.get('rower', 'miejski') : 'miejski';
-  const ST = {RT: RT0, R: ROWERY[RT0], VU: 16};
+  const ST = {RT: RT0, R: ROWERY[RT0], VU: 16, pieszo: !!LS.get('pieszo', false)};
   // ===================== wysokości, nawierzchnia i czas jazdy =====================
   // stan/wysokosci.js: window.WYS = {k: krok (m), z: {id odcinka: [wysokość w dm, różnice…]}} – próbki co ~k m wzdłuż odcinka
   //   (numeryczny model terenu GUGiK). Bez pliku: profil płaski, czas tylko z nawierzchni.
@@ -27,11 +29,16 @@
   // wpływ nachylenia: pod górę wyraźnie wolniej (5% ≈ o połowę), z górki szybciej, ale z umiarem i nie po wertepach
   // tempo rowerzysty na płaskim, po dobrej drodze (suwak w podglądzie trasy, zapamiętane w telefonie): 17 km/h = rekreacyjnie
   ST.VU = Math.max(8, Math.min(40, +LS.get('vplaska', 16) || 16));
+  // tryb pieszy: osobne tempo (zapamiętane), bez zmiany ustawień roweru
+  function ustawPieszo(on) { ST.pieszo = !!on; LS.set('pieszo', ST.pieszo);
+    if (ST.pieszo) { ST.R = PIESZO; ST.VU = Math.max(3, Math.min(7, +LS.get('vpiesza', 4.5) || 4.5)); }
+    else { ST.R = ROWERY[ST.RT]; ST.VU = Math.max(8, Math.min(40, +LS.get('vplaska', 16) || 16)); } }
+  ustawPieszo(ST.pieszo);
   function predkosc(st, g) {
     let v = ST.VU * (st === 'nieprzejezdna' ? .25 : ST.R.s[st] ?? 1);
     if (g > 0) v /= 1 + ST.R.g * g;                       // g – nachylenie jako ułamek: 2% → ok. 13 km/h, 5% → ok. 10 km/h
     else v *= Math.min(st === 'trudna' || st === 'srednia' ? 1.15 : 1.45, 1 - 7 * g);
-    return Math.max(4, Math.min(Math.max(ST.R.vmax, ST.VU), v));
+    return Math.max(ST.pieszo ? 1.5 : 4, Math.min(Math.max(ST.R.vmax, ST.VU), v));
   }
   const wysC = new Map();
   function wysOdc(s) {
@@ -120,5 +127,5 @@
       ${pasek}${os}<text x="${W - 2}" y="${Hh - 2}" text-anchor="end">km</text>
       <line class="kursor" x1="0" x2="0" y1="0" y2="${H1 + G + H2}" stroke="#1d4ed8" stroke-width="2" vector-effect="non-scaling-stroke" style="display:none"/></svg>`;
   }
-  Object.assign(JZ, {ROWERY, ST, KOLST, NAZST, predkosc, wysC, wysOdc, wysPkt, profil, czasDo, wykresSVG});
+  Object.assign(JZ, {ROWERY, PIESZO, ustawPieszo, ST, KOLST, NAZST, predkosc, wysC, wysOdc, wysPkt, profil, czasDo, wykresSVG});
 })();

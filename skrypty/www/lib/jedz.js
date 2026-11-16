@@ -6,7 +6,7 @@
 (() => {
   'use strict';
   const JZ = window.JZ = window.JZ || {};
-  const {H, ODC, $, rad, RZ, dist, brg, kat, esc, kmTxt, czasTxt, godz, norm, LS, TRASY, ROWER, P, DW, koszt, najblizszy, trasuj, wDal, stOdc, ROWERY, ST, KOLST, NAZST, profil, czasDo, wykresSVG, strzalkaSVG, kierunek, kierTxt, manewry, mTekst, tabSVG} = JZ;
+  const {H, ODC, $, rad, RZ, dist, brg, kat, esc, kmTxt, czasTxt, godz, norm, LS, TRASY, ROWER, P, DW, koszt, najblizszy, trasuj, wDal, stOdc, ROWERY, ustawPieszo, ST, KOLST, NAZST, profil, czasDo, wykresSVG, strzalkaSVG, kierunek, kierTxt, manewry, mTekst, tabSVG} = JZ;
   // aplikacja na Androida (Capacitor): GPS z usługą w tle (jazda na zgaszonym ekranie) i głos z syntezatora telefonu
   const CAP = window.Capacitor;
   const NAT = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
@@ -358,8 +358,9 @@
       if (st === 'srednia' || st === 'trudna' || st === 'brak') o.nu += d; if (st === 'trudna') o.tr += d; }
     return o;
   }
-  const TRYBY = {bezp: 'Bezpieczna', krotko: 'Najkrótsza', szosa: 'Szosowa'};
+  const TRYBY = {bezp: 'Bezpieczna', krotko: 'Najkrótsza', szosa: 'Szosowa', pieszo: 'Spacerowa'};
   function ostrzezenie(T, inne) {
+    if (ST.pieszo) return '';
     const a = nieutw(T); let alt = null;
     for (const [k, X] of Object.entries(inne || {})) { const b = nieutw(X); if (X && !X.blad && b.nu < a.nu - 200 && (!alt || b.nu < alt.nu)) alt = {k, nu: b.nu}; }
     const lepiej = alt ? ` Trasa „${TRYBY[alt.k]}” ma ich mniej (${kmTxt(alt.nu)}).` : '';
@@ -367,12 +368,13 @@
     if (ST.RT !== 'gorski' && ST.RT !== 'gravel' && a.tr > 200) return `⚠ Na trasie ${kmTxt(a.tr)} dróg ocenionych jako trudne (piach, korzenie, dziury).${lepiej}`;
     return '';
   }
-  const tempoNazwa = v => v < 13 ? 'spacerowo' : v < 20 ? 'rekreacyjnie' : v < 27 ? 'sportowo' : 'wyczynowo';
+  const tempoNazwa = v => ST.pieszo ? (v < 4 ? 'spacerowo' : v < 5.5 ? 'marsz' : 'szybki marsz') : v < 13 ? 'spacerowo' : v < 20 ? 'rekreacyjnie' : v < 27 ? 'sportowo' : 'wyczynowo';
+  const vTxt = v => String(v).replace('.', ',');
   function tempoSuwak(T) {
     const r = $('p-tempo'); if (!r) return;
     r.oninput = () => {
-      ST.VU = +r.value; LS.set('vplaska', ST.VU); T.prof = profil(T);
-      $('p-v').textContent = ST.VU + ' km/h · ' + tempoNazwa(ST.VU); $('p-czas').textContent = czasTxt(T.prof.czas);
+      ST.VU = +r.value; LS.set(ST.pieszo ? 'vpiesza' : 'vplaska', ST.VU); T.prof = profil(T);
+      $('p-v').textContent = vTxt(ST.VU) + ' km/h · ' + tempoNazwa(ST.VU); $('p-czas').textContent = czasTxt(T.prof.czas);
       clearTimeout(tempoSuwak.t); tempoSuwak.t = setTimeout(() => wykresInterakcja(T), 150);   // podpowiedzi wykresu z nowym czasem
     };
   }
@@ -450,6 +452,7 @@
   }
   function podglad() {
     if (stan.tryb === 'szosa' && ST.RT !== 'szosa') stan.tryb = 'bezp';
+    if (ST.pieszo && stan.tryb !== 'krotko') stan.tryb = 'pieszo'; else if (!ST.pieszo && stan.tryb === 'pieszo') stan.tryb = 'bezp';
     ekran('s-mapa'); mapa(); panele('podglad'); stan.wybor = null;
     $('gora').innerHTML = '';
     const T = policz();
@@ -461,11 +464,11 @@
     stan.T = T; stan.M = manewry(T); rysuj(T, stan.M);
     // porównanie z drugim trybem (do przełącznika)
     // pozostałe tryby (do przełącznika i podpowiedzi w ostrzeżeniu); „Szosowa” tylko przy rowerze szosowym
-    const tryby = ST.RT === 'szosa' ? ['bezp', 'krotko', 'szosa'] : ['bezp', 'krotko'];
+    const tryby = ST.pieszo ? ['pieszo', 'krotko'] : ST.RT === 'szosa' ? ['bezp', 'krotko', 'szosa'] : ['bezp', 'krotko'];
     const inne = {}; for (const k of tryby) if (k !== stan.tryb) inne[k] = trasuj(stan.start, stan.cel, {tryb: k});
     const km = k => k === stan.tryb ? T.m : inne[k].m;
     const alt = alternatywa(T, inne); if (alt) rysujAlt(alt);
-    const opisT = {bezp: ' · omija DW i DK', krotko: '', szosa: ' · asfalt, główne drogi'};
+    const opisT = {bezp: ' · omija DW i DK', krotko: '', szosa: ' · asfalt, główne drogi', pieszo: ' · lasem i ścieżkami'};
     const nTab = stan.M.filter(m => m.typ === 'tab').length;
     const lista = stan.M.slice(0, 40).map(m => `<div>${strzalkaSVG(m.k, m.typ === 'tab' ? '#0759A7' : m.typ === 'cel' ? '#1d3b30' : '#1d2a23', 22)}<span>${esc(mTekst(m))}</span><span class="km">${kmTxt(m.c)}</span></div>`).join('');
     $('dol').innerHTML = `<div class="uchwyt"></div>
@@ -474,23 +477,25 @@
         ${tryby.map(k => `<button type="button" role="radio" data-t="${k}" aria-checked="${stan.tryb === k}"><b>${TRYBY[k]}</b><span>${kmTxt(km(k))}${opisT[k]}</span></button>`).join('')}
       </div>
       ${alt ? `<div class="alt"><span><b>${alt.typ === 'zwykla' ? 'Wróć do głównej trasy' : 'Trasa alternatywna'}</b> – ${esc(alt.txt)}</span><button type="button" class="moff-b" id="b-alt">Wybierz</button></div>` : ''}
-      <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b id="p-czas">${czasTxt(T.prof.czas)}</b><span>czasu jazdy</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
-      <div class="rower" role="radiogroup" aria-label="Rodzaj roweru">${Object.entries(ROWERY).map(([k, r]) => `<button type="button" role="radio" data-r="${k}" aria-checked="${k === ST.RT}">${r.n}</button>`).join('')}</div>
+      <div class="staty"><div><b>${kmTxt(T.m)}</b><span>długość</span></div><div><b id="p-czas">${czasTxt(T.prof.czas)}</b><span>${ST.pieszo ? 'czasu marszu' : 'czasu jazdy'}</span></div><div><b>${nTab}</b><span>drogowskazów</span></div></div>
+      <div class="tryb pr" role="radiogroup" aria-label="Rowerem czy pieszo"><button type="button" role="radio" data-p="0" aria-checked="${!ST.pieszo}"><b>🚲 Rowerem</b></button><button type="button" role="radio" data-p="1" aria-checked="${ST.pieszo}"><b>🚶 Pieszo</b></button></div>
+      ${ST.pieszo ? '' : `<div class="rower" role="radiogroup" aria-label="Rodzaj roweru">${Object.entries(ROWERY).map(([k, r]) => `<button type="button" role="radio" data-r="${k}" aria-checked="${k === ST.RT}">${r.n}</button>`).join('')}</div>`}
       <div class="msg ostrz" id="p-ostrz"${ostrzezenie(T, inne) ? '' : ' hidden'}>${esc(ostrzezenie(T, inne))}</div>
-      <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${ST.VU} km/h · ${tempoNazwa(ST.VU)}</b></div>
-        <input type="range" id="p-tempo" min="8" max="40" step="1" value="${ST.VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
-        <div class="tskala"><span>spacerowo</span><span>rekreacyjnie</span><span>sportowo</span><span>wyczynowo</span></div></div>
+      <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${vTxt(ST.VU)} km/h · ${tempoNazwa(ST.VU)}</b></div>
+        ${ST.pieszo ? `<input type="range" id="p-tempo" min="3" max="7" step="0.5" value="${ST.VU}" aria-label="Twoje tempo marszu (km/h)">
+        <div class="tskala"><span>spacerowo</span><span>marsz</span><span>szybki marsz</span></div>` : `<input type="range" id="p-tempo" min="8" max="40" step="1" value="${ST.VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
+        <div class="tskala"><span>spacerowo</span><span>rekreacyjnie</span><span>sportowo</span><span>wyczynowo</span></div>`}</div>
       <div class="tempo oszcz"><label><input type="checkbox" id="p-oszcz"${LS.get('oszcz', false) ? ' checked' : ''}> <b>Oszczędzanie baterii</b><span>ekran może zgasnąć – prowadzi głos, GPS rzadziej na prostych</span></label>
         <button type="button" class="moff-b" id="p-glostest">Test głosu</button></div>
       ${wykresBlok(T)}
       <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich i krajowych: ${kmTxt(T.km.dw)}.` : 'Bez dróg wojewódzkich i krajowych.'}</div>
-      <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}Jedź</button>
+      <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}${ST.pieszo ? 'Idź' : 'Jedź'}</button>
       <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a>${NAT ? '' : '<button type="button" class="btn2" id="b-gpx">GPX</button>'}</div>
       <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
       <div class="sek">Po drodze</div><div class="manew">${lista}</div>
       <div class="moff p-off" id="p-offline"${JZ.podklad.pobrana() ? ' hidden' : ''}><span>Jedziesz przez las albo tam, gdzie słaby zasięg? <button type="button" class="moff-b" id="p-offline-b">Pobierz mapę offline (2,8 MB)</button></span></div>
       <button type="button" class="btn2" id="b-zglos" style="border-style:dashed">Coś nie tak z tą trasą? Zgłoś błąd / sugestię</button>`;
-    $('dol').querySelectorAll('.tryb button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; LS.set('tryb', stan.tryb); podglad(); });
+    $('dol').querySelectorAll('.tryb:not(.pr) button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; if (b.dataset.t !== 'pieszo') LS.set('tryb', stan.tryb); podglad(); });
     // zmiana roweru: tylko czas jazdy (prędkości na nawierzchniach, podjazdy, vmax) – trasa i suwak tempa bez zmian
     $('dol').querySelectorAll('.rower button').forEach(b => b.onclick = () => {
       const zSzosy = ST.RT === 'szosa'; ST.RT = b.dataset.r; ST.R = ROWERY[ST.RT]; LS.set('rower', ST.RT);
@@ -503,6 +508,9 @@
       const o = ostrzezenie(T, inne); $('p-ostrz').textContent = o; $('p-ostrz').hidden = !o;
     });
     $('b-jedz').onclick = () => startJazdy(false);
+    // rowerem / pieszo: inny sposób liczenia trasy (pieszo: ścieżki i las, nawierzchnia bez znaczenia) i osobne tempo
+    $('dol').querySelectorAll('.tryb.pr button').forEach(b => b.onclick = () => { if ((b.dataset.p === '1') === ST.pieszo) return;
+      ustawPieszo(b.dataset.p === '1'); stan.tryb = ST.pieszo ? 'pieszo' : (LS.get('tryb', 'bezp') === 'pieszo' ? 'bezp' : LS.get('tryb', 'bezp')); const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; });
     $('p-oszcz').onchange = e => LS.set('oszcz', e.target.checked);
     $('p-glostest').onclick = () => { if (!stan.glos) { stan.glos = true; LS.set('glos', true); } powiedz('Test głosu. Za 100 metrów skręć w prawo.', true); };
     $('b-zglos').onclick = () => zglos(true);
@@ -569,7 +577,7 @@
     stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; pytano.clear(); Object.assign(tempo, {real: 0, mod: 0, t: 0, v: 0, k: 1}); zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
     if (!symulacja) powiedz('Ruszamy. Do celu ' + kmTxt(stan.T.m) + '.');
-    if (!symulacja) JZ.historia.start({cel: stan.celN, tryb: stan.tryb, rower: ST.RT});   // zapis przejazdu (tylko w telefonie)
+    if (!symulacja) JZ.historia.start({cel: stan.celN, tryb: stan.tryb, rower: ST.pieszo ? 'pieszo' : ST.RT});   // zapis przejazdu (tylko w telefonie)
     $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
     $('b-stop').onclick = koniecJazdy;
     widok(stan.T.ll[0], 17); B = brg(stan.T.ll[0], wDal(stan.T, 40)); if (kurs) obroc(true); else kompas();
@@ -690,7 +698,7 @@
     $('dol').innerHTML = `<div class="uchwyt"></div><div class="msg">${dataTxt(z.data)}</div><div style="font-size:20px;font-weight:800">${esc(z.cel ? '→ ' + z.cel : 'Przejazd')}</div>
       <div class="hstat"><div><b>${kmTxt(z.km)}</b><span>przejechane</span></div><div><b>${HI.czasTxtD(z.ruch || z.czas)}</b><span>w ruchu (razem ${HI.czasTxtD(z.czas)})</span></div>
         <div><b>${sr ? sr.toFixed(1).replace('.', ',') : '–'}</b><span>śr. km/h${z.vmax ? ' · max ' + String(z.vmax).replace('.', ',') : ''}</span></div></div>
-      <div class="msg">${R0 ? 'Rower: ' + R0.n.toLowerCase() + ' · ' : ''}${z.tryb ? 'trasa: ' + ({bezp: 'Bezpieczna', krotko: 'Najkrótsza', szosa: 'Szosowa'}[z.tryb] || z.tryb) : ''}</div>
+      <div class="msg">${z.rower === 'pieszo' ? 'Pieszo · ' : R0 ? 'Rower: ' + R0.n.toLowerCase() + ' · ' : ''}${z.tryb ? 'trasa: ' + (TRYBY[z.tryb] || z.tryb) : ''}</div>
       <div style="display:flex;gap:8px">${NAT ? '' : `<a class="btn2" id="h-gpx" style="flex:1;text-decoration:none;color:inherit;text-align:center" download="przejazd-${new Date(z.data).toISOString().slice(0, 10)}.gpx">Pobierz GPX</a>`}
         <button type="button" class="btn2" id="h-usun" style="flex:1">Usuń</button></div>
       <button type="button" class="btn2" id="h-lista">← Wszystkie przejazdy</button>`;
