@@ -630,7 +630,11 @@
       .then(r => r.json().catch(() => ({}))).then(j => { if (j.ok || /Nieznany odcinek|Zaznacz od/.test(j.blad || '')) {
         LS.set('kolejkaOcen', LS.get('kolejkaOcen', []).filter(k => k.stan !== st)); setTimeout(wyslijOceny, 300); } }).catch(() => {});
   }
-  function dodajOcene(ids, st) { const K = LS.get('kolejkaOcen', []).filter(k => k.ids.join() !== ids.join()); K.push({ids, stan: st, t: Date.now()}); LS.set('kolejkaOcen', K); wyslijOceny(); }
+  // wysyłka po 10 s od ostatniego dotknięcia – zmiana zdania („średnia” → „trudna”) podmienia ocenę w kolejce, zamiast wysyłać kilka
+  let ocT = 0;
+  function dodajOcene(ids, st) { const K = LS.get('kolejkaOcen', []).filter(k => k.ids.join() !== ids.join()); K.push({ids, stan: st, t: Date.now()}); LS.set('kolejkaOcen', K);
+    clearTimeout(ocT); ocT = setTimeout(wyslijOceny, 10000); }
+  document.addEventListener('visibilitychange', () => { if (document.hidden && LS.get('kolejkaOcen', []).length) { clearTimeout(ocT); wyslijOceny(); } });
   window.addEventListener('online', wyslijOceny); setTimeout(wyslijOceny, 3000);
   let ocenaL = null;
   function podswietl(ll) { if (ocenaL) { ocenaL.remove(); ocenaL = null; } if (!map || !ll || ll.length < 2) return;
@@ -651,7 +655,7 @@
     $('ocs').querySelectorAll('.oc4 button').forEach(b => b.onclick = () => {
       const n = $('oc-nick'); if (n && n.value.trim().length >= 2) LS.set('nick', n.value.trim());
       dodajOcene(g.ids, b.dataset.k); navigator.vibrate && navigator.vibrate(40);
-      $('ocs').innerHTML = `<h3>Dziękujemy! 🙌</h3><div class="o">${navigator.onLine ? 'Ocena wysłana – po sprawdzeniu trafi do nawigacji dla wszystkich.' : 'Ocena zapisana – wyślę ją, gdy będzie zasięg.'}</div>`;
+      $('ocs').innerHTML = `<h3>Dziękujemy! 🙌</h3><div class="o">${navigator.onLine ? 'Ocena przyjęta – po sprawdzeniu trafi do nawigacji dla wszystkich.' : 'Ocena zapisana – wyślę ją, gdy będzie zasięg.'}</div>`;
       setTimeout(ocenaZamknij, 1800);
     });
   };

@@ -52,9 +52,9 @@ KOLKA_WSTEP = [
 ]
 KOLKA_ZASADY = [
     ("Treść główna bez zmian", "Podstawową treścią tabliczki pozostaje kierunek, nazwa miejscowości lub obiektu i odległość. Oznaczenia tras mają charakter pomocniczy i uzupełniający."),
-    ("Mniejsze niż nazwa celu", "Kółko o średnicy 31 mm stoi z boku, za nazwą celu, i nie jest wyższe od jej liter. Numer trasy nigdy nie dominuje nad nazwą miejscowości."),
+    ("Mniejsze niż nazwa celu", "Kółko o średnicy 31 mm umieszczone jest za nazwą celu i nie jest wyższe od jej liter. Numer trasy nigdy nie dominuje nad nazwą miejscowości."),
     ("Najwyżej cztery przy jednym kierunku", "Kółko pojawia się tylko wtedy, gdy wskazana droga rzeczywiście prowadzi wzdłuż danej trasy (co najmniej 1 km lub większość drogi do celu)."),
-    ("Spójne z materiałami projektu", "Kolory i numery są te same na tabliczkach, na mapach, w plikach GPX i na paskach na słupkach."),
+    ("Spójne z materiałami projektu", "Kolory i numery są takie same na tabliczkach, na mapach, w plikach GPX i na paskach na słupkach."),
     ("Naklejane, łatwe do zmiany", "Kółka są naklejkami. Zmiana albo rezygnacja z trasy nie wymaga wymiany tabliczek – tabliczka bez kółek zachowuje pełną funkcję informacyjną."),
 ]
 KOLKA_PODSUMOWANIE = ("Oznaczenia tras są dodatkiem do lokalnego systemu informacji kierunkowej, a nie jego główną treścią. Tabliczka istnieje po to, "

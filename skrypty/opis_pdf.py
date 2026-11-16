@@ -81,7 +81,7 @@ NOPT = NPOST - len(core); NFOR = len(o_K) + len(o_B); NGEX = sum(1 for p in o_gm
 NNEW = sum(needpole(p) for p in DP["posts"])
 st = []
 st += [Paragraph("SOŁECTWO STRZEBIŃ · GMINA KOSZĘCIN", KICK), Paragraph("Sołectwo Strzebiń jako HUB rowerowy", H1),
-       Paragraph("Projekt oznakowania tras rowerowych wokół Strzebinia – opis, kosztorys, mapy i katalog tabliczek", ParagraphStyle("sub", **{**base, "fontSize": 11.5, "leading": 15, "textColor": MUTED}, spaceAfter=10))]
+       Paragraph("Projekt oznakowania tras rowerowych wokół Strzebinia – opis, kosztorys i uzasadnienie", ParagraphStyle("sub", **{**base, "fontSize": 11.5, "leading": 15, "textColor": MUTED}, spaceAfter=10))]
 R1 = {k for k in TR[0]["seq"] if isinstance(k, int)}
 r1_opt = [p for p in DP["posts"] if p["nr"] in R1 and p["pole"] == "opcjonalny"]
 r1_ex = [p for p in r1_opt if p.get("slup_jest")]; r1_las = [p for p in r1_opt if not p.get("slup_jest")]
@@ -99,7 +99,7 @@ BOX = ParagraphStyle("box", **{**base, "fontSize": 10, "leading": 14.2, "textCol
 BOXH = ParagraphStyle("boxh", fontName="Inter-Bold", fontSize=10, leading=13, textColor=colors.HexColor("#e9b949"), spaceAfter=6)
 box = [Paragraph("W SKRÓCIE", BOXH)] + [Paragraph(t, BOX, bulletText="•") for t in [
     f"<b>Rowerowa obwodnica DW 906 – {km(T1['km'])} km</b> z Sośnicy przez Piasek, Bukowiec i Strzebiń do Prądów, bocznymi ulicami i drogami leśnymi; przy okazji omija też DW 908 między Sośnicą a Piaskiem. "
-    f"Po samej wojewódzkiej (poza chodnikiem i drogą rowerową) tylko ok. {T1['dw'] * 1000:.0f} m. To odpowiedź na brak drogi rowerowej "
+    f"Samą drogą wojewódzką (poza chodnikiem i drogą rowerową) jedzie się tylko ok. {T1['dw'] * 1000:.0f} m. To odpowiedź na brak drogi rowerowej "
     "Bukowiec – Strzebiń – Prądy – Koszęcin.",
     f"<b>Etap 1 – Strzebiń i cała obwodnica DW 906: {lo_hi(E1)}</b>. {len(e1)} słupków (w tym {len(c_ex) + len(r1_ex)} już stojących słupków z nazwami ulic), {NE1} tabliczek.",
     f"<b>Etap 2 – trasy leśne z Nadleśnictwem Koszęcin: {lo_hi(E2)}</b>. Słupki w lasach Nadleśnictwa Koszęcin tworzą trasy do Kalet, Boronowa, Koszęcina i Drutarni.",
@@ -124,11 +124,11 @@ st.append(Paragraph("Tabliczki nie są znakami drogowymi ani znakami szlaków tu
 # 12.11.2026: definicja projektu – lokalny system informacji kierunkowej (nie nowe szlaki, nie znaki drogowe)
 st.append(Paragraph("Czym jest projekt", H2))
 st.append(Paragraph("<b>HUB rowerowy Strzebiń to lokalny system informacji kierunkowej dla rowerzystów</b> – drogowskazy informacyjne w punktach "
-                    "rozjazdów i skrzyżowań, które pokazują, dokąd można dojechać do pobliskich miejscowości, obiektów i atrakcji i ile to kilometrów. "
+                    "rozjazdów i skrzyżowań, które pokazują, jak dojechać do pobliskich miejscowości, obiektów i atrakcji i ile to kilometrów. "
                     "System <b>uzupełnia</b> istniejącą infrastrukturę turystyczną i rowerową – nie zastępuje oznakowania drogowego "
                     "ani oficjalnych szlaków turystycznych.", P))
 for t_ in [f"<b>Węzły</b> – tabliczki stoją tam, gdzie rowerzysta musi wybrać kierunek jazdy ({NPOST} słupków z numerami).",
-           "<b>Kierunki i odległości</b> – informują, dokąd można dojechać, niezależnie od przebiegu konkretnych tras.",
+           "<b>Kierunki i odległości</b> – informują, dokąd prowadzi droga, niezależnie od przebiegu konkretnych tras.",
            f"<b>{len(TR)} tras pokazowych</b> – to propozycje przejazdu istniejącymi drogami, a nie nowe oficjalne szlaki.",
            "<b>Własna identyfikacja wizualna</b> – spójny wygląd, kolory i oznaczenia, wyraźnie inne niż znaki drogowe i szlaki PTTK."]:
     st.append(Paragraph(t_, BUL, bulletText="•"))
@@ -168,7 +168,7 @@ print(f"opis: lasy {KM_LAS:.1f} z {KM_SIEC:.1f} km tras, słupki w lasach {N_LAS
 
 st.append(Paragraph("Po co to robimy", H2))
 st += bullets([
-    "<b>Bezpieczny objazd DW 906</b> – brak drogi rowerowej wzdłuż wojewódzkiej wraca na każdym zebraniu od lat. W samym Strzebiniu jest już "
+    "<b>Bezpieczny objazd DW 906</b> – brak drogi rowerowej wzdłuż drogi wojewódzkiej wraca na każdym zebraniu od lat. W samym Strzebiniu jest już "
     "droga rowerowa wzdłuż DW 906 (od słupka 25 do 16, ok. 1,5 km) i bezpieczny chodnik (od słupka 27 do 25), ale brakuje połączeń z Bukowcem, Prądami i Koszęcinem. "
     "Oznakowanie tras obok DW 906, z utwardzeniem najgorszych odcinków, to szybka i wielokrotnie tańsza alternatywa niż budowa drogi rowerowej.",
     "<b>Turystyka</b> – oznakowany HUB przyciągnie turystów rowerowych, a ci, którzy już przejeżdżają szlakami, zatrzymają się przy ciekawych miejscach.",
@@ -193,7 +193,7 @@ st.append(Paragraph("* „DW 906” – tylko jazda jezdnią wojewódzkiej (gł�
                     f"Trasa 1 jest w całości w etapie 1. Trasy {', '.join(r['id'] for r in forest_routes)} prowadzą także przez lasy – "
                     "do ich pełnego oznakowania potrzebne są słupki z etapu 2, z udziałem Nadleśnictwa Koszęcin.", SMALL))
 st.append(Spacer(1, 3))
-st.append(Paragraph("<b>Trasa 1 to rowerowa obwodnica DW 906.</b> Zamiast budowy drogi rowerowej wzdłuż wojewódzkiej (Bukowiec – Strzebiń – Prądy, a na początku także DW 908 Sośnica – Piasek) "
+st.append(Paragraph("<b>Trasa 1 to rowerowa obwodnica DW 906.</b> Zamiast budowy drogi rowerowej wzdłuż drogi wojewódzkiej (Bukowiec – Strzebiń – Prądy, a na początku także DW 908 Sośnica – Piasek) "
                     "rowerzysta jedzie bocznymi ulicami – 1 Maja, Lompy, Wojska Polskiego, Kościuszki, Ligonia – i drogami leśnymi. "
                     f"Z DW 906 styka się tylko na ok. {T1['dw'] * 1000:.0f} m. Gmina może za ok. {lo_hi(E1)} (cały etap 1) dać mieszkańcom objazd "
                     "całego problematycznego odcinka: wystarczą tabliczki na istniejących i kilku nowych słupkach oraz utwardzenie najgorszych odcinków."

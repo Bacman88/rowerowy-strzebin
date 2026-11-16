@@ -213,8 +213,33 @@ function hub_powiadom(string $temat, string $tresc, string $zakladka = '', bool 
     $link = "https://$host/admin/" . ($zakladka ? "?t=$zakladka" : '');
     $nag = implode("\r\n", ["From: =?UTF-8?B?" . base64_encode('HUB rowerowy Strzebiń') . "?= <$od>", "Reply-To: $od", 'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=utf-8', 'Content-Transfer-Encoding: 8bit', 'X-Mailer: HUB rowerowy Strzebin']);
-    return @mail($do, '=?UTF-8?B?' . base64_encode('[HUB rowerowy] ' . $temat) . '?=',
-        $tresc . "\n\nSprawdź i zatwierdź w panelu: $link\n", $nag, '-f' . $od);
+    $tem = '=?UTF-8?B?' . base64_encode('[HUB rowerowy] ' . $temat) . '?=';
+    $tr = $tresc . "\n\nSprawdź i zatwierdź w panelu: $link\n";
+    if (trim((string)($c['smtp_host'] ?? '')) !== '') return hub_smtp($c, $od, $do, $tem, $tr, $nag);
+    if (!function_exists('mail')) { $GLOBALS['hub_mail_blad'] = 'funkcja mail() jest wyłączona na hostingu – dopisz dane SMTP w hub_config.php'; return false; }
+    return @mail($do, $tem, $tr, $nag, '-f' . $od);
+}
+// Wysyłka przez SMTP (gdy hosting wyłączył mail()). hub_config.php: 'smtp_host' => 'mail.twojadomena.pl', 'smtp_port' => 465 (SSL) lub 587 (STARTTLS),
+// 'smtp_user' => 'info@…', 'smtp_pass' => '…'. Hasło tylko w hub_config.php na serwerze – nigdy w repozytorium.
+function hub_smtp(array $c, string $od, string $do, string $temat, string $tresc, string $nag): bool {
+    $host = trim((string)$c['smtp_host']); $port = (int)($c['smtp_port'] ?? 465); $blad = '';
+    $s = @stream_socket_client(($port === 465 ? 'ssl://' : 'tcp://') . "$host:$port", $en, $es, 15);
+    if (!$s) { $GLOBALS['hub_mail_blad'] = "brak połączenia z $host:$port ($es)"; return false; }
+    stream_set_timeout($s, 15);
+    $czyt = function () use ($s) { $r = ''; while (($l = fgets($s, 1024)) !== false) { $r .= $l; if (strlen($l) < 4 || $l[3] === ' ') break; } return $r; };
+    $kom = function (string $k, array $ok) use ($s, $czyt, &$blad) { if ($k !== '') fwrite($s, $k . "\r\n"); $r = $czyt();
+        if (!in_array((int)substr($r, 0, 3), $ok, true)) { $blad = trim($r) ?: 'brak odpowiedzi serwera'; return false; } return true; };
+    $ehlo = 'EHLO ' . (preg_replace('/[^a-z0-9.\-]/i', '', (string)($_SERVER['HTTP_HOST'] ?? '')) ?: 'localhost');
+    $ok = $kom('', [220]) && $kom($ehlo, [250]);
+    if ($ok && $port !== 465) $ok = $kom('STARTTLS', [220]) && @stream_socket_enable_crypto($s, true, STREAM_CRYPTO_METHOD_TLS_CLIENT) && $kom($ehlo, [250]);
+    $u = (string)($c['smtp_user'] ?? '');
+    if ($ok && $u !== '') $ok = $kom('AUTH LOGIN', [334]) && $kom(base64_encode($u), [334]) && $kom(base64_encode((string)($c['smtp_pass'] ?? '')), [235]);
+    $tr = preg_replace('/^\./m', '..', str_replace(["\r\n", "\n"], ["\n", "\r\n"], $tresc));
+    if ($ok) $ok = $kom("MAIL FROM:<$od>", [250]) && $kom("RCPT TO:<$do>", [250, 251]) && $kom('DATA', [354])
+        && $kom("To: <$do>\r\nSubject: $temat\r\nDate: " . date('r') . "\r\n$nag\r\n\r\n$tr\r\n.", [250]);
+    @fwrite($s, "QUIT\r\n"); fclose($s);
+    if (!$ok) $GLOBALS['hub_mail_blad'] = 'SMTP: ' . ($blad ?: 'błąd szyfrowania');
+    return $ok;
 }
 
 // Zdjęcie (JPEG, już zmniejszone w przeglądarce) przesłane jako data URL w polu 'foto'. Zapis poza public_html.

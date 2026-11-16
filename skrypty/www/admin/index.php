@@ -134,7 +134,7 @@ if (isset($_GET['test_maila'])) {   // próbna wiadomość – sprawdzenie, czy 
     $do = hub_cfg()['powiadom'];
     header('Content-Type: text/html; charset=utf-8');
     echo '<p style="font:16px system-ui;margin:30px">' . ($do === '' ? 'Brak adresu: dopisz w hub_config.php <code>\'powiadom\' => \'twój@adres\'</code>.'
-        : ($ok ? 'Wysłano próbną wiadomość na <b>' . htmlspecialchars($do) . '</b>. Sprawdź skrzynkę (także SPAM).' : 'Serwer nie przyjął wiadomości – funkcja mail() jest wyłączona albo źle skonfigurowana na hostingu.'))
+        : ($ok ? 'Wysłano próbną wiadomość na <b>' . htmlspecialchars($do) . '</b>. Sprawdź skrzynkę (także SPAM).' : 'Nie udało się wysłać: ' . htmlspecialchars($GLOBALS['hub_mail_blad'] ?? 'serwer nie przyjął wiadomości (mail() źle skonfigurowana na hostingu)') . '.<br><small>SMTP ustawisz w hub_config.php: <code>\'smtp_host\' => \'…\', \'smtp_port\' => 465, \'smtp_user\' => \'…\', \'smtp_pass\' => \'…\'</code></small>'))
         . '</p><p style="font:16px system-ui;margin:30px"><a href="./">← wróć do panelu</a></p>'; exit;
 }
 if (($_GET['eksport'] ?? '') === 'miejsca') {   // korekty miejsc – do przeniesienia do projektu (cele lokalne na tabliczkach i mapach PDF)
