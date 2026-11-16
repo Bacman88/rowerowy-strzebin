@@ -1,0 +1,23 @@
+name: Dokumenty publiczne do analizy
+on:
+  push:
+    branches: [wysokosci]
+    paths: [.github/workflows/dok.yml, dok.txt]
+permissions:
+  contents: write
+jobs:
+  dok:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pobierz
+        run: |
+          mkdir out; i=0
+          while read -r u; do [ -z "$u" ] && continue; i=$((i+1)); curl -fsSL -A "Mozilla/5.0 (HUB-rowerowy-Strzebin)" "$u" -o "out/dok$i.${u##*.}" && echo "ok $u" || echo "BLAD $u"; done < dok.txt
+          ls -la out
+      - name: Wydanie
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete dok -y --cleanup-tag || true
+          gh release create dok --target wysokosci --title "Dokumenty publiczne (robocze)" --notes "Publiczne dokumenty samorządów do analizy." --prerelease out/*
