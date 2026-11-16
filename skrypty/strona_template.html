@@ -197,6 +197,7 @@ section h2{font-size:26px;margin:0 0 16px;letter-spacing:-.01em}
 #wsp .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 #wsp .send{width:100%;font:inherit;font-weight:700;padding:10px;border-radius:9px;border:0;background:var(--green);color:#fff;cursor:pointer;margin-top:6px}
 #wsp .send:disabled{opacity:.45;cursor:not-allowed}
+#wsp .brak{font-size:13px;color:#8a5300;margin-top:6px}#wsp .stany.off{opacity:.45;pointer-events:none}
 #wsp .msg{font-size:13.5px;margin-top:8px;padding:8px 10px;border-radius:8px;display:none}
 #wsp .msg.ok{display:block;background:#e5f3e8;color:#1b5e20}
 #wsp .msg.err{display:block;background:#fde8e8;color:#8b0000}
@@ -432,6 +433,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       <label class="zg" id="zgoda" hidden><input type="checkbox" name="zgoda"> <span>Zgadzam się na kontakt w sprawie tego zgłoszenia. Kontakt jest usuwany najpóźniej po roku (<a href="polityka-prywatnosci.html" target="_blank">polityka prywatności</a>).</span></label>
       <div class="hp" aria-hidden="true"><label>Strona www <input type="text" name="www" tabindex="-1" autocomplete="off"></label></div>
       <button class="send" id="send" disabled>Wyślij zgłoszenie</button>
+      <div class="brak" id="brak" aria-live="polite"></div>
       <div class="msg" id="msg"></div>
       <div class="msg ok" id="adm-info" hidden>Jesteś zalogowany jako administrator: to, co tu dodasz (oceny dróg, miejsca, węzły, trasy), od razu trafia na mapę – bez moderacji i bez limitu zgłoszeń.</div>
       <p class="rodo">Imię lub nick, komentarz i data przejazdu są widoczne publicznie po zatwierdzeniu. Kontakt (jeśli go podasz) widzi wyłącznie administrator strony. Adres IP zapisujemy tylko jako skrót, do ochrony przed spamem, i usuwamy po 30 dniach.</p>
@@ -753,7 +755,15 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   F.data.max = new Date().toISOString().slice(0, 10);
   try { F.nick.value = localStorage.getItem('hub_nick') || ''; } catch (e) {}
   function walid() { $('send').disabled = !(apiOk && F.nick.value.trim().length >= 2 && (tryb === 'drogi' ? sel.size && F.stan.value : tryb === 'wezly' ? WZ.gotowe()
-    : tryb === 'trasa' ? TRASA.gotowe() && F.tnazwa.value.trim().length >= 3 : pin && F.typ.value)); }
+    : tryb === 'trasa' ? TRASA.gotowe() && F.tnazwa.value.trim().length >= 3 : pin && F.typ.value));
+    // ocena drogi: najpierw zaznacz drogę – dopiero wtedy można wybrać stan; pod przyciskiem: czego jeszcze brakuje
+    const st = F.querySelector('.stany'); if (st) { st.classList.toggle('off', tryb === 'drogi' && !sel.size); if (tryb === 'drogi' && !sel.size) F.stan.forEach(x => x.checked = false); }
+    const b = [];
+    if (tryb === 'drogi') { if (!sel.size) b.push('zaznacz drogę na mapie'); else if (!F.stan.value) b.push('wybierz ocenę drogi (dobra / średnia / trudna / nieprzejezdna)'); }
+    else if (tryb === 'miejsce') { if (!pin) b.push('kliknij na mapie, gdzie jest miejsce'); if (!F.typ.value) b.push('wybierz rodzaj miejsca'); }
+    else if (tryb === 'trasa') { if (!TRASA.gotowe()) b.push('wyznacz trasę na mapie'); if (F.tnazwa.value.trim().length < 3) b.push('podaj nazwę trasy'); }
+    if (F.nick.value.trim().length < 2) b.push('podaj imię lub nick');
+    $('brak').textContent = $('send').disabled && apiOk && b.length ? 'Do wysłania brakuje: ' + b.join(', ') + '.' : ''; }
   F.addEventListener('input', walid); F.addEventListener('change', walid);
   fetch('api/ja.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => { if (j && j.admin) $('adm-info').hidden = false; }).catch(() => {});
   function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; try { m.scrollIntoView({block:'nearest', behavior:'smooth'}); } catch (e) {} }
