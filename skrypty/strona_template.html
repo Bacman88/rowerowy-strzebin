@@ -734,7 +734,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     const st = stanOf(s), z = API.stany[s.id];
     let h = `<h3>${esc(s.nazwa || s.typ || 'droga')}</h3><div class="muted">${esc(s.nazwa ? s.typ : '')}${s.naw ? (s.nazwa ? ' · ' : '') + 'nawierzchnia wg OSM: ' + esc(s.naw) : ''} · ${s.len} m</div>`;
     h += `<div style="margin-top:6px">Stan: <span class="chip c-${st}">${NAZWA[st]}</span> `;
-    h += z ? '<span class="muted">wg zgłoszeń</span>' : s.pomiar === 'osm' ? '<span class="muted">nikt jej jeszcze nie ocenił</span>' : s.pomiar ? `<span class="muted">wg pomiaru${s.pdata ? ' (' + esc(s.pdata) + ')' : ''}</span>` : '';
+    h += z ? '<span class="muted">wg zgłoszeń</span>' : s.pomiar === 'osm' ? '<span class="muted">nikt jej jeszcze nie ocenił</span>' : s.pdata === 'droga rowerowa' ? '<span class="muted">droga rowerowa – dobra z założenia</span>' : s.pomiar ? `<span class="muted">wg pomiaru${s.pdata ? ' (' + esc(s.pdata) + ')' : ''}</span>` : '';
     h += '</div>';
     for (const zid of (API.wpisy[s.id] || [])) {
       const [zst, nick, dz, dp, kom] = API.zgloszenia[zid];

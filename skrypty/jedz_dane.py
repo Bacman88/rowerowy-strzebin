@@ -126,6 +126,15 @@ for f in json.load(open("../dane/osm2_clean.geojson"))["features"]:
         if len(ln) > 1: linie.append(ln)
     SZLAKI.append({"n": "Leśno Rajza" if p.get("ref") == "LR" else "Liswarciański Szlak Rowerowy", "linie": linie})
 
+# 16.11.2026 (Bartosz): drogi rowerowe od razu jako „dobra” (zielone na mapie stanu dróg, jak po ręcznym sprawdzeniu) –
+# tylko tam, gdzie nie ma ręcznej oceny; ocena mieszkańców z mapy wspólnej i tak ma pierwszeństwo
+_R = set(R); _zm = 0
+for s_ in ODC:
+    if s_[0] in _R and s_[4] in ("osm", "", None): s_[4] = "dobra"; s_[5] = s_[5] or "droga rowerowa"; _zm += 1
+if _zm:
+    open(f"{OUT}/stan/odcinki.js", "w").write("window.ODC=" + json.dumps(ODC, ensure_ascii=False, separators=(",", ":")) + txt[txt.index(";\nwindow.ODC_ALIASY"):])
+    print(f"jedź: {_zm} odcinków dróg rowerowych oznaczonych jako dobra")
+
 # zatwierdzone oceny dróg z mapy wspólnej (migawka z api/stan.php: id odcinka → stan) – działają od pierwszego uruchomienia, także bez sieci;
 # świeże oceny aplikacja i tak dociąga z serwera przy starcie
 import os
