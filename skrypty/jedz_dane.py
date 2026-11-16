@@ -63,6 +63,8 @@ chodniki = [linia(f) for f in UF if f["properties"].get("Typ drogi") == "chodnik
 # 16.11.2026 (Bartosz): droga rowerowa wzdłuż DW 906 (ul. Lubliniecka) w Koszęcinie, po południowo-zachodniej stronie –
 # od przystanku Koszęcin Lubliniecka do skrzyżowania z Powstańców Śląskich (nie ma jej jeszcze w uMap)
 ciagi.append([(50.641757, 18.831126), (50.641477, 18.831766), (50.640997, 18.832936), (50.640227, 18.834846), (50.638967, 18.837916), (50.638377, 18.839386), (50.637997, 18.840336)])
+# 16.11.2026 (Bartosz): droga rowerowa wzdłuż DW 908 (ul. Tarnogórska) w Kaletach-Miotku, po wschodniej stronie – od Orzeszkowej do Młyńskiej
+ciagi.append([(50.55135, 18.956194), (50.55174, 18.956394), (50.552, 18.956534), (50.55275, 18.956924), (50.55287, 18.956984), (50.553, 18.957054), (50.55356, 18.957354), (50.55392, 18.957534), (50.55544, 18.958334), (50.55549, 18.958364), (50.5559, 18.958574), (50.55901, 18.960204)])
 GLOWNE = {s[0] for s in ODC if s[1] in ("droga wojewódzka", "droga krajowa")}
 R = [i for i in wybierz(Siatka(lines_xy(ciagi)), 25, .6) if i in GLOWNE] if ciagi else []
 # szeroki chodnik wzdłuż DW (ludzie jeżdżą nim jako bezpieczniejszą alternatywą) – osobna lista: bez kary za DW, ale trochę wolniej
