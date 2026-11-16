@@ -300,11 +300,11 @@
   $('cel-mapa').onclick = () => wybierzNaMapie('Stuknij w mapę, dokąd jedziesz', p => ustawCel(p, 'Punkt na mapie', najblizszaMiejscowosc(p) || ''));
   function wybierzNaMapie(tytul, cb, start) {
     ekran('s-mapa'); mapa(); warstwa.clearLayers(); panele('wybor');   // najpierw pokaż ekran – mapa tworzona na widocznym kontenerze
-    $('gora').innerHTML = `<div class="pasek" style="padding-left:70px"><div class="co">${esc(tytul)}</div><div class="lab">Działa na obszarze mapy HUB (Koszęcin i okolice)</div></div>`;
+    $('gora').innerHTML = `<div class="pasek" style="padding-left:70px"><div class="co">${esc(tytul)}</div><div class="lab">Działa na obszarze mapy HUB-u (Koszęcin i okolice)</div></div>`;
     $('dol').innerHTML = start ? `<button type="button" class="btn2" id="b-gps">${strzalkaSVG('prosto', '#1d2a23', 18)}Użyj mojej lokalizacji (GPS)</button><p class="msg" id="msg-w"></p>` : '<p class="msg" id="msg-w"></p>';
     if (start) $('b-gps').onclick = () => gps(p => { stan.start = p; stan.startGPS = true; opiszStart(); stan.wybor = null; ekran('s-cel'); }, e => { $('msg-w').textContent = e; });
     map.setView(stan.cel || stan.start || [50.615, 18.9], 13);
-    stan.wybor = p => { if (najblizszy(p)[1] > 600) { $('msg-w').textContent = 'Za daleko od dróg z mapy HUB – wybierz punkt bliżej Koszęcina i okolic.'; $('msg-w').className = 'msg err'; return; } stan.wybor = null; cb(p); };
+    stan.wybor = p => { if (najblizszy(p)[1] > 600) { $('msg-w').textContent = 'Za daleko od dróg z mapy HUB-u – wybierz punkt bliżej Koszęcina i okolic.'; $('msg-w').className = 'msg err'; return; } stan.wybor = null; cb(p); };
   }
   function ustawCel(p, n, s) {
     stan.cel = p; stan.celN = n; stan.celS = s || ''; $('szukaj').value = ''; pokazWyniki([]);
@@ -460,7 +460,7 @@
     const T = policz();
     if (T.blad) {
       warstwa.clearLayers();
-      $('dol').innerHTML = `<div class="uchwyt"></div><p class="msg err">${T.blad === 'start' ? 'Jesteś poza obszarem mapy HUB (Koszęcin i okolice). Zmień start – możesz go wskazać na mapie.' : T.blad === 'cel' ? 'Cel jest poza obszarem mapy HUB.' : 'Nie znalazłem drogi między tymi punktami.'}</p><button type="button" class="btn2" id="b-wroc">Wróć</button>`;
+      $('dol').innerHTML = `<div class="uchwyt"></div><p class="msg err">${T.blad === 'start' ? 'Jesteś poza obszarem mapy HUB-u (Koszęcin i okolice). Zmień start – możesz go wskazać na mapie.' : T.blad === 'cel' ? 'Cel jest poza obszarem mapy HUB-u.' : 'Nie znalazłem drogi między tymi punktami.'}</p><button type="button" class="btn2" id="b-wroc">Wróć</button>`;
       $('b-wroc').onclick = () => ekran('s-cel'); return;
     }
     stan.T = T; stan.M = manewry(T); rysuj(T, stan.M);
@@ -490,7 +490,7 @@
       <div class="tempo oszcz"><label><input type="checkbox" id="p-oszcz"${LS.get('oszcz', false) ? ' checked' : ''}> <b>Oszczędzanie baterii</b><span>ekran może zgasnąć – prowadzi głos, GPS rzadziej na prostych</span></label>
         <button type="button" class="moff-b" id="p-glostest">Test głosu</button></div>
       ${wykresBlok(T)}
-      <div class="msg">${T.km.trasy > 100 ? `Trasami HUB: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich i krajowych: ${kmTxt(T.km.dw)}.` : 'Bez dróg wojewódzkich i krajowych.'}</div>
+      <div class="msg">${T.km.trasy > 100 ? `Trasami HUB-u: ${kmTxt(T.km.trasy)}. ` : ''}${T.km.dw > 50 ? `Po drogach wojewódzkich i krajowych: ${kmTxt(T.km.dw)}.` : 'Bez dróg wojewódzkich i krajowych.'}</div>
       <button type="button" class="btn" id="b-jedz">${strzalkaSVG('prosto', '#fff', 22)}${ST.pieszo ? (ST.PT === 'bieg' ? 'Biegnij' : 'Idź') : 'Jedź'}</button>
       <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a>${NAT ? '' : '<button type="button" class="btn2" id="b-gpx">GPX</button>'}</div>
       <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
@@ -891,7 +891,7 @@
     $('k-tekst').innerHTML = esc(kierTxt(m.k)) + ', kierunek<br>' + esc(m.cele.join(' · '));
     $('k-tab').innerHTML = tabSVG(m, 'tb');
     const kol = m.t.e.flatMap(e => e[3] || []);
-    $('k-opis').textContent = kol.length ? 'Kolorowe kółka na tabliczce to numery tras HUB – możesz się ich trzymać dalej.' : '';
+    $('k-opis').textContent = kol.length ? 'Kolorowe kółka na tabliczce to numery tras HUB-u – możesz się ich trzymać dalej.' : '';
     const i = M.indexOf(m), dalej = M[i + 1];
     $('k-potem').innerHTML = dalej ? `<b>Potem:</b> ${esc(mTekst(dalej))} · za ${kmTxt(dalej.c - m.c)}` : '';
     ekran('s-kier');
