@@ -330,7 +330,7 @@
   function panele(tryb) {
     atryb();
     $('wstecz').classList.toggle('hide', tryb === 'jazda');
-    if (tryb !== 'jazda') $('prawe').style.top = '';   // poza jazdą przyciski po prawej na wysokości „Wróć” (pod paskiem stanu telefonu)
+    if (tryb !== 'jazda') $('prawe').style.top = 'calc(14px + env(safe-area-inset-top))';   // poza jazdą przyciski po prawej na wysokości „Wróć” (pod paskiem stanu telefonu)
     $('b-glos').classList.toggle('hide', tryb !== 'jazda'); $('b-ocen').classList.toggle('hide', tryb !== 'jazda'); $('b-srodek').classList.add('hide'); if (tryb !== 'jazda') ocenaZamknij();
     $('status').classList.toggle('hide', tryb !== 'jazda'); $('b-sym').classList.toggle('hide', !(tryb === 'jazda' && sym));
   }
