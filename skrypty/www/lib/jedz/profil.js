@@ -16,10 +16,16 @@
     elektryk: {n: 'Elektryczny', g: 4,  vmax: 35, s: {srednia: .8,  trudna: .55, brak: .8}},   // wspomaganie: podjazdy prawie bez zwalniania
   };
   // pieszo (16.11.2026): wędrówki po lesie – nawierzchnia prawie bez znaczenia, podjazdy lekko spowalniają; tempo 3–7 km/h
-  const PIESZO = {n: 'Pieszo', g: 3, vmax: 7, s: {srednia: .95, trudna: .85, brak: .95}};
+  // rodzaje pieszo: spacer, nordic walking, bieg – własne zakresy tempa i wpływ nawierzchni (biegnąc piach męczy bardziej)
+  const PIESZE = {
+    spacer: {n: 'Spacer',         g: 3, vmax: 7,  s: {srednia: .95, trudna: .85, brak: .95}, od: 3, do: 7,  dom: 4.5, krok: .5},
+    nordic: {n: 'Nordic walking', g: 3, vmax: 9,  s: {srednia: .95, trudna: .85, brak: .95}, od: 4, do: 9,  dom: 6,   krok: .5},
+    bieg:   {n: 'Bieg',           g: 4, vmax: 18, s: {srednia: .9,  trudna: .75, brak: .9},  od: 6, do: 18, dom: 10,  krok: .5},
+  };
+  const PIESZO = PIESZE.spacer;
   // stan roweru i tempa – wspólny obiekt, zmieniany też w interfejsie (podgląd trasy)
   const RT0 = ROWERY[LS.get('rower', 'miejski')] ? LS.get('rower', 'miejski') : 'miejski';
-  const ST = {RT: RT0, R: ROWERY[RT0], VU: 16, pieszo: !!LS.get('pieszo', false)};
+  const ST = {RT: RT0, R: ROWERY[RT0], VU: 16, pieszo: !!LS.get('pieszo', false), PT: PIESZE[LS.get('piesze', 'spacer')] ? LS.get('piesze', 'spacer') : 'spacer'};
   // ===================== wysokości, nawierzchnia i czas jazdy =====================
   // stan/wysokosci.js: window.WYS = {k: krok (m), z: {id odcinka: [wysokość w dm, różnice…]}} – próbki co ~k m wzdłuż odcinka
   //   (numeryczny model terenu GUGiK). Bez pliku: profil płaski, czas tylko z nawierzchni.
@@ -31,7 +37,7 @@
   ST.VU = Math.max(8, Math.min(40, +LS.get('vplaska', 16) || 16));
   // tryb pieszy: osobne tempo (zapamiętane), bez zmiany ustawień roweru
   function ustawPieszo(on) { ST.pieszo = !!on; LS.set('pieszo', ST.pieszo);
-    if (ST.pieszo) { ST.R = PIESZO; ST.VU = Math.max(3, Math.min(7, +LS.get('vpiesza', 4.5) || 4.5)); }
+    if (ST.pieszo) { const P = PIESZE[ST.PT]; ST.R = P; ST.VU = Math.max(P.od, Math.min(P.do, +LS.get('vpiesza_' + ST.PT, P.dom) || P.dom)); }
     else { ST.R = ROWERY[ST.RT]; ST.VU = Math.max(8, Math.min(40, +LS.get('vplaska', 16) || 16)); } }
   ustawPieszo(ST.pieszo);
   function predkosc(st, g) {
@@ -127,5 +133,5 @@
       ${pasek}${os}<text x="${W - 2}" y="${Hh - 2}" text-anchor="end">km</text>
       <line class="kursor" x1="0" x2="0" y1="0" y2="${H1 + G + H2}" stroke="#1d4ed8" stroke-width="2" vector-effect="non-scaling-stroke" style="display:none"/></svg>`;
   }
-  Object.assign(JZ, {ROWERY, PIESZO, ustawPieszo, ST, KOLST, NAZST, predkosc, wysC, wysOdc, wysPkt, profil, czasDo, wykresSVG});
+  Object.assign(JZ, {ROWERY, PIESZO, PIESZE, ustawPieszo, ST, KOLST, NAZST, predkosc, wysC, wysOdc, wysPkt, profil, czasDo, wykresSVG});
 })();
