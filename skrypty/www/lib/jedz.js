@@ -562,6 +562,15 @@
     const ll = []; for (let k = a; k <= b + 1 && k < T.ll.length; k++) ll.push(T.ll[k]);
     return {a, b, ids: [...new Set(T.seg.slice(a, b + 1).filter(Boolean).map(x => x[0]))], m: T.cum[b + 1] - T.cum[a], s, ll};
   }
+  function kawalekOdc(T, d) {
+    let i = 0; while (i < T.seg.length - 1 && T.cum[i + 1] < d) i++;
+    if (!T.seg[i]) { i = Math.min(i + 1, T.seg.length - 1); if (!T.seg[i]) return null; }
+    const id0 = T.seg[i][0]; let a = i, b = i;
+    while (a > 0 && T.seg[a - 1] && (T.seg[a - 1][0] === id0 || T.cum[a] > d - 100) && T.seg[a - 1][2] === T.seg[i][2]) a--;
+    while (b < T.seg.length - 1 && T.seg[b + 1] && (T.seg[b + 1][0] === id0 || T.cum[b + 1] < d + 100) && T.seg[b + 1][2] === T.seg[i][2]) b++;
+    const ll = []; for (let k = a; k <= b + 1 && k < T.ll.length; k++) ll.push(T.ll[k]);
+    return {a, b, ids: [...new Set(T.seg.slice(a, b + 1).filter(Boolean).map(x => x[0]))], m: T.cum[b + 1] - T.cum[a], s: T.seg[i], ll};
+  }
   function wyslijOceny() {
     const K = LS.get('kolejkaOcen', []); if (!K.length || !navigator.onLine) return;
     const st = K[0].stan, paczka = K.filter(k => k.stan === st), ids = [...new Set(paczka.flatMap(k => k.ids))].slice(0, 300);
@@ -577,8 +586,10 @@
     ocenaL = L.layerGroup([L.polyline(ll, {color: '#ffd400', weight: 14, opacity: .75, interactive: false}), L.polyline(ll, {color: '#1d3b30', weight: 3, dashArray: '4 6', interactive: false})]).addTo(map); }
   function ocenaZamknij() { $('ocs').classList.add('hide'); if (ocenaL) { ocenaL.remove(); ocenaL = null; } }
   $('b-ocen').onclick = () => {
-    const T = stan.T; if (!T) return; let i = 0; while (i < T.seg.length - 1 && T.cum[i + 1] < wzdluz) i++;
-    const g = grupaOdc(T, i) || grupaOdc(T, Math.min(i + 1, T.seg.length - 1));
+    const T = stan.T; if (!T) return;
+    // w trakcie jazdy oceniamy tylko kawałek, na którym jesteś: odcinki mapy w promieniu ~100 m (odcinki mają do 400 m, zwykle ok. 100 m),
+    // żeby 50 m piachu nie zepsuło oceny całej dobrej drogi
+    const g = kawalekOdc(T, wzdluz);
     if (!g) { $('ocs').innerHTML = `<h3>Tu nie ma odcinka do oceny</h3><div class="o">Ocenić można drogi z mapy – spróbuj za chwilę, gdy wjedziesz na drogę.</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
     podswietl(g.ll);
     $('ocs').innerHTML = `<h3>Jak się jedzie tym odcinkiem?</h3><div class="o">${esc(opisOdc(g.s))} · ${kmTxt(g.m)} (zaznaczony na żółto)</div>
@@ -603,7 +614,7 @@
       ${LS.get('nick', '') ? '' : '<input id="ocp-nick" maxlength="60" placeholder="Twoje imię lub nick (raz, zapamiętam)" style="width:100%;box-sizing:border-box;font:inherit;padding:8px 10px;border:1px solid #cfd8d3;border-radius:10px;margin-bottom:4px">'}
       ${top.map((g, i) => `<div class="ocw" data-i="${i}"><div class="t"><b>${esc(g.s[2] || g.s[1])}</b>${esc([g.s[2] ? g.s[1] : g.s[3], kmTxt(g.m)].filter(Boolean).join(' · '))}</div>
         <div class="bb">${OC4.map(([k, e, n]) => `<button type="button" data-k="${k}" title="${n}" aria-label="${n}">${e}</button>`).join('')}</div></div>`).join('')}
-      <div class="m">Dotknij nazwy, żeby zobaczyć odcinek na mapie. Oceny po sprawdzeniu trafią do nawigacji dla wszystkich.</div>`;
+      <div class="m">Ocena dotyczy całej drogi – dotknij nazwy, żeby ją zobaczyć. Jeśli źle było tylko w jednym miejscu, następnym razem dotknij gwiazdki właśnie tam (oceni ok. 200 m wokół Ciebie).</div>`;
     d.querySelectorAll('.ocw').forEach(w => { const g = top[+w.dataset.i];
       w.querySelector('.t').onclick = () => { podswietl(g.ll); if (map) map.fitBounds(L.latLngBounds(g.ll), {padding: [40, 40], maxZoom: 16}); };
       w.querySelectorAll('.bb button').forEach(b => b.onclick = () => {
