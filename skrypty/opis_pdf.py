@@ -276,6 +276,21 @@ st.append(Paragraph("Projekt powstał tak, by dało się go wprowadzić w każdy
                     "sołectwo po sołectwie, a trasy sąsiednich sołectw połączą się w jedną gminną sieć – bez zamawiania za każdym razem projektu od zera. "
                     "Już teraz trasy pokazowe prowadzą do Koszęcina, Kalet, Boronowa, Babienicy, Psar, Drutarni i Sośnicy – a Sośnica, z hotelem i restauracją, to naturalne miejsce wypadowe dla rowerzystów.", P))
 
+st.append(Paragraph("Spójność z sąsiadami – Program Rozwoju Tras Rowerowych powiatu tarnogórskiego", H2))
+st.append(Paragraph("Sąsiedni powiat tarnogórski realizuje <b>Program Rozwoju Tras Rowerowych na lata 2022–2030</b>, przyjęty na podstawie listu intencyjnego "
+                    "Powiatu Tarnogórskiego i dziewięciu gmin – w tym <b>Kalet</b> (Kalety, Krupski Młyn, Miasteczko Śląskie, Ożarowice, Radzionków, Świerklaniec, "
+                    "Tarnowskie Góry, Tworóg, Zbrosławice). Program zakłada spójną sieć tras według wojewódzkich standardów infrastruktury rowerowej "
+                    "(uchwała Zarządu Województwa Śląskiego z 2019 r.), jednolite oznakowanie i ma być podstawą do pozyskiwania środków zewnętrznych, "
+                    "w tym z funduszy UE 2021–2027; pierwszy raport z monitoringu przewidziano na 2026 r.", P))
+st += bullets([
+    "<b>Kalety to wspólny punkt</b> – trzy trasy pokazowe HUB (2, 3 i 8) kończą się w Kaletach, a 6 słupków leśnych stoi na ich terenie; "
+    "HUB Strzebiń może się bezpośrednio połączyć z siecią tras powiatu tarnogórskiego.",
+    "<b>Korytarz do Tarnowskich Gór</b> – rowerzyści z okolicy już jeżdżą do Tarnowskich Gór (przez Kalety i Tworóg); wspólne węzły "
+    "pozwolą prowadzić ich dalej po planowanej sieci powiatu.",
+    "<b>Gmina Koszęcin nie zostaje z tyłu</b> – sąsiedzi planują razem w skali powiatu; HUB Strzebiń jest gotowym, tanim pilotażem po stronie "
+    "powiatu lublinieckiego, który można zgłaszać do tych samych źródeł finansowania i uzgadniać z sąsiadami."])
+st.append(Paragraph("Źródło: Program Rozwoju Tras Rowerowych na obszarze gmin powiatu tarnogórskiego na lata 2022–2030 (konsultacje 2022, miasteczko-slaskie.pl).", SMALL))
+
 st.append(Paragraph("Zawartość dokumentu i dalsze kroki", H2))
 st.append(table([
     ["Strona", "Co zawiera"],
