@@ -72,3 +72,31 @@ PODOBNE = [
 
 # Kontakt do projektu (przekierowanie na skrzynkę administratora)
 KONTAKT = "info@rowerowy-strzebin.smart-ant.pl"
+
+# Podobne rozwiązania – pełny opis (ten sam co w piśmie do Sołtys i Wójt, 12.11.2026) – do opisu PDF
+PODOBNE_WSTEP = ("Lokalny system informacji kierunkowej dla rowerzystów nie jest rozwiązaniem bez odpowiedników. Polskie samorządy wdrażały już "
+                 "drogowskazy z nazwami miejscowości i odległościami, własną numerację tras i własną identyfikację wizualną.")
+PODOBNE_PELNE = [
+    ("Gmina Kobierzyce (województwo dolnośląskie) – lokalne trasy rowerowe K1 i K2",
+     "Gmina opracowała własny system oznakowania lokalnych tras rowerowych z numerami tras i własną formą graficzną. Szczególnie wartościowe jest "
+     "zamówienie publiczne z 2019 r. Obejmowało ono oznakowanie tras, opracowanie formy graficznej znaków i tablicy informacyjnej, a także projekt "
+     "stałej zmiany organizacji ruchu tylko w wybranych lokalizacjach – dla pozostałych przewidziano szkice i schematy rozwiązań technicznych. "
+     "Już na etapie zamówienia rozróżniono więc miejsca wymagające pełnej dokumentacji od takich, gdzie wystarcza prostsza forma. Ten przykład "
+     "może pomóc w ustaleniu ścieżki formalnej dla Strzebinia, choć nie przesądza o identycznym rozwiązaniu u nas.",
+     [("ogłoszenie o zamówieniu – oznakowanie tras K1 i K2 (2019)", PODOBNE[0][2])]),
+    ("Gliwice – drogowskazy kierunkowe dla rowerzystów",
+     "Klub Znakarzy Tras Turystycznych opisuje drogowskazy rowerowe z nazwami miejscowości, dzielnic i obiektów, strzałkami i numerami tras, "
+     "stawiane na rozwidleniach, zakrętach i skrzyżowaniach. To podejście bardzo bliskie naszemu: najważniejsza jest informacja w chwili wyboru drogi.",
+     [("KZTT – informacja o trasach dla rowerów", PODOBNE[1][2])]),
+    ("Katowice – własna numeracja tras",
+     "Miasto stosuje numerację tras rowerowych (m.in. 1, 2, 3, 5, 101, 103, 121) na miejskich mapach rowerowych. Uzasadnia to przede wszystkim "
+     "własną numerację tras, nie konkretny wzór drogowskazu.",
+     [("Katowice – trasy rowerowe", PODOBNE[2][2])]),
+]
+PODOBNE_STRZEBIN = [
+    "W Strzebiniu proponujemy skorzystać z tych doświadczeń w nieco innym modelu. Podstawą systemu nie są szlaki ani dziewięć tras, lecz sieć "
+    "punktów informacji kierunkowej, odpowiadających na pytanie rowerzysty na skrzyżowaniu: dokąd prowadzi ta droga i ile to kilometrów. Trasy "
+    "i ich kolorowe numery są dodatkową warstwą. Jeśli w przyszłości powstaną tu oficjalne szlaki rowerowe, system będzie je uzupełniał, a nie z nimi konkurował.",
+    "Dlatego proponujemy wdrożenie lokalnego systemu informacji kierunkowej dla rowerzystów z wykorzystaniem istniejących konstrukcji – i ustalenie "
+    "właściwej ścieżki formalnej, być może, jak w Kobierzycach, ze zróżnicowanym zakresem dokumentacji zależnie od lokalizacji.",
+]

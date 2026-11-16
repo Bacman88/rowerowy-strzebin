@@ -351,7 +351,19 @@ pod2 = Table([[[Paragraph("W SKRÓCIE", BOXH), Paragraph(TX.KOLKA_PODSUMOWANIE, 
 pod2.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), GREEN), ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 12),
     ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
 st.append(Spacer(1, 6)); st.append(pod2)
+# 16.11.2026: podobne rozwiązania w Polsce (te same co na stronie i w piśmie) – argument, że lokalne oznakowanie to sprawdzona praktyka
+st.append(CondPageBreak(60 * mm))
+st.append(Paragraph("Podobne rozwiązania w innych gminach", ParagraphStyle("h2big3", parent=H2, fontSize=15, leading=19, spaceBefore=14)))
+st.append(Paragraph(TX.PODOBNE_WSTEP, P))
+for n_, t_, zr_ in TX.PODOBNE_PELNE:
+    st.append(Paragraph(f"<b>{n_}.</b> {t_} Źródło: " + ", ".join(f"<link href='{u_}' color='#00737e'>{z_}</link>" for z_, u_ in zr_) + ".", P))
+for t_ in TX.PODOBNE_STRZEBIN: st.append(Paragraph(t_, P))
+st.append(Paragraph("Wzór drogowskazu i sposób montażu na istniejącym słupku z nazwą ulicy – zob. załącznik na kolejnej stronie.", P))
 doc.build(st)
+# załącznik A4: wzór drogowskazu i montaż (rysowany tym samym kodem co strona; potrzebne dane generatora z poprzedniej budowy strony)
+_wz = f"{O}/_tmp/wzor.pdf"
+if _os.path.exists(f"{O}/strona/lib/tabliczka-dane.js") and _os.system(f'python3 wzor_montazu.py "{O}/strona" "{_wz}" > /dev/null') == 0 and _os.path.exists(_wz):
+    _w2 = PdfWriter(); [_w2.add_page(pg) for f_ in (f"{O}/_tmp/opis.pdf", _wz) for pg in PdfReader(f_).pages]; _w2.write(f"{O}/_tmp/opis.pdf")
 
 # złożenie całości
 w = PdfWriter()
