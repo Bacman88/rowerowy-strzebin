@@ -50,5 +50,7 @@
   }
   const czasTxtD = s => { const m = Math.round(s / 60); return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min'; };
   const opis = z => `${kmTxt(z.km)} · ${czasTxtD(z.ruch || z.czas)} jazdy${sredniaKmh(z) ? ' · śr. ' + sredniaKmh(z).toFixed(1).replace('.', ',') + ' km/h' : ''}`;
-  Object.assign(JZ, {historia: {start, punkt, koniec, lista, slad, usun, wyczysc, statystyki, gpx, opis, czasTxtD, sredniaKmh, wTrakcie: () => !!biez}});
+  Object.assign(JZ, {historia: {start, punkt, koniec, lista, slad, usun, wyczysc, statystyki, gpx, opis, czasTxtD, sredniaKmh, wTrakcie: () => !!biez,
+    biezacy: () => biez && {km: biez.km, ruch: biez.ruch, vmax: biez.vmax, t0: biez.t0, pts: biez.pts},
+    wznow: () => { if (biez) biez.ost = null; }}});   // po pauzie nie liczymy dystansu „przeskoku”
 })();

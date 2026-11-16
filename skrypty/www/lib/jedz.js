@@ -685,7 +685,7 @@
       ${a.length ? `<div class="hstat"><div><b>${kmTxt(st.km)}</b><span>razem · ${st.n} przejazd${st.n === 1 ? '' : st.n < 5 ? 'y' : 'ów'}</span></div>
         <div><b>${kmTxt(st.kmMies)}</b><span>w tym miesiącu</span></div><div><b>${HI.czasTxtD(st.ruch)}</b><span>w ruchu</span></div></div>
         <div class="msg">Najdłuższy: ${kmTxt(st.najdl)}${st.vmax ? ' · najszybciej: ' + String(st.vmax).replace('.', ',') + ' km/h' : ''}</div>
-        <div class="hlista">${a.map(z => `<button type="button" class="hpoz" data-id="${z.id}"><span><b>${esc(z.cel ? '→ ' + z.cel : 'Przejazd')}</b><small>${dataTxt(z.data)} · ${esc(HI.opis(z))}</small></span><span aria-hidden="true">›</span></button>`).join('')}</div>
+        <div class="hlista">${a.map(z => `<button type="button" class="hpoz" data-id="${z.id}"><span><b>${esc(z.cel ? '→ ' + z.cel : z.tryb === 'nagranie' ? 'Nagrana trasa' : 'Przejazd')}</b><small>${dataTxt(z.data)} · ${esc(HI.opis(z))}</small></span><span aria-hidden="true">›</span></button>`).join('')}</div>
         <button type="button" class="btn2" id="h-czysc" style="border-style:dashed">Usuń całą historię</button>`
       : `<p class="msg">Nie masz jeszcze zapisanych przejazdów. Każda nawigacja dłuższa niż 200 m zapisze się tutaj sama – z trasą, czasem i prędkością.</p>`}
       <p class="msg" style="font-size:12px">Historia jest zapisana tylko w tym telefonie – nie wysyłamy jej nigdzie.</p>`;
@@ -699,10 +699,10 @@
       L.circleMarker(s[s.length - 1], {radius: 7, color: '#fff', weight: 3, fillColor: '#b00020', fillOpacity: 1}).addTo(warstwa);
       map.fitBounds(L.latLngBounds(s), {paddingTopLeft: [20, 70], paddingBottomRight: [20, Math.min(window.innerHeight * .5, 380)]}); }
     const sr = HI.sredniaKmh(z), R0 = ROWERY[z.rower];
-    $('dol').innerHTML = `<div class="uchwyt"></div><div class="msg">${dataTxt(z.data)}</div><div style="font-size:20px;font-weight:800">${esc(z.cel ? '→ ' + z.cel : 'Przejazd')}</div>
+    $('dol').innerHTML = `<div class="uchwyt"></div><div class="msg">${dataTxt(z.data)}</div><div style="font-size:20px;font-weight:800">${esc(z.cel ? '→ ' + z.cel : z.tryb === 'nagranie' ? 'Nagrana trasa' : 'Przejazd')}</div>
       <div class="hstat"><div><b>${kmTxt(z.km)}</b><span>przejechane</span></div><div><b>${HI.czasTxtD(z.ruch || z.czas)}</b><span>w ruchu (razem ${HI.czasTxtD(z.czas)})</span></div>
         <div><b>${sr ? sr.toFixed(1).replace('.', ',') : '–'}</b><span>śr. km/h${z.vmax ? ' · max ' + String(z.vmax).replace('.', ',') : ''}</span></div></div>
-      <div class="msg">${z.rower === 'pieszo' ? 'Pieszo · ' : z.rower === 'nordic' ? 'Nordic walking · ' : z.rower === 'bieg' ? 'Bieg · ' : R0 ? 'Rower: ' + R0.n.toLowerCase() + ' · ' : ''}${z.tryb ? 'trasa: ' + (TRYBY[z.tryb] || z.tryb) : ''}</div>
+      <div class="msg">${z.rower === 'pieszo' ? 'Pieszo · ' : z.rower === 'nordic' ? 'Nordic walking · ' : z.rower === 'bieg' ? 'Bieg · ' : R0 ? 'Rower: ' + R0.n.toLowerCase() + ' · ' : ''}${z.tryb && z.tryb !== 'nagranie' ? 'trasa: ' + (TRYBY[z.tryb] || z.tryb) : z.tryb === 'nagranie' ? 'nagrana bez nawigacji' : ''}</div>
       <div style="display:flex;gap:8px">${NAT ? '' : `<a class="btn2" id="h-gpx" style="flex:1;text-decoration:none;color:inherit;text-align:center" download="przejazd-${new Date(z.data).toISOString().slice(0, 10)}.gpx">Pobierz GPX</a>`}
         <button type="button" class="btn2" id="h-usun" style="flex:1">Usuń</button></div>
       <button type="button" class="btn2" id="h-lista">← Wszystkie przejazdy</button>`;
@@ -711,6 +711,47 @@
     $('h-lista').onclick = przejazdy;
   }
   $('b-hist').onclick = przejazdy;
+  // ===================== nagrywanie trasy bez celu (tracking): ślad, dystans, czas, tempo – zapis w „Moich przejazdach” =====================
+  let nagr = null;
+  $('b-nagraj').onclick = () => {
+    if (stan.jazda || nagr) return;
+    ekran('s-mapa'); mapa(); panele('jazda'); $('b-glos').classList.add('hide'); $('b-ocen').classList.add('hide'); $('status').classList.add('hide'); warstwa.clearLayers(); $('gora').innerHTML = '';
+    const rodz = ST.pieszo ? (ST.PT === 'spacer' ? 'pieszo' : ST.PT) : ST.RT;
+    JZ.historia.start({cel: '', tryb: 'nagranie', rower: rodz}); budzik();
+    nagr = {pauza: false, linia: L.polyline([], {color: '#7b3fa0', weight: 5}).addTo(warstwa), ost: null, v: 0, tv: 0, pauzaOd: 0, pauzaS: 0};
+    $('dol').innerHTML = `<div class="uchwyt"></div><div class="ndol"><div class="nrec" id="n-rec"><i></i><span>Nagrywam trasę</span></div>
+      <div class="nst"><div><b id="n-km">0 m</b><span>dystans</span></div><div><b id="n-czas">0:00</b><span>czas</span></div>
+        <div><b id="n-v">–</b><span>${ST.pieszo && ST.PT === 'bieg' ? 'tempo teraz (min/km)' : 'prędkość teraz (km/h)'}</span></div><div><b id="n-sr">–</b><span>${ST.pieszo && ST.PT === 'bieg' ? 'średnie tempo (min/km)' : 'średnio w ruchu (km/h)'}</span></div></div>
+      <div class="nrz"><button type="button" class="btn2" id="n-pauza">Pauza</button><button type="button" class="stop" id="n-stop">Zakończ i zapisz</button></div>
+      <div class="msg">Ślad zostaje tylko w Twoim telefonie (Moje przejazdy, eksport GPX).</div></div>`;
+    const tempoTxt = kmh => kmh > 0.5 ? (ST.pieszo && ST.PT === 'bieg' ? `${Math.floor(60 / kmh)}:${String(Math.round(3600 / kmh) % 60).padStart(2, '0')}` : kmh.toFixed(1).replace('.', ',')) : '–';
+    const odswiezN = () => { if (!nagr) return; const b = JZ.historia.biezacy(); if (!b) return;
+      const s = Math.round((Date.now() - b.t0) / 1000) - nagr.pauzaS - (nagr.pauza ? Math.round((Date.now() - nagr.pauzaOd) / 1000) : 0);
+      $('n-km').textContent = kmTxt(b.km); $('n-czas').textContent = Math.floor(s / 3600) ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      if (Date.now() - nagr.tv > 6000) nagr.v = 0;
+      $('n-v').textContent = tempoTxt(nagr.v * 3.6); $('n-sr').textContent = b.ruch > 20 ? tempoTxt(b.km / b.ruch * 3.6) : '–'; };
+    nagr.zegar = setInterval(odswiezN, 1000);
+    nagr.watch = GEO.sledz((p, acc) => {
+      if (!nagr || (acc && acc > 35)) return; const t = Date.now();
+      if (!nagr.pauza) $('n-rec').querySelector('span').textContent = 'Nagrywam trasę';
+      if (nagr.ost) { const d = dist(nagr.ost.p, p), dt = (t - nagr.ost.t) / 1000; if (d > 3 && dt > 0 && d / dt < 25) { nagr.v = d / dt; nagr.tv = t; } }
+      const rot = nagr.ost && dist(nagr.ost.p, p) > 3 ? brg(nagr.ost.p, p) : (nagr.rot || 0); nagr.rot = rot; nagr.ost = {p, t};
+      const ik = L.divIcon({className: '', html: `<svg class="ja" viewBox="0 0 30 30" style="transform:rotate(${rot}deg)"><circle cx="15" cy="15" r="13" fill="#1d4ed8" stroke="#fff" stroke-width="3"/><path d="M15 7l6 13-6-3-6 3z" fill="#fff"/></svg>`, iconSize: [30, 30], iconAnchor: [15, 15]});
+      if (!jaM) jaM = L.marker(p, {icon: ik, interactive: false, zIndexOffset: 1000}).addTo(map); else { jaM.setLatLng(p); jaM.setIcon(ik); }
+      widok(p, Math.max(map.getZoom(), 16));
+      if (nagr.pauza) return;
+      JZ.historia.punkt(p, acc); nagr.linia.addLatLng(p); odswiezN();
+    }, () => { $('n-rec').querySelector('span').textContent = 'Brak sygnału GPS – czekam…'; }, 'Nagrywanie trasy');
+    $('n-pauza').onclick = () => { nagr.pauza = !nagr.pauza; $('n-pauza').textContent = nagr.pauza ? 'Wznów' : 'Pauza';
+      $('n-rec').classList.toggle('p', nagr.pauza); $('n-rec').querySelector('span').textContent = nagr.pauza ? 'Pauza' : 'Nagrywam trasę';
+      if (nagr.pauza) nagr.pauzaOd = Date.now(); else { nagr.pauzaS += Math.round((Date.now() - nagr.pauzaOd) / 1000); JZ.historia.wznow(); } };
+    $('n-stop').onclick = () => {
+      clearInterval(nagr.zegar); if (nagr.watch) nagr.watch(); nagr = null; try { wake && wake.release(); } catch (e) {} wake = null;
+      if (jaM) { jaM.remove(); jaM = null; } $('status').classList.remove('hide'); panele('podglad');
+      const z = JZ.historia.koniec();
+      if (z) przejazd(z); else { ekran('s-cel'); $('msg-cel').textContent = 'Nagranie było krótsze niż 200 m – nie zapisano.'; }
+    };
+  };
   function koniecJazdy() {
     stan.jazda = false; clearInterval(zegarJ); if (watch) watch(); watch = null;
     if (sym) clearInterval(sym.t); sym = null; try { wake && wake.release(); } catch (e) {} wake = null;
