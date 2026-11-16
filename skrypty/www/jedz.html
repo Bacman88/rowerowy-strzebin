@@ -90,6 +90,15 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .ostrz[hidden]{display:none}
 .hstat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.hstat div{background:var(--bg);border-radius:12px;padding:8px 10px}.hstat b{display:block;font-size:18px}.hstat span{font-size:12px;color:var(--muted)}
 .hlista{display:flex;flex-direction:column;gap:6px}.hpoz{display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:inherit;cursor:pointer}
+.ocs{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:900;background:#fff;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:14px 14px 12px}
+.ocs h3{margin:0 0 2px;font-size:18px}.ocs .o{color:#56665c;font-size:13.5px;margin-bottom:10px}
+.oc4{display:grid;grid-template-columns:1fr 1fr;gap:8px}.oc4 button{all:unset;cursor:pointer;text-align:center;border-radius:14px;padding:12px 6px;color:#fff;font-weight:800;font-size:16px}
+.oc4 button span{display:block;font-size:26px;line-height:1.1}.ocs .an{all:unset;cursor:pointer;display:block;text-align:center;margin-top:10px;color:#56665c;font-weight:600;padding:6px}
+.ocs input{width:100%;box-sizing:border-box;font:inherit;padding:9px 11px;border:1px solid #cfd8d3;border-radius:10px;margin:0 0 10px}
+.ocpo{background:#f4f7f5;border:1px solid #dfe7e2;border-radius:14px;padding:10px 11px;margin-top:10px}.ocpo h4{margin:0 0 6px;font-size:15.5px}
+.ocw{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #e3eae6}.ocw:first-of-type{border-top:0}.ocw .t{flex:1;min-width:0;font-size:13.5px;line-height:1.25}.ocw .t b{display:block;font-size:14px}
+.ocw .bb{display:flex;gap:4px}.ocw .bb button{all:unset;cursor:pointer;width:38px;height:38px;border-radius:10px;background:#fff;border:1px solid #d5ddd9;text-align:center;font-size:20px;line-height:38px}
+.ocw .bb button.on{outline:3px solid #1d3b30;background:#e9f6ee}.ocpo .m{font-size:12.5px;color:#56665c;margin-top:6px}
 .hpoz b{display:block}.hpoz small{color:var(--muted)}.hzap{background:#e9f6ee;border:1px solid #bfe3cc;color:#1b5e20;border-radius:12px;padding:8px 11px;font-size:13.5px}
 .alt{display:flex;gap:10px;align-items:center;justify-content:space-between;background:#eef4f3;border:1px dashed #6b8f8a;border-radius:12px;padding:8px 11px;font-size:13.5px}.alt .moff-b{margin:0;flex:none}
 .alt-et{background:#fff;border:2px solid #6b8f8a;color:#34524e;font-weight:700;font-size:12px;padding:3px 8px;border-radius:999px;white-space:nowrap;transform:translate(-50%,-130%);box-shadow:0 2px 6px rgba(0,0,0,.15);cursor:pointer}
@@ -203,6 +212,7 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
   <button type="button" class="okr hide" id="wstecz" aria-label="Wróć" style="top:calc(14px + env(safe-area-inset-top));left:14px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
   <div id="prawe" style="position:absolute;right:12px;z-index:650;display:flex;flex-direction:column;gap:8px">
     <button type="button" class="okr hide" id="b-glos" aria-label="Komunikaty głosowe" style="position:static"></button>
+    <button type="button" class="okr hide" id="b-ocen" aria-label="Oceń drogę, którą jedziesz" style="position:static"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button>
     <button type="button" class="okr hide" id="b-kurs" aria-label="Obracaj mapę w kierunku jazdy" style="position:static"></button>
     <button type="button" class="okr hide" id="b-3d" aria-label="Widok pochylony (3D)" style="position:static">3D</button>
     <button type="button" class="okr hide" id="b-srodek" aria-label="Wyśrodkuj na mnie" style="position:static"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d2a23" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
@@ -210,6 +220,7 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
   <div class="status hide" id="status"><i></i><span>Na trasie</span></div>
   <button type="button" class="sym hide" id="b-sym">Symulacja: ×1</button>
   <div class="dol" id="dol"></div>
+  <div class="ocs hide" id="ocs" role="dialog" aria-label="Oceń drogę"></div>
   <div id="atryb" style="position:absolute;right:6px;z-index:590;font-size:10.5px;color:#56665c;background:rgba(255,255,255,.75);padding:1px 6px;border-radius:4px;bottom:4px">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">OpenStreetMap</a></div>
 </section>
 

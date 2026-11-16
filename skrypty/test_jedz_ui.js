@@ -25,6 +25,11 @@ const URL = (process.argv[2] || 'http://127.0.0.1:8799/') + 'jedz.html';
     ok(await p.$eval('.manew', e => e.getBoundingClientRect().height) > 100, 'lista „Po drodze” widoczna');
     await p.click('#b-symstart'); await p.waitForTimeout(3000);
     ok(/km/.test(await p.textContent('#j-zost')), 'jazda (symulacja)');
+    // ocena drogi w trakcie jazdy: gwiazdka → 4 przyciski → podziękowanie, ocena w kolejce do wysłania
+    await p.route('**/api/zglos.php', r => r.fulfill({contentType: 'application/json', body: '{"ok":true,"id":1}'}));
+    await p.click('#b-ocen'); ok(await p.isVisible('#ocs .oc4 button[data-k=trudna]'), 'ocena drogi w trakcie jazdy – przyciski');
+    await p.click('#ocs .oc4 button[data-k=trudna]'); ok(/Dziękujemy/.test(await p.textContent('#ocs')), 'ocena drogi w trakcie jazdy – zapisana');
+    await p.waitForTimeout(1900);
     // przybliżanie z animacją w trakcie jazdy nie może rozjechać trasy i mapy (kreska trasy przechodzi przez znacznik „ja”)
     for (let i = 0; i < 4; i++) { await p.mouse.move(206, 500); await p.mouse.wheel(0, i % 2 ? 300 : -300); await p.waitForTimeout(350); }
     await p.waitForTimeout(1500);

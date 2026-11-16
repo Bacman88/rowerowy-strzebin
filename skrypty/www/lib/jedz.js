@@ -292,7 +292,7 @@
   function panele(tryb) {
     atryb();
     $('wstecz').classList.toggle('hide', tryb === 'jazda');
-    $('b-glos').classList.toggle('hide', tryb !== 'jazda'); $('b-srodek').classList.add('hide');
+    $('b-glos').classList.toggle('hide', tryb !== 'jazda'); $('b-ocen').classList.toggle('hide', tryb !== 'jazda'); $('b-srodek').classList.add('hide'); if (tryb !== 'jazda') ocenaZamknij();
     $('status').classList.toggle('hide', tryb !== 'jazda'); $('b-sym').classList.toggle('hide', !(tryb === 'jazda' && sym));
   }
 
@@ -550,6 +550,68 @@
     d.innerHTML = `Zapisano przejazd: <b>${esc(JZ.historia.opis(z))}</b> · <a href="#" id="zap-hist">Moje przejazdy</a>`;
     $('dol').prepend(d); $('zap-hist').onclick = e => { e.preventDefault(); przejazdy(); };
   }
+
+  // ===================== ocena dróg z nawigacji: w trakcie jazdy (gwiazdka) i po przejeździe =====================
+  // Oceny trafiają do moderacji jak z mapy wspólnej (api/zglos.php). Bez zasięgu czekają w kolejce w telefonie i wysyłają się później.
+  const OC4 = [['dobra', '👍', 'Dobra', '#1E6B3A'], ['srednia', '😐', 'Średnia', '#B96516'], ['trudna', '👎', 'Trudna', '#902B38'], ['nieprzejezdna', '⛔', 'Nieprzejezdna', '#3a3a3a']];
+  const opisOdc = s => (s[2] ? s[2] + ' · ' : '') + s[1] + (s[3] ? ', ' + s[3] : '');
+  // „odcinek do oceny” = ciąg kolejnych kawałków trasy tej samej drogi (ta sama nazwa i rodzaj)
+  function grupaOdc(T, i) {
+    const s = T.seg[i]; if (!s) return null; const kl = x => x ? x[1] + '|' + x[2] : '';
+    let a = i, b = i; while (a > 0 && kl(T.seg[a - 1]) === kl(s)) a--; while (b < T.seg.length - 1 && kl(T.seg[b + 1]) === kl(s)) b++;
+    const ll = []; for (let k = a; k <= b + 1 && k < T.ll.length; k++) ll.push(T.ll[k]);
+    return {a, b, ids: [...new Set(T.seg.slice(a, b + 1).filter(Boolean).map(x => x[0]))], m: T.cum[b + 1] - T.cum[a], s, ll};
+  }
+  function wyslijOceny() {
+    const K = LS.get('kolejkaOcen', []); if (!K.length || !navigator.onLine) return;
+    const st = K[0].stan, paczka = K.filter(k => k.stan === st), ids = [...new Set(paczka.flatMap(k => k.ids))].slice(0, 300);
+    fetch(BAZA + 'api/zglos.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({
+      stan: st, odcinki: ids, nick: LS.get('nick', '') || 'Jedź', komentarz: 'Ocena z nawigacji Jedź' + (NAT ? ' (aplikacja)' : ''), data: new Date().toISOString().slice(0, 10)})})
+      .then(r => r.json().catch(() => ({}))).then(j => { if (j.ok || /Nieznany odcinek|Zaznacz od/.test(j.blad || '')) {
+        LS.set('kolejkaOcen', LS.get('kolejkaOcen', []).filter(k => k.stan !== st)); setTimeout(wyslijOceny, 300); } }).catch(() => {});
+  }
+  function dodajOcene(ids, st) { const K = LS.get('kolejkaOcen', []).filter(k => k.ids.join() !== ids.join()); K.push({ids, stan: st, t: Date.now()}); LS.set('kolejkaOcen', K); wyslijOceny(); }
+  window.addEventListener('online', wyslijOceny); setTimeout(wyslijOceny, 3000);
+  let ocenaL = null;
+  function podswietl(ll) { if (ocenaL) { ocenaL.remove(); ocenaL = null; } if (!map || !ll || ll.length < 2) return;
+    ocenaL = L.layerGroup([L.polyline(ll, {color: '#ffd400', weight: 14, opacity: .75, interactive: false}), L.polyline(ll, {color: '#1d3b30', weight: 3, dashArray: '4 6', interactive: false})]).addTo(map); }
+  function ocenaZamknij() { $('ocs').classList.add('hide'); if (ocenaL) { ocenaL.remove(); ocenaL = null; } }
+  $('b-ocen').onclick = () => {
+    const T = stan.T; if (!T) return; let i = 0; while (i < T.seg.length - 1 && T.cum[i + 1] < wzdluz) i++;
+    const g = grupaOdc(T, i) || grupaOdc(T, Math.min(i + 1, T.seg.length - 1));
+    if (!g) { $('ocs').innerHTML = `<h3>Tu nie ma odcinka do oceny</h3><div class="o">Ocenić można drogi z mapy – spróbuj za chwilę, gdy wjedziesz na drogę.</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
+    podswietl(g.ll);
+    $('ocs').innerHTML = `<h3>Jak się jedzie tym odcinkiem?</h3><div class="o">${esc(opisOdc(g.s))} · ${kmTxt(g.m)} (zaznaczony na żółto)</div>
+      ${LS.get('nick', '') ? '' : '<input id="oc-nick" maxlength="60" placeholder="Twoje imię lub nick (raz, zapamiętam)" autocomplete="nickname">'}
+      <div class="oc4">${OC4.map(([k, e, n, c]) => `<button type="button" data-k="${k}" style="background:${c}"><span>${e}</span>${n}</button>`).join('')}</div>
+      <button type="button" class="an" id="oc-an">Anuluj</button>`;
+    $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij;
+    $('ocs').querySelectorAll('.oc4 button').forEach(b => b.onclick = () => {
+      const n = $('oc-nick'); if (n && n.value.trim().length >= 2) LS.set('nick', n.value.trim());
+      dodajOcene(g.ids, b.dataset.k); navigator.vibrate && navigator.vibrate(40);
+      $('ocs').innerHTML = `<h3>Dziękujemy! 🙌</h3><div class="o">${navigator.onLine ? 'Ocena wysłana – po sprawdzeniu trafi do nawigacji dla wszystkich.' : 'Ocena zapisana – wyślę ją, gdy będzie zasięg.'}</div>`;
+      setTimeout(ocenaZamknij, 1800);
+    });
+  };
+  // po przejeździe: 3 najdłuższe odcinki dróg nieutwardzonych / bez oceny (asfalt i drogi wojewódzkie na końcu) – jedno dotknięcie na odcinek
+  function blokOcen(T, doM) {
+    const gr = [], wazny = g => { const st = JZ.stOdc(g.s); return JZ.DW(g.s) ? 0 : st === 'osm' ? 1 : 2; };
+    for (let i = 0; i < T.seg.length;) { const g = grupaOdc(T, i); if (!g) { i++; continue; } if (T.cum[g.a] < doM && g.m >= 150) gr.push(g); i = g.b + 1; }
+    const top = gr.sort((a, b) => wazny(b) - wazny(a) || b.m - a.m).slice(0, 3); if (!top.length) return null;
+    const d = document.createElement('div'); d.className = 'ocpo';
+    d.innerHTML = `<h4>Jak się jechało? Oceń drogi z tej trasy</h4>
+      ${LS.get('nick', '') ? '' : '<input id="ocp-nick" maxlength="60" placeholder="Twoje imię lub nick (raz, zapamiętam)" style="width:100%;box-sizing:border-box;font:inherit;padding:8px 10px;border:1px solid #cfd8d3;border-radius:10px;margin-bottom:4px">'}
+      ${top.map((g, i) => `<div class="ocw" data-i="${i}"><div class="t"><b>${esc(g.s[2] || g.s[1])}</b>${esc([g.s[2] ? g.s[1] : g.s[3], kmTxt(g.m)].filter(Boolean).join(' · '))}</div>
+        <div class="bb">${OC4.map(([k, e, n]) => `<button type="button" data-k="${k}" title="${n}" aria-label="${n}">${e}</button>`).join('')}</div></div>`).join('')}
+      <div class="m">Dotknij nazwy, żeby zobaczyć odcinek na mapie. Oceny po sprawdzeniu trafią do nawigacji dla wszystkich.</div>`;
+    d.querySelectorAll('.ocw').forEach(w => { const g = top[+w.dataset.i];
+      w.querySelector('.t').onclick = () => { podswietl(g.ll); if (map) map.fitBounds(L.latLngBounds(g.ll), {padding: [40, 40], maxZoom: 16}); };
+      w.querySelectorAll('.bb button').forEach(b => b.onclick = () => {
+        const n = $('ocp-nick'); if (n && n.value.trim().length >= 2) LS.set('nick', n.value.trim());
+        w.querySelectorAll('.bb button').forEach(x => x.classList.toggle('on', x === b)); dodajOcene(g.ids, b.dataset.k);
+        d.querySelector('.m').textContent = navigator.onLine ? 'Dziękujemy! Oceny wysłane do sprawdzenia.' : 'Dziękujemy! Wyślę oceny, gdy będzie zasięg.'; }); });
+    return d;
+  }
   // ===================== moje przejazdy (historia i statystyki – tylko w telefonie) =====================
   const dataTxt = t => new Date(t).toLocaleDateString('pl-PL', {day: 'numeric', month: 'short'}) + ', ' + new Date(t).toLocaleTimeString('pl-PL', {hour: '2-digit', minute: '2-digit'});
   function przejazdy() {
@@ -592,7 +654,8 @@
     if (sym) clearInterval(sym.t); sym = null; try { wake && wake.release(); } catch (e) {} wake = null;
     // po zakończeniu start = miejsce, w którym jesteś teraz (a nie to, skąd ruszyłeś) – podgląd pokazuje resztę drogi od Ciebie
     if (jaM) { const q = jaM.getLatLng(); stan.start = [q.lat, q.lng]; stan.startGPS = true; opiszStart(); jaM.remove(); jaM = null; }
-    if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); const zap = JZ.historia.koniec(); podglad(); pokazZapis(zap);
+    if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); window.speechSynthesis && speechSynthesis.cancel(); const zap = JZ.historia.koniec(); const doM = wzdluz, T0 = stan.T; podglad(); pokazZapis(zap);
+    if (!sym && doM > 500) { const bo = blokOcen(T0, doM); if (bo) $('dol').querySelector('.uchwyt').after(bo); }
   }
   // rzut pozycji na trasę: szukamy w okolicy ostatniego znanego miejsca (żeby nie „przeskakiwać” na równoległy fragment)
   function rzut(T, p) {
@@ -738,8 +801,9 @@
     const zap = JZ.historia.koniec(); setTimeout(() => pokazZapis(zap), 0);
     if (obrocona) obroc(false); $('b-kurs').classList.add('hide'); $('b-3d').classList.add('hide'); ekran('s-mapa'); panele('podglad');
     $("gora").innerHTML = `<div class="pasek" style="padding-left:76px"><div class="r1"><div class="strz">${strzalkaSVG("cel", "#1d3b30", 40)}</div><div><div class="lab">Jesteś na miejscu</div><div class="co">${esc(stan.celN)}</div></div></div></div>`; $('gora').dataset.h = '';
-    $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Dojechałeś! ${kmTxt(stan.T.m)}</div><p class="msg">Coś było nie tak z trasą albo drogą? Oceń drogę na mapie wspólnej – poprawimy trasy dla wszystkich.</p><div class="rzad"><a class="btn2" href="${BAZA}#wspolna" style="text-decoration:none;color:inherit">Oceń drogę</a><button type="button" class="btn2" id="b-nowy">Nowy cel</button></div>`;
-    $('b-nowy').onclick = () => { stan.start = jaM ? [jaM.getLatLng().lat, jaM.getLatLng().lng] : stan.start; if (jaM) { jaM.remove(); jaM = null; } ekran('s-cel'); };
+    $('dol').innerHTML = `<div class="uchwyt"></div><div style="font-size:20px;font-weight:800">Dojechałeś! ${kmTxt(stan.T.m)}</div><p class="msg">Każda ocena drogi poprawia trasy dla wszystkich.</p><div class="rzad"><a class="btn2" href="${BAZA}#wspolna" style="text-decoration:none;color:inherit">Mapa wspólna</a><button type="button" class="btn2" id="b-nowy">Nowy cel</button></div>`;
+    $('b-nowy').onclick = () => { stan.start = jaM ? [jaM.getLatLng().lat, jaM.getLatLng().lng] : stan.start; if (jaM) { jaM.remove(); jaM = null; } ocenaZamknij(); ekran('s-cel'); };
+    const bo = blokOcen(stan.T, stan.T.m); if (bo) $('dol').querySelector('.rzad').before(bo);
   }
   // głos
   // głos: w aplikacji syntezator Androida (działa też przy zgaszonym ekranie), gdy zawiedzie – głos przeglądarki;

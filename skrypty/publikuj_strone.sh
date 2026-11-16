@@ -13,7 +13,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"; SRC="$ROOT/out/strona"
 node "$ROOT/skrypty/test_jedz.js" "$SRC" | tail -1 || { echo "Testy tras nie przeszły – nie publikuję"; exit 1; }
 if node -e "require('playwright')" 2>/dev/null; then
   PORT=8790; ( cd "$SRC" && exec python3 -m http.server $PORT >/dev/null 2>&1 ) & SRV=$!; sleep 1
-  node "$ROOT/skrypty/test_jedz_ui.js" "http://127.0.0.1:$PORT/" | tail -1 || { kill $SRV 2>/dev/null; echo "Test interfejsu nie przeszedł – nie publikuję"; exit 1; }
+  LOG=$(mktemp); node "$ROOT/skrypty/test_jedz_ui.js" "http://127.0.0.1:$PORT/" > "$LOG" 2>&1; R=$?; tail -1 "$LOG"; [ $R -eq 0 ] || { grep -v "^  ok" "$LOG"; kill $SRV 2>/dev/null; echo "Test interfejsu nie przeszedł – nie publikuję"; exit 1; }
   kill $SRV 2>/dev/null || true
 fi
 TMP=$(mktemp -d); mkdir -p "$TMP/public"
