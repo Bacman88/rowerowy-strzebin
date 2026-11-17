@@ -567,7 +567,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <script src="lib/leaflet.polylineoffset.js"></script>
 <script src="lib/leaflet-gesture-handling.js"></script>
 <script src="lib/nawigacja.js"></script>
-<script src="stan/odcinki.js"></script>
+<script src="stan/przeglad.js"></script>
 <script src="data.js"></script>
 <script src="stan/jedz.js"></script>
 <script src="lib/infra.js"></script>
@@ -696,12 +696,43 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   const rnd = L.canvas({tolerance: DOTYK ? 14 : 7}); window.mapaW = map;
   if (window.INFRA) { map.createPane('infra').style.zIndex = 395; map.getPane('infra').style.pointerEvents = 'none'; INFRA.przelacznik(L, map, INFRA.warstwa(L, {pane: 'infra', gr: 3})); }
 
-  // odcinki: [id, typ, nazwa, nawierzchnia, stan_pomiar, data_pomiaru, dlugosc_m, [lat,lon,...]]
-  const S = {};
-  for (const s of window.ODC) {
-    const c = s[7], ll = [];
-    for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
-    S[s[0]] = {id:s[0], typ:s[1], nazwa:s[2], naw:s[3], pomiar:s[4], pdata:s[5], len:s[6], ll, layers:[]};
+  // odcinki (17.11.2026: kafle): na start uproszczona warstwa przeglądowa całej mapy (stan/przeglad.js);
+  // pełne dane – nazwa, nawierzchnia, dokładny kształt – z kafli stan/kafle/X_Y.json, dociąganych po przybliżeniu
+  // (zoom ≥ 14) albo przy kliknięciu odcinka. Kafel odcinka = kafel jego pierwszego punktu.
+  const S = {}, KP = window.ODCP, [KLAT0, KLON0, KDLAT, KDLON] = KP.siatka, KJEST = new Set(KP.kafle), KW = {};
+  const kafelPkt = (la, lo) => Math.floor((lo - KLON0) / KDLON) + '_' + Math.floor((la - KLAT0) / KDLAT);
+  for (const o of KP.o) {
+    const d = o[4], ll = []; let a = 0, b = 0;
+    for (let i = 0; i < d.length; i += 2) { a += d[i]; b += d[i + 1]; ll.push([a / 1e5, b / 1e5]); }
+    S[o[0]] = {id:o[0], typ:'', nazwa:'', naw:'', pomiar:o[1], pdata:o[3] ? 'droga rowerowa' : '', len:o[2], ll, layers:[], kafel:kafelPkt(ll[0][0], ll[0][1]), pelny:false};
+  }
+  // wczytanie kafla: [id, typ, nazwa, nawierzchnia, stan_pomiar, data_pomiaru, dlugosc_m, [lat,lon,...]]
+  function kafel(k) {
+    if (!KJEST.has(k)) return Promise.resolve();
+    return KW[k] ||= fetch('stan/kafle/' + k + '.json?v=' + KP.v).then(r => r.ok ? r.json() : Promise.reject()).then(lista => {
+      for (const s of lista) {
+        const o = S[s[0]]; if (!o) continue;
+        const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
+        Object.assign(o, {typ:s[1], nazwa:s[2], naw:s[3], pdata:s[5], ll, pelny:true}); delete o.bb;
+      }
+    }).catch(() => { delete KW[k]; });
+  }
+  // kafle widocznego fragmentu (z zapasem) – po przybliżeniu; potem przerysowanie dokładnymi kształtami
+  let kRys = 0;
+  function kafleWidoku() {
+    if (map.getZoom() < 14) return;
+    const b = map.getBounds().pad(.1), y0 = Math.floor((b.getSouth() - KLAT0) / KDLAT), y1 = Math.floor((b.getNorth() - KLAT0) / KDLAT),
+      x0 = Math.floor((b.getWest() - KLON0) / KDLON), x1 = Math.floor((b.getEast() - KLON0) / KDLON);
+    // odcinki mają najwyżej kilkaset metrów – zapas 10% widoku wystarcza na te, które zaczynają się w kaflu obok
+    const nowe = [];
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const k = x + '_' + y; if (KJEST.has(k) && !KW[k]) nowe.push(kafel(k)); }
+    if (nowe.length) Promise.all(nowe).then(() => { clearTimeout(kRys); kRys = setTimeout(() => { rysuj(); rysujSel(); }, 50); });
+  }
+  // pełny plik odcinków (stan/odcinki.js) – tylko dla planera tras i edytora węzłów (sieć dróg do liczenia odległości)
+  let pelneP = null;
+  function pelneOdc() {
+    if (window.ODC) return Promise.resolve();
+    return pelneP ||= new Promise((ok, zle) => { const sc = document.createElement('script'); sc.src = 'stan/odcinki.js?v=' + KP.v; sc.onload = ok; sc.onerror = () => { pelneP = null; zle(); }; document.head.appendChild(sc); });
   }
   let API = {stany:{}, wpisy:{}, zgloszenia:{}, oczekuje:0}, apiOk = false;
   const stanOf = s => { const z = API.stany[s.id]; return z ? API.zgloszenia[z][0] : (s.pomiar || 'brak'); };
@@ -740,6 +771,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   $('clear').onclick = () => { sel.clear(); rysujSel(); };
 
   function info(s) {
+    if (!s.pelny) { kafel(s.kafel).then(() => { if (s.pelny) info(s); }); }
     const st = stanOf(s), z = API.stany[s.id];
     let h = `<h3>${esc(s.nazwa || s.typ || 'droga')}</h3><div class="muted">${esc(s.nazwa ? s.typ : '')}${s.naw ? (s.nazwa ? ' · ' : '') + 'nawierzchnia wg OSM: ' + esc(s.naw) : ''} · ${s.len} m</div>`;
     h += `<div style="margin-top:6px">Stan: <span class="chip c-${st}">${NAZWA[st]}</span> `;
@@ -1122,7 +1154,13 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   // tryb: ocena dróg / dodawanie miejsca
   let tryb = 'drogi', pin = null; const pinL = L.layerGroup();
   $('wsp').dataset.tryb = tryb;
-  document.querySelectorAll('#wsp .modes button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#wsp .modes button').forEach(b => b.onclick = async () => {
+    // planer tras i węzły liczą odległości po całej sieci dróg – pełne dane odcinków wczytujemy dopiero tutaj
+    if ((b.dataset.t === 'trasa' || b.dataset.t === 'wezly') && !window.ODC) {
+      b.disabled = true; const t0 = b.textContent; b.textContent = 'Wczytuję drogi…';
+      try { await pelneOdc(); } catch (e) { msg('Nie udało się wczytać sieci dróg – sprawdź internet i spróbuj jeszcze raz.'); return; }
+      finally { b.disabled = false; b.textContent = t0; }
+    }
     tryb = b.dataset.t; $('wsp').dataset.tryb = tryb;
     document.querySelectorAll('#wsp .modes button').forEach(x => x.classList.toggle('on', x === b));
     $('msg').className = 'msg'; warstwyTrybu(); walid();
@@ -1208,10 +1246,11 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   if (window.HUB?.gmina) L.polyline(HUB.gmina, {color:'#8a5300', weight:2, dashArray:'7 6', opacity:.65, interactive:false, renderer: rnd}).addTo(map);
   KLIK.dodaj(NAV);
   rysuj(); rysujSel();
+  map.on('moveend', kafleWidoku); kafleWidoku();
   // link do trasy z kreatora: …/#trasa=lat,lon;lat,lon
   if (location.hash.startsWith('#trasa=')) {
     const pts = decodeURIComponent(location.hash.slice(7)).split(';').map(x => x.split(',').map(Number)).filter(p => p.length === 2 && p.every(isFinite)).slice(0, 60);
-    if (pts.length) { document.querySelector('#wsp .modes [data-t=trasa]').click(); TRASA.wczytaj(pts); setTimeout(() => document.getElementById('wspolna').scrollIntoView(), 50); }
+    if (pts.length) pelneOdc().then(() => { document.querySelector('#wsp .modes [data-t=trasa]').click(); TRASA.wczytaj(pts); setTimeout(() => document.getElementById('wspolna').scrollIntoView(), 50); });
   }
   fetch('api/stan.php', {cache:'no-store'}).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
     if (j.blad) throw 0; API = j; apiOk = true;

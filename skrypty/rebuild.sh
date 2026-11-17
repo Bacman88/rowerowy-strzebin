@@ -34,6 +34,7 @@ python3 strona.py
 python3 -I seo.py $O/strona
 python3 -I -W ignore odcinki.py $D/osm_gmina.geojson "$SV" signs_prop.json $O/strona
 python3 -I jedz_dane.py "$SV" $O/strona
+python3 -I -W ignore kafle.py $O/strona
 python3 -I wysokosci.py $D/nmt.npz $O/strona
 python3 -I podklad.py $D/podklad.json $O/strona
 node test_jedz.js $O/strona | tail -1
