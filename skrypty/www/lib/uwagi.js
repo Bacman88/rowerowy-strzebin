@@ -63,7 +63,7 @@
         trasa: ctx.trasa && $('#uw-tr').checked ? ctx.trasa : null}};
     $('#uw-wyslij').disabled = true; m.textContent = 'Wysyłam…'; m.className = 'uw-msg';
     try {
-      const r = await fetch(window.UWAGI_API || 'api/uwagi.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+      const r = await fetch(window.UWAGI_API || 'api/uwagi.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({...body, urz: (() => { try { let u = localStorage.getItem('hub_urz'); if (!/^[0-9a-f]{12}$/.test(u || '')) { u = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('hub_urz', u); } return u; } catch (e) { return ''; } })()})});
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.ok) throw new Error(j.blad || 'Nie udało się wysłać – sprawdź internet i spróbuj jeszcze raz.');
       m.textContent = 'Dziękujemy! Zgłoszenie dotarło.'; m.className = 'uw-msg ok';

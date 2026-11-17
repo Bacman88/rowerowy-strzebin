@@ -17,8 +17,8 @@ try {
     if (mb_strlen($nick) < 2) hub_json(['blad' => 'Podaj imię lub nick (min. 2 znaki)'], 400);
     if ($kontakt !== '' && empty($in['zgoda'])) hub_json(['blad' => 'Zaznacz zgodę na kontakt albo zostaw pole kontaktu puste'], 400);
     $db = hub_db(); $ip = hub_ip_limit($db);
-    $db->prepare('INSERT INTO miejsca (utworzono, typ, nazwa, opis, lat, lon, nick, kontakt, ip) VALUES (?,?,?,?,?,?,?,?,?)')
-       ->execute([hub_teraz(), $typ, $nazwa, $opis, round($lat, 6), round($lon, 6), $nick, $kontakt, $ip]);
+    $db->prepare('INSERT INTO miejsca (utworzono, typ, nazwa, opis, lat, lon, nick, kontakt, ip, urz) VALUES (?,?,?,?,?,?,?,?,?,?)')
+       ->execute([hub_teraz(), $typ, $nazwa, $opis, round($lat, 6), round($lon, 6), $nick, $kontakt, $ip, hub_urz()]);
     $id = (int)$db->lastInsertId();
     $foto = hub_foto_zapisz($db, $in, 'miejsca', $id);
     if ($adm = hub_admin_zatwierdz($db, 'miejsca', $id)) hub_json(['ok' => true, 'id' => $id, 'zatwierdzone' => true]);

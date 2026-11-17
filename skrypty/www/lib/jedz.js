@@ -626,7 +626,7 @@
     const K = LS.get('kolejkaOcen', []); if (!K.length || !navigator.onLine) return;
     const st = K[0].stan, paczka = K.filter(k => k.stan === st), ids = [...new Set(paczka.flatMap(k => k.ids))].slice(0, 300);
     fetch(BAZA + 'api/zglos.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({
-      stan: st, odcinki: ids, nick: LS.get('nick', '') || 'Jedź', komentarz: 'Ocena z nawigacji Jedź' + (NAT ? ' (aplikacja)' : ''), data: new Date().toISOString().slice(0, 10)})})
+      stan: st, odcinki: ids, nick: LS.get('nick', '') || 'Jedź', komentarz: 'Ocena z nawigacji Jedź' + (NAT ? ' (aplikacja)' : ''), data: new Date().toISOString().slice(0, 10), urz: (() => { try { let u = localStorage.getItem('hub_urz'); if (!/^[0-9a-f]{12}$/.test(u || '')) { u = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('hub_urz', u); } return u; } catch (e) { return ''; } })()})})
       .then(r => r.json().catch(() => ({}))).then(j => { if (j.ok || /Nieznany odcinek|Zaznacz od/.test(j.blad || '')) {
         LS.set('kolejkaOcen', LS.get('kolejkaOcen', []).filter(k => k.stan !== st)); setTimeout(wyslijOceny, 300); } }).catch(() => {});
   }

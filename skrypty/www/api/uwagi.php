@@ -38,8 +38,8 @@ try {
     $q = $db->prepare("SELECT id FROM uwagi WHERE ip = ? AND tresc = ? AND utworzono > ?");
     $q->execute([$ip, $tresc, date('Y-m-d H:i:s', time() - 6 * 3600)]);
     if ($id = $q->fetchColumn()) hub_json(['ok' => true, 'id' => (int)$id, 'ponownie' => true]);
-    $db->prepare('INSERT INTO uwagi (utworzono, rodzaj, gdzie, tresc, nick, kontakt, info, ip) VALUES (?,?,?,?,?,?,?,?)')
-       ->execute([hub_teraz(), $rodzaj, $gdzie, $tresc, $nick, $kontakt, json_encode($info, JSON_UNESCAPED_UNICODE), $ip]);
+    $db->prepare('INSERT INTO uwagi (utworzono, rodzaj, gdzie, tresc, nick, kontakt, info, ip, urz) VALUES (?,?,?,?,?,?,?,?,?)')
+       ->execute([hub_teraz(), $rodzaj, $gdzie, $tresc, $nick, $kontakt, json_encode($info, JSON_UNESCAPED_UNICODE), $ip, hub_urz()]);
     $id = (int)$db->lastInsertId();
 } catch (Throwable $e) {
     error_log('uwagi.php: ' . $e->getMessage());

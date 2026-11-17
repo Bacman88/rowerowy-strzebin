@@ -39,8 +39,8 @@ try {
     $m = 0; for ($i = 1; $i < count($geom); $i++) $m += hub_m($geom[$i - 1], $geom[$i]);
     if ($m < 200 || $m > 300000) hub_json(['blad' => 'Trasa musi mieć od 0,2 do 300 km'], 400);
     $db = hub_db(); $ip = hub_ip_limit($db);
-    $db->prepare('INSERT INTO trasy (utworzono, nazwa, opis, punkty, geom, km, nick, kontakt, ip) VALUES (?,?,?,?,?,?,?,?,?)')
-       ->execute([hub_teraz(), $nazwa, $opis, json_encode($punkty), json_encode($geom), round($m / 1000, 2), $nick, $kontakt, $ip]);
+    $db->prepare('INSERT INTO trasy (utworzono, nazwa, opis, punkty, geom, km, nick, kontakt, ip, urz) VALUES (?,?,?,?,?,?,?,?,?,?)')
+       ->execute([hub_teraz(), $nazwa, $opis, json_encode($punkty), json_encode($geom), round($m / 1000, 2), $nick, $kontakt, $ip, hub_urz()]);
     $id = (int)$db->lastInsertId();
     if (hub_admin_zatwierdz($db, 'trasy', $id)) hub_json(['ok' => true, 'id' => $id, 'km' => round($m / 1000, 1), 'zatwierdzone' => true]);
     hub_powiadom("Nowa trasa do zatwierdzenia #$id", "Od: $nick\n$nazwa (" . number_format($m / 1000, 1, ',', '') . " km)\n$opis", 'trasy');

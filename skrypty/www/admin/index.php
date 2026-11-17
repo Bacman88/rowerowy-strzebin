@@ -190,6 +190,16 @@ foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja")
 foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
 $q = $db->prepare("SELECT * FROM $tab WHERE moderacja = ? ORDER BY utworzono " . ($k === 'oczekuje' ? 'ASC' : 'DESC') . ' LIMIT 200');
 $q->execute([$k]); $lista = $q->fetchAll();
+// to samo urządzenie (anonimowy identyfikator z przeglądarki/aplikacji): krótki znacznik i liczba wszystkich jego zgłoszeń
+$URZN = [];
+$uu = array_values(array_unique(array_filter(array_map(fn($r) => (string)($r['urz'] ?? ''), $lista))));
+if ($uu) { $ph = implode(',', array_fill(0, count($uu), '?'));
+    foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $tb) { $q2 = $db->prepare("SELECT urz, COUNT(*) n FROM $tb WHERE urz IN ($ph) GROUP BY urz"); $q2->execute($uu);
+        foreach ($q2 as $w) $URZN[$w['urz']] = ($URZN[$w['urz']] ?? 0) + (int)$w['n']; } }
+$urzTag = function (array $r) use ($URZN): string { $u = (string)($r['urz'] ?? ''); if ($u === '') return '';
+    $kol = '#' . substr(md5($u), 0, 6);
+    return ' · <span class="urz" title="Anonimowy identyfikator urządzenia – ta sama wartość = ten sam telefon lub przeglądarka. Wszystkich zgłoszeń z niego: ' . ($URZN[$u] ?? 1) . '">'
+        . '<i style="background:' . $kol . '"></i>📱 ' . substr($u, 0, 6) . ' (' . ($URZN[$u] ?? 1) . ')</span>'; };
 $odc = [];
 if ($lista && $tryb === 'drogi') {
     $in = implode(',', array_map(fn($r) => (int)$r['id'], $lista));
@@ -226,6 +236,7 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;height:calc(100v
 .z{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;cursor:pointer}
 .z.on{border-color:var(--green);box-shadow:0 0 0 2px rgba(29,59,48,.25)}
 .z .m{font-size:12.5px;color:var(--muted)}.z p{margin:6px 0;white-space:pre-wrap}
+.urz{white-space:nowrap}.urz i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:0}
 .chip{display:inline-block;padding:1px 8px;border-radius:6px;font-size:12px;font-weight:700;color:#fff}
 .c-dobra{background:#2b9348}.c-srednia{background:#e0a800;color:#000}.c-trudna{background:#d62828}.c-nieprzejezdna{background:repeating-linear-gradient(45deg,#111 0 3px,#fff 3px 6px) left/13px 100% no-repeat,#111;color:#fff;padding-left:17px}
 .priv{background:#fff4d6;border-radius:6px;padding:2px 6px;font-size:12.5px}
@@ -318,7 +329,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       <?php if ($tryb === 'wezly'): $zm = json_decode($r['zmiany'], true) ?: []; ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-lat="<?= (float)$r['lat'] ?>" data-lon="<?= (float)$r['lon'] ?>" data-wezel="<?= $r['wezel'] === null ? '' : (int)$r['wezel'] ?>" data-zm="<?= $h($r['zmiany']) ?>">
         <div><span class="chip" style="background:#00838F"><?= $r['wezel'] === null ? 'nowy węzeł' . ($r['slupek'] ? ' · słupek: ' . ($r['slupek'] === 'nowy' ? 'do postawienia' : 'jest') : '') : 'węzeł ' . (int)$r['wezel'] ?></span> <b><?= $h($r['nick']) ?></b></div>
-        <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <div class="m">#<?= (int)$r['id'] ?><?= $urzTag($r) ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
         <p><?php foreach ($zm['usun'] ?? [] as $n): ?><span style="color:#b00020">− <?= $h($n) ?></span><br><?php endforeach ?>
            <?php foreach ($zm['dodaj'] ?? [] as $c): ?><span style="color:#1b5e20">+ <?= $h($c['n']) ?> <?= $h($c['km']) ?> <?= $c['d'] === 'left' ? '←' : '→' ?><?= $c['rts'] ? ' (trasy ' . $h(implode(', ', $c['rts'])) . ')' : '' ?></span><br><?php endforeach ?></p>
         <?php if ((string)$r['komentarz'] !== ''): ?><p><?= $h($r['komentarz']) ?></p><?php endif ?>
@@ -327,7 +338,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-uw="1"<?= $tr && $tr['start'] && $tr['cel'] ? ' data-start="' . $h(implode(',', $tr['start'])) . '" data-cel="' . $h(implode(',', $tr['cel'])) . '"' : '' ?>>
         <div><span class="chip" style="background:<?= $r['rodzaj'] === 'sugestia' ? '#0759A7' : '#b45309' ?>"><?= $r['rodzaj'] === 'sugestia' ? 'sugestia' : 'błąd' ?></span>
           <b><?= $h(['nawigacja' => 'nawigacja Jedź', 'strona' => 'strona', 'aplikacja' => 'aplikacja Android'][$r['gdzie']] ?? $r['gdzie']) ?></b><?= $r['nick'] !== '' ? ' · ' . $h($r['nick']) : '' ?></div>
-        <div class="m">#<?= (int)$r['id'] ?> · <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <div class="m">#<?= (int)$r['id'] ?><?= $urzTag($r) ?> · <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
         <p><?= $h($r['tresc']) ?></p>
         <?php if ($tr): ?><div class="m">Trasa: <?= $h($tr['celN'] ?: 'cel') ?> · <?= $h($tr['tryb']) ?> · rower: <?= $h($tr['rower']) ?> · <?= number_format((float)$tr['km'], 1, ',', '') ?> km
           (start <?= $h(implode(', ', $tr['start'] ?? [])) ?> → cel <?= $h(implode(', ', $tr['cel'] ?? [])) ?>) – kliknij kartę, żeby zobaczyć na mapie</div><?php endif ?>
@@ -335,20 +346,20 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
       <?php elseif ($tryb === 'trasy'): ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-trasa="1">
         <div><span class="chip" style="background:#0f766e">trasa · <?= number_format((float)$r['km'], 1, ',', '') ?> km</span> <b><?= $h($r['nick']) ?></b></div>
-        <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <div class="m">#<?= (int)$r['id'] ?><?= $urzTag($r) ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
         <p><b><?= $h($r['nazwa']) ?></b></p>
         <?php if ((string)$r['opis'] !== ''): ?><p><?= $h($r['opis']) ?></p><?php endif ?>
       <?php elseif ($tryb === 'miejsca'): ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-typ="<?= $h($r['typ']) ?>" data-lat="<?= (float)$r['lat'] ?>" data-lon="<?= (float)$r['lon'] ?>">
         <div><span class="chip" style="background:#237647"><?= $h($TYPY[$r['typ']] ?? $r['typ']) ?></span> <b><?= $h($r['nick']) ?></b></div>
-        <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <div class="m">#<?= (int)$r['id'] ?><?= $urzTag($r) ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
         <?php if ($r['nazwa'] !== ''): ?><p><b><?= $h($r['nazwa']) ?></b></p><?php endif ?>
         <?php if ((string)$r['opis'] !== ''): ?><p><?= $h($r['opis']) ?></p><?php endif ?>
       <?php else: $n = count($odc[$r['id']] ?? []); ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-stan="<?= $h($r['stan']) ?>">
         <div><span class="chip c-<?= $h($r['stan']) ?>"><?= $h($NAZWY[$r['stan']] ?? $r['stan']) ?></span>
           <b><?= $h($r['nick']) ?></b> · <?= $n ?> odc.</div>
-        <div class="m">#<?= (int)$r['id'] ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['data_przejazdu'] ? ' · przejazd ' . $h($r['data_przejazdu']) : '' ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <div class="m">#<?= (int)$r['id'] ?><?= $urzTag($r) ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['data_przejazdu'] ? ' · przejazd ' . $h($r['data_przejazdu']) : '' ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
         <?php if ($r['komentarz'] !== '' && $r['komentarz'] !== null): ?><p><?= $h($r['komentarz']) ?></p><?php endif ?>
       <?php endif ?>
         <?php if (($r['foto'] ?? '') !== ''): ?><a href="?foto=<?= $h($r['foto']) ?>" target="_blank" class="foto"><img src="?foto=<?= $h($r['foto']) ?>" alt="zdjęcie do zgłoszenia" loading="lazy"></a>

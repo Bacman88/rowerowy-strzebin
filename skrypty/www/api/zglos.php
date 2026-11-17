@@ -31,8 +31,8 @@ try {
     // to samo zgłoszenie wysłane ponownie (ktoś kliknął jeszcze raz albo zmienił zdanie, np. w nawigacji „średnia” → „trudna”):
     // zamiast duplikatu uzupełniamy poprzednie, wciąż oczekujące – nowy stan, kontakt, komentarz, data, zdjęcie
     $klucz = $odc; sort($klucz);
-    $q = $db->prepare("SELECT id, kontakt, komentarz, data_przejazdu FROM zgloszenia WHERE ip = ? AND moderacja = 'oczekuje' AND utworzono > ? ORDER BY id DESC");
-    $q->execute([$ip, date('Y-m-d H:i:s', time() - 6 * 3600)]);
+    $q = $db->prepare("SELECT id, kontakt, komentarz, data_przejazdu FROM zgloszenia WHERE (ip = ? OR (urz <> '' AND urz = ?)) AND moderacja = 'oczekuje' AND utworzono > ? ORDER BY id DESC");
+    $q->execute([$ip, hub_urz(), date('Y-m-d H:i:s', time() - 6 * 3600)]);
     $qo = $db->prepare('SELECT odcinek FROM zgloszenia_odcinki WHERE zgloszenie = ?');
     foreach (hub_admin() ? [] : $q->fetchAll(PDO::FETCH_ASSOC) as $w) {
         $qo->execute([$w['id']]); $byly = array_map('strval', $qo->fetchAll(PDO::FETCH_COLUMN)); sort($byly);
@@ -47,8 +47,8 @@ try {
     if ((int)$q->fetchColumn() >= 15 && !hub_admin()) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);
 
     $db->beginTransaction();
-    $db->prepare('INSERT INTO zgloszenia (utworzono, nick, kontakt, komentarz, stan, data_przejazdu, ip) VALUES (?,?,?,?,?,?,?)')
-       ->execute([hub_teraz(), $nick, $kontakt, $kom, $stan, $data, $ip]);
+    $db->prepare('INSERT INTO zgloszenia (utworzono, nick, kontakt, komentarz, stan, data_przejazdu, ip, urz) VALUES (?,?,?,?,?,?,?,?)')
+       ->execute([hub_teraz(), $nick, $kontakt, $kom, $stan, $data, $ip, hub_urz()]);
     $id = (int)$db->lastInsertId();
     $ins = $db->prepare('INSERT INTO zgloszenia_odcinki (zgloszenie, odcinek) VALUES (?,?)');
     foreach ($odc as $o) $ins->execute([$id, $o]);
@@ -61,6 +61,6 @@ try {
     hub_json(['blad' => 'Nie udało się zapisać – spróbuj później'], 500);
 }
 
-hub_powiadom("Nowa ocena drogi #$id", "Od: $nick\nStan: $stan\nOdcinków: " . count($odc) . ($foto ? "\nZe zdjęciem" : '')
+hub_powiadom("Nowa ocena drogi #$id", "Od: $nick" . (hub_urz() ? ' (urządzenie ' . substr(hub_urz(), 0, 6) . ')' : '') . "\nStan: $stan\nOdcinków: " . count($odc) . ($foto ? "\nZe zdjęciem" : '')
     . ($kontakt !== '' ? "\n(podano kontakt – widoczny w panelu)" : '') . ($kom !== '' ? "\n\n$kom" : ''), 'drogi');
 hub_json(['ok' => true, 'id' => $id]);

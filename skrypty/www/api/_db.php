@@ -86,6 +86,13 @@ function hub_db(): PDO {
                    : array_column($db->query("PRAGMA table_info($t)")->fetchAll(), 'name');
         if (!in_array('godziny', $kol, true)) $db->exec("ALTER TABLE $t ADD COLUMN godziny $typ");
     }
+    // anonimowy identyfikator urządzenia (17.11.2026): losowy, generowany raz w przeglądarce/aplikacji – pozwala w panelu
+    // zobaczyć, że kilka zgłoszeń przyszło z tego samego telefonu; nie zawiera żadnych danych o osobie
+    foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $t) {
+        $kol = $my ? array_column($db->query("SHOW COLUMNS FROM $t")->fetchAll(), 'Field')
+                   : array_column($db->query("PRAGMA table_info($t)")->fetchAll(), 'name');
+        if (!in_array('urz', $kol, true)) $db->exec("ALTER TABLE $t ADD COLUMN urz VARCHAR(12) NOT NULL DEFAULT ''");
+    }
     if (!$my) $db->exec('PRAGMA busy_timeout=3000');
     return $db;
 }
@@ -153,6 +160,13 @@ function hub_dobowo(): void {
 }
 
 // Wspólne dla zgłoszeń: odczyt JSON, czyszczenie tekstu, limit zgłoszeń z jednego adresu.
+// identyfikator urządzenia z pola 'urz' (12 znaków hex) albo ''
+function hub_urz(): string {
+    static $u = null; if ($u !== null) return $u;
+    $in = json_decode(file_get_contents('php://input') ?: '', true);
+    $u = is_array($in) && preg_match('/^[0-9a-f]{12}$/', (string)($in['urz'] ?? '')) ? (string)$in['urz'] : '';
+    return $u;
+}
 function hub_wejscie(): array {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') hub_json(['blad' => 'Tylko POST'], 405);
     $in = json_decode(file_get_contents('php://input') ?: '', true);
