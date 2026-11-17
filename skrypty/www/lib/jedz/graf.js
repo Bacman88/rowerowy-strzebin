@@ -25,6 +25,13 @@
     const a = wezel(ll[0]), b = wezel(ll[ll.length - 1]);
     adj[a].push({v: b, s, ll}); adj[b].push({v: a, s, ll: ll.slice().reverse()});
   }
+  // spójne kawałki sieci (17.11.2026): ścieżka w parku albo osiedle niepołączone z resztą dróg w OSM to „wyspa” –
+  // przyczepiając start/cel wolimy drogę z głównej sieci (kara 300 m), inaczej trasa wychodzi „brak drogi”
+  const KOMP = new Int32Array(P.length).fill(-1); let MAIN = 0;
+  { let best = 0;
+    for (let s0 = 0, k = 0; s0 < P.length; s0++) { if (KOMP[s0] >= 0) continue; let n = 0; const st = [s0]; KOMP[s0] = k;
+      while (st.length) { const u = st.pop(); n++; for (const e of adj[u]) if (KOMP[e.v] < 0) { KOMP[e.v] = k; st.push(e.v); } }
+      if (n > best) { best = n; MAIN = k; } k++; } }
   const DW = s => s[1] === 'droga wojewódzka' || s[1] === 'droga krajowa';
   // dwa tryby:
   //  bezp   – „Bezpieczna”: drogi wojewódzkie i krajowe ×6 (krótki odcinek przejdzie, dłuższy – objazd),
@@ -88,7 +95,7 @@
       for (let i = 0; i < ll.length - 1; i++) {
         const A = ll[i], B = ll[i + 1], ax = (A[1] - p[1]) * kx, ay = A[0] - p[0], bx = (B[1] - p[1]) * kx, by = B[0] - p[0], vx = bx - ax, vy = by - ay, L2 = vx * vx + vy * vy;
         const t = L2 ? Math.max(0, Math.min(1, -(ax * vx + ay * vy) / L2)) : 0;
-        const d = Math.hypot(ax + t * vx, ay + t * vy) * rad * RZ, kara = g.s[1] === 'ścieżka piesza' ? 15 : 0;
+        const d = Math.hypot(ax + t * vx, ay + t * vy) * rad * RZ, kara = (g.s[1] === 'ścieżka piesza' ? 15 : 0) + (KOMP[g.a] !== MAIN ? 300 : 0);
         if (!best || d + kara < best.dk) best = {dk: d + kara, d, g, i, pt: [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t]};
       }
     }

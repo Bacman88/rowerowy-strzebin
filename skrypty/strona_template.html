@@ -711,8 +711,9 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     if (!KJEST.has(k)) return Promise.resolve();
     return KW[k] ||= fetch('stan/kafle/' + k + '.json?v=' + KP.v).then(r => r.ok ? r.json() : Promise.reject()).then(lista => {
       for (const s of lista) {
-        const o = S[s[0]]; if (!o) continue;
         const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
+        // odcinek spoza warstwy przeglądowej (szara droga bez oceny poza dawnym obszarem) – pojawia się dopiero z kafla
+        const o = S[s[0]] ||= {id:s[0], pomiar:s[4], len:s[6], layers:[], kafel:k};
         Object.assign(o, {typ:s[1], nazwa:s[2], naw:s[3], pdata:s[5], ll, pelny:true}); delete o.bb;
       }
     }).catch(() => { delete KW[k]; });
@@ -745,15 +746,19 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     if (st === 'osm') return [{color:KOL.osm, weight:3 * w, opacity:.9}];
     return [{color:KOL[st], weight:4.5 * w, opacity:.95}];
   }
+  // ramka odcinka (do rysowania tylko widocznych i do wyszukiwania kliknięć)
+  const bbOf = o => o.bb ||= o.ll.reduce((b, q) => [Math.min(b[0], q[0]), Math.min(b[1], q[1]), Math.max(b[2], q[0]), Math.max(b[3], q[1])], [90, 180, -90, -180]);
   function rysuj() {
     roads.clearLayers(); const z = map.getZoom();
     const order = ['brak', 'osm', 'dobra', 'srednia', 'trudna', 'nieprzejezdna'];
-    const groups = {}; for (const id in S) (groups[stanOf(S[id])] ||= []).push(S[id]);
+    // 17.11.2026 (powiększona mapa): rysujemy tylko odcinki w widoku z zapasem – reszta nie obciąża telefonu
+    const vb = map.getBounds().pad(.3), [vs, vw, vn, ve] = [vb.getSouth(), vb.getWest(), vb.getNorth(), vb.getEast()];
+    const groups = {}; for (const id in S) { const o = S[id]; o.layers = []; const b = bbOf(o); if (b[2] < vs || b[0] > vn || b[3] < vw || b[1] > ve) continue; const st = stanOf(o); if (z <= 11 && st === 'brak') continue; (groups[st] ||= []).push(o); }
     for (const st of order) for (const s of (groups[st] || [])) {
       s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); klikMapy(e.latlng, s); }).addTo(roads));
     }
     const km = {}; for (const id in S) { const st = stanOf(S[id]); km[st] = (km[st] || 0) + S[id].len / 1000; }
-    $('sum').textContent = `Ocenione: ${Math.round((km.dobra||0)+(km.srednia||0)+(km.trudna||0)+(km.nieprzejezdna||0))} km z ${Math.round(Object.values(km).reduce((a,b)=>a+b,0))} km dróg`
+    $('sum').textContent = `Ocenione: ${Math.round((km.dobra||0)+(km.srednia||0)+(km.trudna||0)+(km.nieprzejezdna||0))} km z ${KP.km || Math.round(Object.values(km).reduce((a,b)=>a+b,0))} km dróg`
       + (API.oczekuje ? ` · czeka na sprawdzenie: ${API.oczekuje}` : '');
   }
 
@@ -1181,8 +1186,8 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     let best = null, bd = px;
     for (const id in S) {
       const o = S[id]; if (!o.layers.length || !o.layers[0]._map) continue;
-      if (!o.bb) { let a = 90, b = 180, c = -90, d = -180; for (const q of o.ll) { a = Math.min(a, q[0]); c = Math.max(c, q[0]); b = Math.min(b, q[1]); d = Math.max(d, q[1]); } o.bb = [a, b, c, d]; }
-      if (ll.lat < o.bb[0] - dl || ll.lat > o.bb[2] + dl || ll.lng < o.bb[1] - dn || ll.lng > o.bb[3] + dn) continue;
+      const ob = bbOf(o);
+      if (ll.lat < ob[0] - dl || ll.lat > ob[2] + dl || ll.lng < ob[1] - dn || ll.lng > ob[3] + dn) continue;
       for (let i = 0; i < o.ll.length - 1; i++) {
         const A = map.latLngToContainerPoint(o.ll[i]), B = map.latLngToContainerPoint(o.ll[i + 1]), vx = B.x - A.x, vy = B.y - A.y, L2 = vx * vx + vy * vy;
         const t = L2 ? Math.max(0, Math.min(1, ((p.x - A.x) * vx + (p.y - A.y) * vy) / L2)) : 0, d = Math.hypot(p.x - A.x - t * vx, p.y - A.y - t * vy);
@@ -1246,7 +1251,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   if (window.HUB?.gmina) L.polyline(HUB.gmina, {color:'#8a5300', weight:2, dashArray:'7 6', opacity:.65, interactive:false, renderer: rnd}).addTo(map);
   KLIK.dodaj(NAV);
   rysuj(); rysujSel();
-  map.on('moveend', kafleWidoku); kafleWidoku();
+  let mvT = 0; map.on('moveend', () => { kafleWidoku(); clearTimeout(mvT); mvT = setTimeout(() => { rysuj(); rysujSel(); }, 60); }); kafleWidoku();
   // link do trasy z kreatora: …/#trasa=lat,lon;lat,lon
   if (location.hash.startsWith('#trasa=')) {
     const pts = decodeURIComponent(location.hash.slice(7)).split(';').map(x => x.split(',').map(Number)).filter(p => p.length === 2 && p.every(isFinite)).slice(0, 60);

@@ -38,10 +38,24 @@ def delta(pts):
     return out
 
 
+# rdzeń = dotychczasowy obszar mapy (jak w odcinki.py): tam przegląd ma wszystkie odcinki; poza nim (17.11 – powiększenie)
+# przegląd ma tylko drogi utwardzone / ocenione / rowerowe, a szare „bez oceny” przychodzą z kafli po przybliżeniu
+from shapely.geometry import MultiPoint, Point, shape
+from shapely.ops import transform
+from pyproj import Transformer
+_tf = Transformer.from_crs(4326, 2180, always_xy=True).transform
+_D = json.load(open("signs_prop.json"))
+rdzen = transform(_tf, MultiPoint([(p["lon"], p["lat"]) for p in _D["posts"]])).convex_hull.buffer(2500)
+if os.path.exists("../dane/gmina_koszecin.geojson"):
+    rdzen = rdzen.union(transform(_tf, shape(json.load(open("../dane/gmina_koszecin.geojson"))["features"][0]["geometry"])).buffer(3000))
+from shapely.prepared import prep
+rdzen = prep(rdzen)
+
 kafle, prz = {}, []
 for s in ODC:
     c = s[7]; pts = [(c[k], c[k + 1]) for k in range(0, len(c), 2)]
     kafle.setdefault(kafel(*pts[0]), []).append(s)
+    if s[4] == "" and s[5] != "droga rowerowa" and not rdzen.contains(Point(_tf(pts[0][1], pts[0][0]))): continue
     up = list(LineString(pts).simplify(TOL, preserve_topology=False).coords) if len(pts) > 2 else pts
     if up[0] != pts[0]: up[0] = pts[0]           # pierwszy punkt bez zmian – wyznacza kafel
     # [id, stan z pomiaru, długość, droga rowerowa?, kształt]
@@ -54,7 +68,8 @@ for k, lista in kafle.items():
         json.dump(lista, f, ensure_ascii=False, separators=(",", ":"))
 
 ver = hashlib.sha1(src.encode()).hexdigest()[:8]
-dane = {"v": ver, "siatka": [LAT0, LON0, DLAT, DLON], "kafle": sorted(kafle), "o": prz}
+suma_km = round(sum(x[6] for x in ODC) / 1000)          # wszystkie drogi (także te tylko w kaflach) – do „Ocenione: … z … km”
+dane = {"v": ver, "siatka": [LAT0, LON0, DLAT, DLON], "kafle": sorted(kafle), "km": suma_km, "o": prz}
 with open(os.path.join(OUT, "stan", "przeglad.js"), "w", encoding="utf-8") as f:
     f.write("window.ODCP=" + json.dumps(dane, ensure_ascii=False, separators=(",", ":")) + ";\n")
     f.write("window.ODC_ALIASY=" + json.dumps(aliasy, ensure_ascii=False, separators=(",", ":")) + ";\n")

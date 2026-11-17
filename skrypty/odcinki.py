@@ -13,7 +13,8 @@ MAXLEN = 400   # m
 tf = Transformer.from_crs(4326, 2180, always_xy=True); tb = Transformer.from_crs(2180, 4326, always_xy=True)
 to2180 = lambda g: transform(tf.transform, g); to4326 = lambda g: transform(tb.transform, g)
 
-SKIP_HW = {"steps", "proposed", "construction", "motorway", "trunk", "bus_guideway", "raceway", "elevator", "platform"}
+SKIP_HW = {"steps", "proposed", "construction", "motorway", "trunk", "bus_guideway", "raceway", "elevator", "platform",
+           "motorway_link", "trunk_link", "corridor", "services", "rest_area"}   # 17.11: łącznice autostrad/ekspresówek, korytarze w budynkach
 SKIP_SERVICE = {"driveway", "parking_aisle", "drive-through", "emergency_access"}
 SKIP_FOOT = {"sidewalk", "crossing", "traffic_island"}
 HW = {"track": "droga leśna/polna", "path": "ścieżka", "footway": "ścieżka piesza", "cycleway": "droga rowerowa", "bridleway": "ścieżka",
@@ -41,7 +42,14 @@ if os.path.exists("../dane/gmina_koszecin.geojson"):
 # 17.11.2026: powiększony obszar mapy (Blachownia – Tarnowskie Góry, Lubliniec – Woźniki) – ten sam co w pobieraniu danych
 from shapely.geometry import box as _box
 OBSZAR = (18.60, 50.43, 19.18, 50.80)   # W, S, E, N
+rdzen = area                             # dotychczasowy obszar: wszystkie drogi jak dotąd
 area = area.union(to2180(_box(*OBSZAR)))
+# poza dotychczasowym obszarem (miasta: Lubliniec, Tarnowskie Góry …) pomijamy chodniki i drogi dojazdowe (parkingi, podwórka) –
+# rowerzyście nic nie dają, a to ok. 15 tys. odcinków; ciągi pieszo-rowerowe (footway z bicycle=designated/yes) zostają
+def poza_rdzeniem_zbedna(p, g):
+    if p.get("highway") == "footway" and p.get("bicycle") not in ("designated", "yes"): return not rdzen.intersects(g)
+    if p.get("highway") == "service": return not rdzen.intersects(g)
+    return False
 
 ways = []
 for f in osm:
@@ -49,7 +57,9 @@ for f in osm:
     if not hw or f["geometry"]["type"] != "LineString" or hw in SKIP_HW: continue
     if p.get("service") in SKIP_SERVICE or p.get("footway") in SKIP_FOOT or p.get("area") == "yes": continue
     cs = [tuple(round(v, 7) for v in c) for c in f["geometry"]["coordinates"]]
-    if len(cs) < 2 or not area.intersects(to2180(LineString(cs))): continue
+    if len(cs) < 2: continue
+    g2180 = to2180(LineString(cs))
+    if not area.intersects(g2180) or poza_rdzeniem_zbedna(p, g2180): continue
     ways.append((p, cs))
 
 # węzły wspólne kilku dróg (lub końce dróg) = miejsca cięcia
