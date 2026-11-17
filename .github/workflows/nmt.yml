@@ -8,42 +8,23 @@ permissions:
 jobs:
   nmt:
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        czesc: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install rasterio pyproj requests numpy
-      - run: python pobierz_nmt.py
+      - name: Stary model (dawny obszar)
         env:
-          CZESC: ${{ matrix.czesc }}
-        timeout-minutes: 100
-      - run: mv log.txt log_cz${{ matrix.czesc }}.txt
-        if: always()
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: nmt-cz${{ matrix.czesc }}
-          path: |
-            nmt_cz*.npz
-            log_cz*.txt
-  wydanie:
-    needs: nmt
-    if: always()
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: art
-          merge-multiple: true
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download nmt -R ${{ github.repository }} -p nmt.npz -O stary.npz || true
+      - run: python pobierz_nmt.py
+        timeout-minutes: 150
       - name: Wydanie z danymi
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          ls -la art
-          gh release delete nmt4 -R ${{ github.repository }} -y --cleanup-tag || true
-          gh release create nmt4 -R ${{ github.repository }} --target wysokosci --title "Model terenu – 4 części (dane robocze)" --notes "NMT GUGiK (siatka 5 m), powiększony obszar, w 4 pasach." --prerelease art/*
+          ls -la
+          gh release delete nmt2 -R ${{ github.repository }} -y --cleanup-tag || true
+          gh release create nmt2 -R ${{ github.repository }} --target wysokosci --title "Model terenu – powiększony obszar (dane robocze)" --notes "NMT GUGiK (siatka 5 m), Blachownia – Tarnowskie Góry, Lubliniec – Woźniki." --prerelease log.txt $(ls nmt.npz 2>/dev/null)

@@ -63,25 +63,35 @@ def proba_gugik():
     return None
 
 def pobierz_gugik(nm, kol):
+    import time
     nx, ny = (X1 - X0) // STEP, (Y1 - Y0) // STEP
     Z = np.full((ny, nx), np.nan)
+    # 17.11.2026: wysokości dla dawnego obszaru już mamy (stary.npz z wydania „nmt”) – wstawiamy je i pobieramy tylko brakujące kawałki;
+    # po kolei i spokojnie (GUGiK zrywa połączenia przy kilku pobieraniach naraz)
+    if os.path.exists("stary.npz"):
+        d = np.load("stary.npz"); z0 = np.where(d["z"] == -32768, np.nan, d["z"] / 10.0); sx0, sy1 = int(d["x0"]), int(d["y1"])
+        r0, c0 = (Y1 - sy1) // STEP, (sx0 - X0) // STEP
+        rr0, cc0 = max(0, r0), max(0, c0); rr1, cc1 = min(ny, r0 + z0.shape[0]), min(nx, c0 + z0.shape[1])
+        Z[rr0:rr1, cc0:cc1] = z0[rr0 - r0:rr1 - r0, cc0 - c0:cc1 - c0]; log("stary model wstawiony, nan%", round(float(np.isnan(Z).mean()), 3))
     n = TILE // STEP
     for y in range(Y0, Y1, TILE):
         for x in range(X0, X1, TILE):
             xe, ye = min(x + TILE, X1), min(y + TILE, Y1)
             w, h = (xe - x) // STEP, (ye - y) // STEP
+            r0 = (Y1 - ye) // STEP; c0 = (x - X0) // STEP
+            if not np.isnan(Z[r0:r0 + h, c0:c0 + w]).any(): continue      # kawałek już jest (stary model)
             bb = (x, y, xe, ye) if kol == "xy" else (y, x, ye, xe)
             p = {"SERVICE": "WCS", "VERSION": "1.0.0", "REQUEST": "GetCoverage", "COVERAGE": nm, "CRS": "EPSG:2180", "RESPONSE_CRS": "EPSG:2180",
                  "BBOX": ",".join(map(str, bb)), "WIDTH": w, "HEIGHT": h, "FORMAT": "image/tiff"}
-            for proba in range(4):
+            for proba in range(6):
                 try:
                     r = ses.get(BASE, params=p, timeout=90); a, bnd, crs, t = czytaj(r.content); break
                 except Exception as e:
-                    log("tile retry", x, y, e); a = None
+                    log("tile retry", x, y, e); a = None; time.sleep(5 * 2 ** proba)
+            time.sleep(0.5)
             if a is None: continue
             if a.shape != (h, w): log("tile shape", a.shape, "expected", (h, w), bnd); a = a[:h, :w]
-            r0 = (Y1 - ye) // STEP; c0 = (x - X0) // STEP
-            Z[r0:r0 + a.shape[0], c0:c0 + a.shape[1]] = a
+            Z[r0:r0 + a.shape[0], c0:c0 + a.shape[1]] = np.where(np.isnan(a), Z[r0:r0 + a.shape[0], c0:c0 + a.shape[1]], a)
             log("tile", x, y, "ok nan%", round(float(np.isnan(a).mean()), 3))
     return Z
 
