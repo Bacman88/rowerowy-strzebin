@@ -196,10 +196,13 @@ $uu = array_values(array_unique(array_filter(array_map(fn($r) => (string)($r['ur
 if ($uu) { $ph = implode(',', array_fill(0, count($uu), '?'));
     foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $tb) { $q2 = $db->prepare("SELECT urz, COUNT(*) n FROM $tb WHERE urz IN ($ph) GROUP BY urz"); $q2->execute($uu);
         foreach ($q2 as $w) $URZN[$w['urz']] = ($URZN[$w['urz']] ?? 0) + (int)$w['n']; } }
-$urzTag = function (array $r) use ($URZN): string { $u = (string)($r['urz'] ?? ''); if ($u === '') return '';
+$urzTag = function (array $r) use ($URZN): string {
+    $ip = (string)($r['ip'] ?? ''); $t = $ip !== '' ? ' · <span class="urz" title="Skrót adresu IP – ta sama wartość = ta sama sieć (w komórce IP często się zmienia). Kasowany po 30 dniach.">'
+        . '<i style="background:#' . substr($ip, 6, 6) . '"></i>🌐 ' . substr($ip, 0, 6) . '</span>' : '';
+    $u = (string)($r['urz'] ?? ''); if ($u === '') return $t;
     $kol = '#' . substr(md5($u), 0, 6);
     return ' · <span class="urz" title="Anonimowy identyfikator urządzenia – ta sama wartość = ten sam telefon lub przeglądarka. Wszystkich zgłoszeń z niego: ' . ($URZN[$u] ?? 1) . '">'
-        . '<i style="background:' . $kol . '"></i>📱 ' . substr($u, 0, 6) . ' (' . ($URZN[$u] ?? 1) . ')</span>'; };
+        . '<i style="background:' . $kol . '"></i>📱 ' . substr($u, 0, 6) . ' (' . ($URZN[$u] ?? 1) . ')</span>' . $t; };
 $odc = [];
 if ($lista && $tryb === 'drogi') {
     $in = implode(',', array_map(fn($r) => (int)$r['id'], $lista));
