@@ -97,6 +97,8 @@ function hub_db(): PDO {
     // ale jego zgłoszenia nie są zapisywane (nie wie, że jest zablokowany, więc nie próbuje obejść blokady)
     $db->exec("CREATE TABLE IF NOT EXISTS bany (id $ai, rodzaj VARCHAR(4) NOT NULL, wartosc VARCHAR(64) NOT NULL,
         do_kiedy VARCHAR(19) NOT NULL, utworzono VARCHAR(19) NOT NULL, opis VARCHAR(120) NOT NULL DEFAULT '')");
+    $kol = $my ? array_column($db->query("SHOW COLUMNS FROM bany")->fetchAll(), 'Field') : array_column($db->query("PRAGMA table_info(bany)")->fetchAll(), 'name');
+    if (!in_array('jawny', $kol, true)) $db->exec("ALTER TABLE bany ADD COLUMN jawny INT NOT NULL DEFAULT 0");   // 1 = nadawca widzi komunikat o blokadzie
     if (!$my) $db->exec('PRAGMA busy_timeout=3000');
     return $db;
 }
@@ -211,12 +213,20 @@ function hub_admin_zatwierdz(PDO $db, string $tab, int $id): bool {
     $db->prepare("UPDATE $tab SET moderacja = 'zatwierdzone', moderowano = ? WHERE id = ?")->execute([hub_teraz(), $id]);
     hub_foto_usun($db, $tab, $id); return true;
 }
-// zablokowany (skrót IP lub urządzenie): udajemy sukces i niczego nie zapisujemy
+// komunikat dla zablokowanego (blokada jawna) – na stronie, w aplikacji i w mailu
+function hub_ban_tekst(string $do): string {
+    return 'Twoje zgłoszenia są wstrzymane do ' . date('d.m.Y, H:i', strtotime($do)) . ' – dostaliśmy z tego urządzenia zbyt wiele zgłoszeń '
+        . 'niezgodnych ze stanem dróg. Jeśli to pomyłka, napisz: info@rowerowy-strzebin.smart-ant.pl';
+}
+// zablokowany (skrót IP lub urządzenie): blokada cicha – udajemy sukces i niczego nie zapisujemy;
+// blokada jawna – nadawca dostaje komunikat, do kiedy i dlaczego
 function hub_ban_sprawdz(PDO $db, string $ip): void {
     if (hub_admin()) return;
-    $q = $db->prepare("SELECT 1 FROM bany WHERE do_kiedy > ? AND ((rodzaj = 'ip' AND wartosc = ?) OR (rodzaj = 'urz' AND wartosc <> '' AND wartosc = ?))");
+    $q = $db->prepare("SELECT do_kiedy, jawny FROM bany WHERE do_kiedy > ? AND ((rodzaj = 'ip' AND wartosc = ?) OR (rodzaj = 'urz' AND wartosc <> '' AND wartosc = ?)) ORDER BY jawny DESC, do_kiedy DESC");
     $q->execute([hub_teraz(), $ip, hub_urz()]);
-    if ($q->fetchColumn()) hub_json(['ok' => true]);
+    $b = $q->fetch(); if (!$b) return;
+    if ((int)$b['jawny']) hub_json(['blad' => hub_ban_tekst($b['do_kiedy']), 'ban' => $b['do_kiedy']], 403);
+    hub_json(['ok' => true]);
 }
 function hub_ip_limit(PDO $db): string {
     if (hub_admin()) return '';   // administrator – bez limitu
@@ -237,10 +247,17 @@ function hub_powiadom(string $temat, string $tresc, string $zakladka = '', bool 
     $host = preg_replace('/^www\./', '', preg_replace('/[^a-z0-9.\-]/i', '', (string)($_SERVER['HTTP_HOST'] ?? 'rowerowy-strzebin.smart-ant.pl')));
     $od = trim((string)($c['nadawca'] ?? '')) ?: "info@$host";
     $link = "https://$host/admin/" . ($zakladka ? "?t=$zakladka" : '');
+    return hub_mail($do, '[HUB rowerowy] ' . $temat, $tresc . "\n\nSprawdź i zatwierdź w panelu: $link\n");
+}
+// wysyłka maila (SMTP z hub_config.php albo mail()); nadawca: 'nadawca' albo info@domena
+function hub_mail(string $do, string $temat, string $tresc): bool {
+    $c = hub_cfg();
+    $host = preg_replace('/^www\./', '', preg_replace('/[^a-z0-9.\-]/i', '', (string)($_SERVER['HTTP_HOST'] ?? 'rowerowy-strzebin.smart-ant.pl')));
+    $od = trim((string)($c['nadawca'] ?? '')) ?: "info@$host";
     $nag = implode("\r\n", ["From: =?UTF-8?B?" . base64_encode('HUB rowerowy Strzebiń') . "?= <$od>", "Reply-To: $od", 'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=utf-8', 'Content-Transfer-Encoding: 8bit', 'X-Mailer: HUB rowerowy Strzebin']);
-    $tem = '=?UTF-8?B?' . base64_encode('[HUB rowerowy] ' . $temat) . '?=';
-    $tr = $tresc . "\n\nSprawdź i zatwierdź w panelu: $link\n";
+    $tem = '=?UTF-8?B?' . base64_encode($temat) . '?=';
+    $tr = $tresc;
     if (trim((string)($c['smtp_host'] ?? '')) !== '') return hub_smtp($c, $od, $do, $tem, $tr, $nag);
     if (!function_exists('mail')) { $GLOBALS['hub_mail_blad'] = 'funkcja mail() jest wyłączona na hostingu – dopisz dane SMTP w hub_config.php'; return false; }
     return @mail($do, $tem, $tr, $nag, '-f' . $od);

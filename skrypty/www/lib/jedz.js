@@ -627,7 +627,8 @@
     const st = K[0].stan, paczka = K.filter(k => k.stan === st), ids = [...new Set(paczka.flatMap(k => k.ids))].slice(0, 300);
     fetch(BAZA + 'api/zglos.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({
       stan: st, odcinki: ids, nick: LS.get('nick', '') || 'Jedź', komentarz: 'Ocena z nawigacji Jedź' + (NAT ? ' (aplikacja)' : ''), data: new Date().toISOString().slice(0, 10), urz: (() => { try { let u = localStorage.getItem('hub_urz'); if (!/^[0-9a-f]{12}$/.test(u || '')) { u = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('hub_urz', u); } return u; } catch (e) { return ''; } })()})})
-      .then(r => r.json().catch(() => ({}))).then(j => { if (j.ok || /Nieznany odcinek|Zaznacz od/.test(j.blad || '')) {
+      .then(r => r.json().catch(() => ({}))).then(j => { if (j.ban) LS.set('ban', {t: j.blad, do: j.ban});
+        if (j.ok || j.ban || /Nieznany odcinek|Zaznacz od/.test(j.blad || '')) {
         LS.set('kolejkaOcen', LS.get('kolejkaOcen', []).filter(k => k.stan !== st)); setTimeout(wyslijOceny, 300); } }).catch(() => {});
   }
   // wysyłka po 10 s od ostatniego dotknięcia – zmiana zdania („średnia” → „trudna”) podmienia ocenę w kolejce, zamiast wysyłać kilka
@@ -644,6 +645,8 @@
     const T = stan.T; if (!T) return;
     // w trakcie jazdy oceniamy tylko kawałek, na którym jesteś: odcinki mapy w promieniu ~100 m (odcinki mają do 400 m, zwykle ok. 100 m),
     // żeby 50 m piachu nie zepsuło oceny całej dobrej drogi
+    const bn = LS.get('ban', null);   // jawna blokada z serwera: zamiast przycisków ocen – informacja, do kiedy
+    if (bn && new Date(bn.do.replace(' ', 'T')) > new Date()) { $('ocs').innerHTML = `<h3>Oceny wstrzymane</h3><div class="o">${esc(bn.t)}</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
     const g = kawalekOdc(T, wzdluz);
     if (!g) { $('ocs').innerHTML = `<h3>Tu nie ma odcinka do oceny</h3><div class="o">Ocenić można drogi z mapy – spróbuj za chwilę, gdy wjedziesz na drogę.</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
     podswietl(g.ll);
@@ -664,6 +667,7 @@
     const gr = [], wazny = g => { const st = JZ.stOdc(g.s); return JZ.DW(g.s) ? 0 : st === 'osm' ? 1 : 2; };
     for (let i = 0; i < T.seg.length;) { const g = grupaOdc(T, i); if (!g) { i++; continue; } if (T.cum[g.a] < doM && g.m >= 150) gr.push(g); i = g.b + 1; }
     const top = gr.sort((a, b) => wazny(b) - wazny(a) || b.m - a.m).slice(0, 3); if (!top.length) return null;
+    const bn = LS.get('ban', null); if (bn && new Date(bn.do.replace(' ', 'T')) > new Date()) return null;
     const d = document.createElement('div'); d.className = 'ocpo';
     d.innerHTML = `<h4>Jak się jechało? Oceń drogi z tej trasy</h4>
       ${LS.get('nick', '') ? '' : '<input id="ocp-nick" maxlength="60" placeholder="Twoje imię lub nick (raz, zapamiętam)" style="width:100%;box-sizing:border-box;font:inherit;padding:8px 10px;border:1px solid #cfd8d3;border-radius:10px;margin-bottom:4px">'}

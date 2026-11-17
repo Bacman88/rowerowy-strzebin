@@ -172,11 +172,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // blokada źródła zgłoszenia na 1/7/30 dni + odrzucenie wszystkich jego oczekujących zgłoszeń
     if (preg_match('/^ban_(ip|urz)_(1|7|30)$/', $ak, $bm)) {
         $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'][$_POST['t'] ?? ''] ?? 'zgloszenia';
-        $q = $db->prepare("SELECT ip, urz, nick FROM $tab WHERE id = ?"); $q->execute([(int)(($_POST['id'] ?? [0])[0] ?? 0)]); $w = $q->fetch();
+        $q = $db->prepare("SELECT ip, urz, nick, kontakt FROM $tab WHERE id = ?"); $q->execute([(int)(($_POST['id'] ?? [0])[0] ?? 0)]); $w = $q->fetch();
         $war = $w ? (string)$w[$bm[1]] : '';
         if ($war !== '') {
-            $db->prepare('INSERT INTO bany (rodzaj, wartosc, do_kiedy, utworzono, opis) VALUES (?,?,?,?,?)')
-               ->execute([$bm[1], $war, date('Y-m-d H:i:s', time() + 86400 * (int)$bm[2]), hub_teraz(), mb_substr('nick: ' . $w['nick'], 0, 120)]);
+            $jawny = !empty($_POST['jawny']) ? 1 : 0; $doK = date('Y-m-d H:i:s', time() + 86400 * (int)$bm[2]);
+            $db->prepare('INSERT INTO bany (rodzaj, wartosc, do_kiedy, utworzono, opis, jawny) VALUES (?,?,?,?,?,?)')
+               ->execute([$bm[1], $war, $doK, hub_teraz(), mb_substr('nick: ' . $w['nick'], 0, 120), $jawny]);
+            // jawna blokada i nadawca podał e-mail (zgoda na kontakt) – wysyłamy mu tę samą informację
+            if ($jawny && filter_var(trim((string)$w['kontakt']), FILTER_VALIDATE_EMAIL))
+                hub_mail(trim((string)$w['kontakt']), 'HUB rowerowy Strzebiń – zgłoszenia wstrzymane', "Dzień dobry,\n\n" . hub_ban_tekst($doK) . "\n\nPozdrawiamy\nHUB rowerowy Strzebiń\n");
             foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $tb)
                 $db->prepare("UPDATE $tb SET moderacja = 'odrzucone', moderowano = ? WHERE moderacja = 'oczekuje' AND " . ($bm[1] === 'ip' ? 'ip' : 'urz') . ' = ?')->execute([hub_teraz(), $war]);
         }
@@ -349,7 +353,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
   <div class="list">
     <?php if ($BANY): ?><details class="bany"><summary>⛔ Aktywne blokady: <?= count($BANY) ?></summary>
       <?php foreach ($BANY as $bb): ?><form method="post" class="banw"><input type="hidden" name="csrf" value="<?= $csrf ?>"><input type="hidden" name="k" value="<?= $k ?>"><input type="hidden" name="t" value="<?= $tryb ?>"><input type="hidden" name="ban" value="<?= (int)$bb['id'] ?>">
-        <span><?= $bb['rodzaj'] === 'ip' ? '🌐 IP' : '📱 urządzenie' ?> <b><?= $h(substr($bb['wartosc'], 0, 6)) ?></b> do <?= $h(substr($bb['do_kiedy'], 0, 16)) ?> <span class="m"><?= $h($bb['opis']) ?></span></span>
+        <span><?= $bb['rodzaj'] === 'ip' ? '🌐 IP' : '📱 urządzenie' ?> <b><?= $h(substr($bb['wartosc'], 0, 6)) ?></b> · <?= (int)$bb['jawny'] ? 'z powiadomieniem' : 'cicha' ?> · do <?= $h(substr($bb['do_kiedy'], 0, 16)) ?> <span class="m"><?= $h($bb['opis']) ?></span></span>
         <button name="akcja" value="odbanuj">Odblokuj</button></form><?php endforeach ?>
     </details><?php endif ?>
     <?php if (!$lista): ?><div class="empty">Brak zgłoszeń w tej zakładce.</div><?php endif ?>
@@ -397,7 +401,8 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
           <input type="hidden" name="id[]" value="<?= (int)$r['id'] ?>">
           <?php foreach ($AKCJE[$k] as [$a, $t, $cl]): ?><button name="akcja" value="<?= $a ?>" class="<?= $cl ?>"><?= $t ?></button><?php endforeach ?>
           <?php if (($r['urz'] ?? '') !== '' || ($r['ip'] ?? '') !== ''): ?><details class="banb"><summary>Zablokuj…</summary>
-            <div class="m">Zgłoszenia z zablokowanego źródła nie będą zapisywane (nadawca zobaczy „dziękujemy”), a jego oczekujące zostaną odrzucone.</div>
+            <div class="m">Zgłoszenia z zablokowanego źródła nie będą zapisywane, a jego oczekujące zostaną odrzucone.</div>
+            <label class="m" style="display:block;margin-top:4px"><input type="checkbox" name="jawny" value="1" checked> powiadom nadawcę – przy następnym zgłoszeniu zobaczy, do kiedy i dlaczego jest zablokowany<?= filter_var(trim((string)$r['kontakt']), FILTER_VALIDATE_EMAIL) ? ' (i dostanie maila)' : '' ?>; bez zaznaczenia – blokada cicha, zobaczy „dziękujemy”</label>
             <?php foreach ([['urz', '📱 urządzenie'], ['ip', '🌐 IP']] as [$rb, $rn]): if (($r[$rb] ?? '') === '') continue; ?>
               <div><?= $rn ?>: <?php foreach ([1 => '1 dzień', 7 => '7 dni', 30 => '30 dni'] as $dn => $dt): ?><button name="akcja" value="ban_<?= $rb ?>_<?= $dn ?>" class="no" onclick="return confirm('Zablokować <?= $rb === 'ip' ? 'ten adres IP' : 'to urządzenie' ?> na <?= $dt ?>?')"><?= $dt ?></button> <?php endforeach ?></div>
             <?php endforeach ?></details><?php endif ?>
