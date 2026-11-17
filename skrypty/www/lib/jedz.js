@@ -214,7 +214,7 @@
   function mapaOfflinePanel() {
     const box = document.querySelector('.moff-w'); if (!box) return;
     if (!JZ.podklad.pobrana()) {
-      box.innerHTML = `<div class="moff"><span><b>Mapa offline</b> – lasy, wody, budynki i nazwy także bez zasięgu. <button type="button" class="moff-b" id="moff-p">Pobierz mapę offline (2,8 MB)</button></span></div>`;
+      box.innerHTML = `<div class="moff"><span><b>Mapa offline</b> – lasy, wody, budynki i nazwy także bez zasięgu. <button type="button" class="moff-b" id="moff-p">Pobierz mapę offline (ok. 8 MB)</button></span></div>`;
       $('moff-p').onclick = () => { $('moff-p').disabled = true; $('moff-p').textContent = 'Pobieram…';
         JZ.podklad.pobierz(() => { mapaOfflinePanel(); podpowiedzOffline(); }, () => { const b = $('moff-p'); if (b) { b.disabled = false; b.textContent = 'Nie udało się – spróbuj ponownie'; } }); };
     } else {
@@ -452,6 +452,8 @@
     else { stan.kara = null; stan.objazd = null; }
     const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y;
   }
+  // inne tempo / rower → inna godzina przyjazdu: odśwież zdanie o zmroku (prognoza zostaje)
+  function slOdswiez(T) { const e = document.querySelector('#p-pog .pg-sl'); if (e && JZ.pogoda) e.textContent = JZ.pogoda.swiatlo(T.ll[0][0], T.ll[0][1], T.prof.czas); }
   function podglad() {
     if (stan.tryb === 'szosa' && ST.RT !== 'szosa') stan.tryb = 'bezp';
     if (ST.pieszo && stan.tryb !== 'krotko') stan.tryb = 'pieszo'; else if (!ST.pieszo && stan.tryb === 'pieszo') stan.tryb = 'bezp';
@@ -483,6 +485,7 @@
       <div class="tryb pr" role="radiogroup" aria-label="Rowerem czy pieszo"><button type="button" role="radio" data-p="0" aria-checked="${!ST.pieszo}"><b>🚲 Rowerem</b></button><button type="button" role="radio" data-p="1" aria-checked="${ST.pieszo}"><b>🚶 Pieszo</b></button></div>
       ${ST.pieszo ? `<div class="rower" role="radiogroup" aria-label="Rodzaj aktywności">${Object.entries(PIESZE).map(([k, r]) => `<button type="button" role="radio" data-pt="${k}" aria-checked="${k === ST.PT}">${r.n}</button>`).join('')}</div>` : `<div class="rower" role="radiogroup" aria-label="Rodzaj roweru">${Object.entries(ROWERY).map(([k, r]) => `<button type="button" role="radio" data-r="${k}" aria-checked="${k === ST.RT}">${r.n}</button>`).join('')}</div>`}
       <div class="msg ostrz" id="p-ostrz"${ostrzezenie(T, inne) ? '' : ' hidden'}>${esc(ostrzezenie(T, inne))}</div>
+      <div class="pogoda" id="p-pog"></div>
       <div class="tempo"><div class="tnag"><span>Twoje tempo na płaskim</span><b id="p-v">${vOpis(ST.VU)} · ${tempoNazwa(ST.VU)}</b></div>
         ${ST.pieszo ? `<input type="range" id="p-tempo" min="${ST.R.od}" max="${ST.R.do}" step="${ST.R.krok}" value="${ST.VU}" aria-label="Twoje tempo (km/h)">
         <div class="tskala">${(ST.PT === 'bieg' ? ['trucht', 'bieg', 'szybki bieg'] : ST.PT === 'nordic' ? ['spokojnie', 'marsz', 'szybko'] : ['spacerowo', 'marsz', 'szybki marsz']).map(x => `<span>${x}</span>`).join('')}</div>` : `<input type="range" id="p-tempo" min="8" max="40" step="1" value="${ST.VU}" aria-label="Twoja średnia prędkość na płaskim (km/h)">
@@ -495,7 +498,7 @@
       <div class="rzad"><a class="btn2" id="b-google" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Mapy Google</a>${NAT ? '' : '<button type="button" class="btn2" id="b-gpx">GPX</button>'}</div>
       <button type="button" class="btn2" id="b-symstart" style="border-style:dashed">Symulacja przejazdu (test w domu)</button>
       <div class="sek">Po drodze</div><div class="manew">${lista}</div>
-      <div class="moff p-off" id="p-offline"${JZ.podklad.pobrana() ? ' hidden' : ''}><span>Jedziesz przez las albo tam, gdzie słaby zasięg? <button type="button" class="moff-b" id="p-offline-b">Pobierz mapę offline (2,8 MB)</button></span></div>
+      <div class="moff p-off" id="p-offline"${JZ.podklad.pobrana() ? ' hidden' : ''}><span>Jedziesz przez las albo tam, gdzie słaby zasięg? <button type="button" class="moff-b" id="p-offline-b">Pobierz mapę offline (ok. 8 MB)</button></span></div>
       <button type="button" class="btn2" id="b-zglos" style="border-style:dashed">Coś nie tak z tą trasą? Zgłoś błąd / sugestię</button>`;
     $('dol').querySelectorAll('.tryb:not(.pr) button').forEach(b => b.onclick = () => { stan.tryb = b.dataset.t; if (b.dataset.t !== 'pieszo') LS.set('tryb', stan.tryb); podglad(); });
     // zmiana roweru: tylko czas jazdy (prędkości na nawierzchniach, podjazdy, vmax) – trasa i suwak tempa bez zmian
@@ -508,10 +511,11 @@
       if (zSzosy) { const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; return; }   // znika trzeci przycisk trybu
       T.prof = profil(T);
       $('dol').querySelectorAll('.rower button').forEach(x => x.setAttribute('aria-checked', x === b));
-      $('p-czas').textContent = czasTxt(T.prof.czas); wykresInterakcja(T);
+      $('p-czas').textContent = czasTxt(T.prof.czas); wykresInterakcja(T); slOdswiez(T);
       const o = ostrzezenie(T, inne); $('p-ostrz').textContent = o; $('p-ostrz').hidden = !o;
     });
     $('b-jedz').onclick = () => startJazdy(false);
+    if (JZ.pogoda) JZ.pogoda.blok($('p-pog'), T);   // pogoda na starcie, po drodze i na miejscu + wschód/zachód słońca
     // rowerem / pieszo: inny sposób liczenia trasy (pieszo: ścieżki i las, nawierzchnia bez znaczenia) i osobne tempo
     $('dol').querySelectorAll('.tryb.pr button').forEach(b => b.onclick = () => { if ((b.dataset.p === '1') === ST.pieszo) return;
       ustawPieszo(b.dataset.p === '1'); stan.tryb = ST.pieszo ? 'pieszo' : (LS.get('tryb', 'bezp') === 'pieszo' ? 'bezp' : LS.get('tryb', 'bezp')); const y = $('dol').scrollTop; podglad(); $('dol').scrollTop = y; });
@@ -577,12 +581,13 @@
     $('b-kurs').ariaLabel = obrocona ? 'Odblokuj: północ u góry' : 'Zablokuj: kierunek jazdy u góry';
     $('b-kurs').style.background = obrocona ? '#00737e' : '#fff'; $('b-kurs').style.boxShadow = obrocona ? '0 0 0 3px #fff, 0 1px 6px rgba(0,0,0,.3)' : '';
     $('b-kurs').querySelector('svg path:last-of-type').setAttribute('fill', obrocona ? '#cfe6e6' : '#9aa3a8'); }
+  let pogT = 0;
   function startJazdy(symulacja) {
     stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; pytano.clear(); Object.assign(tempo, {real: 0, mod: 0, t: 0, v: 0, k: 1}); zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
     if (!symulacja) powiedz('Ruszamy. Do celu ' + kmTxt(stan.T.m) + '.');
     if (!symulacja) JZ.historia.start({cel: stan.celN, tryb: stan.tryb, rower: ST.pieszo ? (ST.PT === 'spacer' ? 'pieszo' : ST.PT) : ST.RT});   // zapis przejazdu (tylko w telefonie)
-    $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
+    $('dol').innerHTML = `<div class="jdol"><div class="w"><b id="j-zost"></b><small id="j-opis"></small><small id="j-pog"></small></div><button type="button" class="stop" id="b-stop">Zakończ</button></div>`;
     $('b-stop').onclick = koniecJazdy;
     widok(stan.T.ll[0], 17); B = brg(stan.T.ll[0], wDal(stan.T, 40)); if (kurs) obroc(true); else kompas();
     $('b-kurs').classList.remove('hide'); $('b-3d').classList.remove('hide'); trojwymiar();
@@ -591,6 +596,11 @@
     // zegar: co 5 s odśwież czas i godzinę przyjazdu także na postoju (GPS bez ruchu nie przysyła nowych pozycji) – stoisz,
     // więc godzina przyjazdu przesuwa się do przodu, a prędkość spada do zera
     clearInterval(zegarJ); zegarJ = setInterval(() => { if (!stan.jazda) return clearInterval(zegarJ); if (Date.now() - (tempo.t || 0) > 6000) tempo.v = 0; odswiez(); }, 5000);
+    // pogoda w trakcie jazdy: co 5 min (prognoza w pamięci 30 min, więc pobieranie rzadko) (deszcz za ~30 min, zmrok); głosowo raz – 20 min przed zachodem, gdy do celu dalej
+    clearInterval(pogT); let zachG = false;
+    const pog = () => { if (!stan.jazda || !JZ.pogoda) return clearInterval(pogT); JZ.pogoda.wJezdzie(stan.T, wzdluz).then(r => { const e = $('j-pog'); if (e) e.textContent = r.txt ? ' · ' + r.txt : '';
+      if (r.zach && !zachG) { const za = r.zach.getTime() - Date.now(); if (za > 0 && za < 20 * 6e4) { zachG = true; powiedz('Za ' + Math.round(za / 6e4) + ' minut zachód słońca. Włącz światła.'); } } }); };
+    pogT = setInterval(pog, 5 * 6e4); setTimeout(pog, 3000);
     if (!sym) watch = GEO.sledz((p, acc) => pozycja(p, acc), () => { $('status').className = 'status zle'; $('status').querySelector('span').textContent = 'Brak sygnału GPS'; }, 'Do: ' + stan.celN);
     odswiez();
   }

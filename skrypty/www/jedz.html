@@ -88,6 +88,11 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .rower button[aria-checked="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
 .ostrz{background:#fff4d6;border:1px solid #f0d58a;color:#5c4400;border-radius:12px;padding:8px 11px;font-size:13.5px;line-height:1.4}
 .ostrz[hidden]{display:none}
+.pogoda{margin:10px 0 4px}.pogoda:empty{display:none}.pg-sl{font-size:13.5px;line-height:1.45;margin:4px 0 6px}
+.pg-w{display:grid;grid-template-columns:118px 1fr;column-gap:8px;padding:5px 0;border-top:1px solid #edf0ee;font-size:13.5px;line-height:1.35}
+.pg-w .pg-m{grid-column:2}.pg-k{color:#5d6b64;font-size:12.5px;grid-row:span 2}.pg-m{color:#5d6b64;font-size:12px}
+.pg-uw{background:#e8f1fb;border:1px solid #bcd3ee;border-radius:10px;padding:6px 10px;font-size:13px;margin-top:6px}
+#j-pog{display:block}
 .hstat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.hstat div{background:var(--bg);border-radius:12px;padding:8px 10px}.hstat b{display:block;font-size:18px}.hstat span{font-size:12px;color:var(--muted)}
 .hlista{display:flex;flex-direction:column;gap:6px}.hpoz{display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:inherit;cursor:pointer}
 .ocs{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:900;background:#fff;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:14px 14px 12px}
@@ -258,6 +263,7 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 <script src="lib/jedz/graf.js"></script>
 <script src="lib/jedz/profil.js"></script>
 <script src="lib/jedz/manewry.js"></script>
+<script src="lib/jedz/pogoda.js"></script>
 <script src="lib/jedz/podklad.js"></script>
 <script src="lib/jedz/historia.js"></script>
 <script src="lib/infra.js"></script>
