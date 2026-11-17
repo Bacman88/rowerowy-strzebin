@@ -8,6 +8,10 @@ permissions:
 jobs:
   nmt:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        czesc: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
@@ -15,11 +19,31 @@ jobs:
           python-version: "3.12"
       - run: pip install rasterio pyproj requests numpy
       - run: python pobierz_nmt.py
-        timeout-minutes: 120
+        env:
+          CZESC: ${{ matrix.czesc }}
+        timeout-minutes: 100
+      - run: mv log.txt log_cz${{ matrix.czesc }}.txt
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nmt-cz${{ matrix.czesc }}
+          path: |
+            nmt_cz*.npz
+            log_cz*.txt
+  wydanie:
+    needs: nmt
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: art
+          merge-multiple: true
       - name: Wydanie z danymi
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          ls -la
-          gh release delete nmt -y --cleanup-tag || true
-          gh release create nmt --target wysokosci --title "Model terenu (dane robocze)" --notes "Dane robocze: NMT GUGiK (siatka 5 m) dla okolic Koszęcina – do profili wysokości w nawigacji Jedź." --prerelease log.txt $(ls nmt.npz cop.npz gugik_cap*.xml 2>/dev/null)
+          ls -la art
+          gh release delete nmt4 -R ${{ github.repository }} -y --cleanup-tag || true
+          gh release create nmt4 -R ${{ github.repository }} --target wysokosci --title "Model terenu – 4 części (dane robocze)" --notes "NMT GUGiK (siatka 5 m), powiększony obszar, w 4 pasach." --prerelease art/*

@@ -12,6 +12,13 @@ xs, ys = tr.transform([W, E, W, E], [S, S, N, N])
 X0, X1, Y0, Y1 = int(min(xs)) // 100 * 100, int(max(xs)) // 100 * 100 + 100, int(min(ys)) // 100 * 100, int(max(ys)) // 100 * 100 + 100
 log("EPSG:2180 easting", X0, X1, "northing", Y0, Y1)
 STEP, TILE = 5, 2500
+# 17.11.2026: pobieranie w 4 równoległych częściach (pasy wschód–zachód) – CZESC=1..4 (zmienna środowiskowa), wynik nmt_czN.npz;
+# bez CZESC – całość jak dawniej
+import os
+CZ = int(os.environ.get("CZESC", "0"))
+if CZ:
+    rows = list(range(Y0, Y1, TILE)); n = -(-len(rows) // 4); r = rows[(CZ - 1) * n: CZ * n]
+    Y0, Y1 = r[0], min(r[-1] + TILE, Y1); log("część", CZ, "northing", Y0, Y1)
 BASE = "https://mapy.geoportal.gov.pl/wss/service/PZGIK/NMT/GRID1/WCS/DigitalTerrainModelFormatTIFF"
 ses = requests.Session(); ses.headers["User-Agent"] = "HUB-rowerowy-Strzebin/1.0 (github.com/Bacman88/rowerowy-strzebin)"
 
@@ -68,7 +75,7 @@ def pobierz_gugik(nm, kol):
                  "BBOX": ",".join(map(str, bb)), "WIDTH": w, "HEIGHT": h, "FORMAT": "image/tiff"}
             for proba in range(4):
                 try:
-                    r = ses.get(BASE, params=p, timeout=300); a, bnd, crs, t = czytaj(r.content); break
+                    r = ses.get(BASE, params=p, timeout=90); a, bnd, crs, t = czytaj(r.content); break
                 except Exception as e:
                     log("tile retry", x, y, e); a = None
             if a is None: continue
@@ -85,11 +92,12 @@ def zapisz(fn, Z, step, x0, y1, zrodlo):
 
 try:
     k = proba_gugik(); log("GUGiK wybór:", k)
-    if k: zapisz("nmt.npz", pobierz_gugik(*k), STEP, X0, Y1, "GUGiK NMT")
+    if k: zapisz(f"nmt_cz{CZ}.npz" if CZ else "nmt.npz", pobierz_gugik(*k), STEP, X0, Y1, "GUGiK NMT")
 except Exception:
     log(traceback.format_exc())
 
-# Copernicus GLO-30 (zapas)
+# Copernicus GLO-30 (zapas) – tylko przy pobieraniu całości
+if CZ: sys.exit(0)
 try:
     url = "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N50_00_E018_00_DEM/Copernicus_DSM_COG_10_N50_00_E018_00_DEM.tif"
     from rasterio.windows import from_bounds
