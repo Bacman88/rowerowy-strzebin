@@ -6,7 +6,7 @@ from pyproj import Transformer
 LOG = open("log.txt", "w")
 def log(*a):
     s = " ".join(str(x) for x in a); print(s); LOG.write(s + "\n"); LOG.flush()
-S, N, W, E = 50.486, 50.732, 18.655, 19.013
+S, N, W, E = 50.43, 50.80, 18.60, 19.18   # 17.11.2026: obszar powiększony (Blachownia – Tarnowskie Góry, Lubliniec – Woźniki)
 tr = Transformer.from_crs(4326, 2180, always_xy=True)
 xs, ys = tr.transform([W, E, W, E], [S, S, N, N])
 X0, X1, Y0, Y1 = int(min(xs)) // 100 * 100, int(max(xs)) // 100 * 100 + 100, int(min(ys)) // 100 * 100, int(max(ys)) // 100 * 100 + 100

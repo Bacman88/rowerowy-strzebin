@@ -5,7 +5,7 @@ from shapely.geometry import shape, mapping, Polygon, MultiPolygon, LineString, 
 from shapely.ops import unary_union
 import osm2geojson
 
-S, W, N, E = 50.486, 18.655, 50.732, 19.013
+S, W, N, E = 50.43, 18.60, 50.80, 19.18   # 17.11.2026: obszar powiększony (Blachownia – Tarnowskie Góry, Lubliniec – Woźniki)
 BB = f"{S},{W},{N},{E}"
 Q = f"""[out:json][timeout:600];
 (
