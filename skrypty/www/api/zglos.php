@@ -23,6 +23,9 @@ if ($data !== '' && (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data) || $data > date
 if (!$odc || count($odc) > 300) hub_json(['blad' => 'Zaznacz od 1 do 300 odcinków'], 400);
 $znane = array_flip(json_decode((string)@file_get_contents(__DIR__ . '/_odcinki.json'), true) ?: []);
 foreach ($odc as $o) if (!isset($znane[$o])) hub_json(['blad' => 'Nieznany odcinek – odśwież stronę'], 400);
+// 17.11.2026: nowe tereny mapy (poza gminą z okolicą) na razie ocenia tylko administrator
+if (!hub_admin()) { $zewn = array_flip(json_decode((string)@file_get_contents(__DIR__ . '/_odcinki_zewn.json'), true) ?: []);
+    foreach ($odc as $o) if (isset($zewn[$o])) hub_json(['blad' => 'Ta część mapy nie jest jeszcze otwarta do oceniania – oceniać można drogi w gminie Koszęcin i okolicy.', 'zewn' => true], 400); }
 
 try {
     $db = hub_db();

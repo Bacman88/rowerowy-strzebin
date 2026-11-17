@@ -613,6 +613,9 @@
     const ll = []; for (let k = a; k <= b + 1 && k < T.ll.length; k++) ll.push(T.ll[k]);
     return {a, b, ids: [...new Set(T.seg.slice(a, b + 1).filter(Boolean).map(x => x[0]))], m: T.cum[b + 1] - T.cum[a], s, ll};
   }
+  // odcinek w dotychczasowym obszarze (gmina z okolicą)? – tylko tam zbieramy oceny (stan/rdzen.js; bez pliku – wszędzie)
+  const RDZC = new Map();
+  const wRdz = s => { if (!s || !window.wRdzeniu) return true; if (!RDZC.has(s[0])) RDZC.set(s[0], wRdzeniu(s[7][0], s[7][1])); return RDZC.get(s[0]); };
   function kawalekOdc(T, d) {
     let i = 0; while (i < T.seg.length - 1 && T.cum[i + 1] < d) i++;
     if (!T.seg[i]) { i = Math.min(i + 1, T.seg.length - 1); if (!T.seg[i]) return null; }
@@ -628,7 +631,7 @@
     fetch(BAZA + 'api/zglos.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({
       stan: st, odcinki: ids, nick: LS.get('nick', '') || 'Jedź', komentarz: 'Ocena z nawigacji Jedź' + (NAT ? ' (aplikacja)' : ''), data: new Date().toISOString().slice(0, 10), urz: (() => { try { let u = localStorage.getItem('hub_urz'); if (!/^[0-9a-f]{12}$/.test(u || '')) { u = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('hub_urz', u); } return u; } catch (e) { return ''; } })()})})
       .then(r => r.json().catch(() => ({}))).then(j => { if (j.ban) LS.set('ban', {t: j.blad, do: j.ban});
-        if (j.ok || j.ban || /Nieznany odcinek|Zaznacz od/.test(j.blad || '')) {
+        if (j.ok || j.ban || j.zewn || /Nieznany odcinek|Zaznacz od/.test(j.blad || '')) {
         LS.set('kolejkaOcen', LS.get('kolejkaOcen', []).filter(k => k.stan !== st)); setTimeout(wyslijOceny, 300); } }).catch(() => {});
   }
   // wysyłka po 10 s od ostatniego dotknięcia – zmiana zdania („średnia” → „trudna”) podmienia ocenę w kolejce, zamiast wysyłać kilka
@@ -647,7 +650,9 @@
     // żeby 50 m piachu nie zepsuło oceny całej dobrej drogi
     const bn = LS.get('ban', null);   // jawna blokada z serwera: zamiast przycisków ocen – informacja, do kiedy
     if (bn && new Date(bn.do.replace(' ', 'T')) > new Date()) { $('ocs').innerHTML = `<h3>Oceny wstrzymane</h3><div class="o">${esc(bn.t)}</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
-    const g = kawalekOdc(T, wzdluz);
+    let g = kawalekOdc(T, wzdluz);
+    // 17.11.2026: nowe tereny mapy (poza gminą z okolicą) – nawigacja prowadzi, ale ocen jeszcze nie zbieramy
+    if (g && !wRdz(g.s)) { $('ocs').innerHTML = `<h3>Tu jeszcze nie oceniamy</h3><div class="o">Oceny dróg zbieramy na razie w gminie Koszęcin i okolicy. Ta część mapy dopiero się rozwija – nawigacja prowadzi tu normalnie.</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
     if (!g) { $('ocs').innerHTML = `<h3>Tu nie ma odcinka do oceny</h3><div class="o">Ocenić można drogi z mapy – spróbuj za chwilę, gdy wjedziesz na drogę.</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
     podswietl(g.ll);
     $('ocs').innerHTML = `<h3>Jak się jedzie tym odcinkiem?</h3><div class="o">${esc(opisOdc(g.s))} · ${kmTxt(g.m)} (zaznaczony na żółto)</div>
@@ -665,7 +670,7 @@
   // po przejeździe: 3 najdłuższe odcinki dróg nieutwardzonych / bez oceny (asfalt i drogi wojewódzkie na końcu) – jedno dotknięcie na odcinek
   function blokOcen(T, doM) {
     const gr = [], wazny = g => { const st = JZ.stOdc(g.s); return JZ.DW(g.s) ? 0 : st === 'osm' ? 1 : 2; };
-    for (let i = 0; i < T.seg.length;) { const g = grupaOdc(T, i); if (!g) { i++; continue; } if (T.cum[g.a] < doM && g.m >= 150) gr.push(g); i = g.b + 1; }
+    for (let i = 0; i < T.seg.length;) { const g = grupaOdc(T, i); if (!g) { i++; continue; } if (T.cum[g.a] < doM && g.m >= 150 && wRdz(g.s)) gr.push(g); i = g.b + 1; }
     const top = gr.sort((a, b) => wazny(b) - wazny(a) || b.m - a.m).slice(0, 3); if (!top.length) return null;
     const bn = LS.get('ban', null); if (bn && new Date(bn.do.replace(' ', 'T')) > new Date()) return null;
     const d = document.createElement('div'); d.className = 'ocpo';

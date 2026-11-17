@@ -49,12 +49,22 @@ rdzen = transform(_tf, MultiPoint([(p["lon"], p["lat"]) for p in _D["posts"]])).
 if os.path.exists("../dane/gmina_koszecin.geojson"):
     rdzen = rdzen.union(transform(_tf, shape(json.load(open("../dane/gmina_koszecin.geojson"))["features"][0]["geometry"])).buffer(3000))
 from shapely.prepared import prep
+# 17.11.2026: nowe tereny (poza rdzeniem) na razie tylko dla administratora – granica rdzenia dla strony i Jedź (stan/rdzen.js)
+# oraz lista odcinków spoza niego dla serwera (api/_odcinki_zewn.json: ocena od kogoś innego niż admin – odrzucona)
+_tb = Transformer.from_crs(2180, 4326, always_xy=True).transform
+_r = transform(_tb, rdzen.simplify(30)); _polys = list(_r.geoms) if _r.geom_type == "MultiPolygon" else [_r]
+with open(os.path.join(OUT, "stan", "rdzen.js"), "w", encoding="utf-8") as f:
+    f.write("window.RDZEN=" + json.dumps([[[round(y, 5), round(x, 5)] for x, y in p.exterior.coords] for p in _polys], separators=(",", ":")) + ";\n"
+            "window.wRdzeniu=(la,lo)=>window.RDZEN.some(r=>{let w=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const a=r[i],b=r[j];"
+            "if((a[0]>la)!==(b[0]>la)&&lo<(b[1]-a[1])*(la-a[0])/(b[0]-a[0])+a[1])w=!w}return w});\n")
 rdzen = prep(rdzen)
 
-kafle, prz = {}, []
+kafle, prz, zewn, km_rdzen = {}, [], [], 0.0
 for s in ODC:
     c = s[7]; pts = [(c[k], c[k + 1]) for k in range(0, len(c), 2)]
     kafle.setdefault(kafel(*pts[0]), []).append(s)
+    if rdzen.contains(Point(_tf(pts[0][1], pts[0][0]))): km_rdzen += s[6] / 1000
+    else: zewn.append(s[0])
     if s[4] == "" and s[5] != "droga rowerowa" and not rdzen.contains(Point(_tf(pts[0][1], pts[0][0]))): continue
     up = list(LineString(pts).simplify(TOL, preserve_topology=False).coords) if len(pts) > 2 else pts
     if up[0] != pts[0]: up[0] = pts[0]           # pierwszy punkt bez zmian – wyznacza kafel
@@ -69,7 +79,8 @@ for k, lista in kafle.items():
 
 ver = hashlib.sha1(src.encode()).hexdigest()[:8]
 suma_km = round(sum(x[6] for x in ODC) / 1000)          # wszystkie drogi (także te tylko w kaflach) – do „Ocenione: … z … km”
-dane = {"v": ver, "siatka": [LAT0, LON0, DLAT, DLON], "kafle": sorted(kafle), "km": suma_km, "o": prz}
+dane = {"v": ver, "siatka": [LAT0, LON0, DLAT, DLON], "kafle": sorted(kafle), "km": suma_km, "km_rdzen": round(km_rdzen), "o": prz}
+json.dump(sorted(zewn), open(os.path.join(OUT, "api", "_odcinki_zewn.json"), "w"), separators=(",", ":"))
 with open(os.path.join(OUT, "stan", "przeglad.js"), "w", encoding="utf-8") as f:
     f.write("window.ODCP=" + json.dumps(dane, ensure_ascii=False, separators=(",", ":")) + ";\n")
     f.write("window.ODC_ALIASY=" + json.dumps(aliasy, ensure_ascii=False, separators=(",", ":")) + ";\n")

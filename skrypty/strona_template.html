@@ -568,6 +568,7 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
 <script src="lib/leaflet-gesture-handling.js"></script>
 <script src="lib/nawigacja.js"></script>
 <script src="stan/przeglad.js"></script>
+<script src="stan/rdzen.js"></script>
 <script src="data.js"></script>
 <script src="stan/jedz.js"></script>
 <script src="lib/infra.js"></script>
@@ -704,7 +705,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   for (const o of KP.o) {
     const d = o[4], ll = []; let a = 0, b = 0;
     for (let i = 0; i < d.length; i += 2) { a += d[i]; b += d[i + 1]; ll.push([a / 1e5, b / 1e5]); }
-    S[o[0]] = {id:o[0], typ:'', nazwa:'', naw:'', pomiar:o[1], pdata:o[3] ? 'droga rowerowa' : '', len:o[2], ll, layers:[], kafel:kafelPkt(ll[0][0], ll[0][1]), pelny:false};
+    S[o[0]] = {id:o[0], typ:'', nazwa:'', naw:'', pomiar:o[1], pdata:o[3] ? 'droga rowerowa' : '', len:o[2], ll, layers:[], kafel:kafelPkt(ll[0][0], ll[0][1]), pelny:false, zewn:!wRdzeniu(ll[0][0], ll[0][1])};
   }
   // wczytanie kafla: [id, typ, nazwa, nawierzchnia, stan_pomiar, data_pomiaru, dlugosc_m, [lat,lon,...]]
   function kafel(k) {
@@ -713,13 +714,15 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
       for (const s of lista) {
         const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]);
         // odcinek spoza warstwy przeglądowej (szara droga bez oceny poza dawnym obszarem) – pojawia się dopiero z kafla
-        const o = S[s[0]] ||= {id:s[0], pomiar:s[4], len:s[6], layers:[], kafel:k};
+        const o = S[s[0]] ||= {id:s[0], pomiar:s[4], len:s[6], layers:[], kafel:k, zewn:!wRdzeniu(ll[0][0], ll[0][1])};
         Object.assign(o, {typ:s[1], nazwa:s[2], naw:s[3], pdata:s[5], ll, pelny:true}); delete o.bb;
       }
     }).catch(() => { delete KW[k]; });
   }
   // kafle widocznego fragmentu (z zapasem) – po przybliżeniu; potem przerysowanie dokładnymi kształtami
   let kRys = 0;
+  // nowe tereny (poza gminą z okolicą) – na razie widzi i ocenia tylko administrator (api/ja.php)
+  let ADM = false;
   function kafleWidoku() {
     if (map.getZoom() < 13) return;
     const b = map.getBounds().pad(.1), y0 = Math.floor((b.getSouth() - KLAT0) / KDLAT), y1 = Math.floor((b.getNorth() - KLAT0) / KDLAT),
@@ -753,12 +756,12 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     const order = ['brak', 'osm', 'dobra', 'srednia', 'trudna', 'nieprzejezdna'];
     // 17.11.2026 (powiększona mapa): rysujemy tylko odcinki w widoku z zapasem – reszta nie obciąża telefonu
     const vb = map.getBounds().pad(.3), [vs, vw, vn, ve] = [vb.getSouth(), vb.getWest(), vb.getNorth(), vb.getEast()];
-    const groups = {}; for (const id in S) { const o = S[id]; o.layers = []; const b = bbOf(o); if (b[2] < vs || b[0] > vn || b[3] < vw || b[1] > ve) continue; const st = stanOf(o); if (z <= 11 && st === 'brak') continue; (groups[st] ||= []).push(o); }
+    const groups = {}; for (const id in S) { const o = S[id]; o.layers = []; if (o.zewn && !ADM) continue; const b = bbOf(o); if (b[2] < vs || b[0] > vn || b[3] < vw || b[1] > ve) continue; const st = stanOf(o); if (z <= 11 && st === 'brak') continue; (groups[st] ||= []).push(o); }
     for (const st of order) for (const s of (groups[st] || [])) {
       s.layers = styl(st, z).map(o => L.polyline(s.ll, {...o, renderer:rnd}).on('click', e => { L.DomEvent.stop(e); klikMapy(e.latlng, s); }).addTo(roads));
     }
-    const km = {}; for (const id in S) { const st = stanOf(S[id]); km[st] = (km[st] || 0) + S[id].len / 1000; }
-    $('sum').textContent = `Ocenione: ${Math.round((km.dobra||0)+(km.srednia||0)+(km.trudna||0)+(km.nieprzejezdna||0))} km z ${KP.km || Math.round(Object.values(km).reduce((a,b)=>a+b,0))} km dróg`
+    const km = {}; for (const id in S) { if (S[id].zewn && !ADM) continue; const st = stanOf(S[id]); km[st] = (km[st] || 0) + S[id].len / 1000; }
+    $('sum').textContent = `Ocenione: ${Math.round((km.dobra||0)+(km.srednia||0)+(km.trudna||0)+(km.nieprzejezdna||0))} km z ${(ADM ? KP.km : KP.km_rdzen) || Math.round(Object.values(km).reduce((a,b)=>a+b,0))} km dróg`
       + (API.oczekuje ? ` · czeka na sprawdzenie: ${API.oczekuje}` : '');
   }
 
@@ -811,7 +814,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     if (F.nick.value.trim().length < 2) b.push('podaj imię lub nick');
     $('brak').textContent = $('send').disabled && apiOk && b.length ? 'Do wysłania brakuje: ' + b.join(', ') + '.' : ''; }
   F.addEventListener('input', walid); F.addEventListener('change', walid);
-  fetch('api/ja.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => { if (j && j.admin) $('adm-info').hidden = false; }).catch(() => {});
+  fetch('api/ja.php', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(j => { if (j && j.admin) { $('adm-info').hidden = false; ADM = true; rysuj(); } }).catch(() => {});
   function msg(t, ok) { const m = $('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; try { m.scrollIntoView({block:'nearest', behavior:'smooth'}); } catch (e) {} }
   F.addEventListener('submit', async e => {
     e.preventDefault(); if ($('send').disabled) return;
