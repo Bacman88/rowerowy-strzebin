@@ -24,9 +24,15 @@ window.TRASOWANIE = (() => {
       const a = id(ll[0]), b = id(ll[ll.length - 1]), f = F[stanOf ? stanOf(s[0], s[4]) : (s[4] || 'brak')] ?? 1.25;
       adj[a].push([b, s[6], s[6] * f, ll, s[0]]); adj[b].push([a, s[6], s[6] * f, ll.slice().reverse(), s[0]]);
     }
-    G = {P, adj}; return G;
+    // spójne kawałki sieci (17.11.2026): ścieżka w parku czy osiedle niepołączone w OSM z resztą dróg to „wyspa” –
+    // punkt trasy przyciągamy wtedy do drogi z głównej sieci (kara 300 m), inaczej odcinek trasy wychodzi pusty
+    const K = new Int32Array(P.length).fill(-1); let MAIN = 0, best = 0;
+    for (let s0 = 0, k = 0; s0 < P.length; s0++) { if (K[s0] >= 0) continue; let n = 0; const st = [s0]; K[s0] = k;
+      while (st.length) { const u = st.pop(); n++; for (const e of adj[u]) if (K[e[0]] < 0) { K[e[0]] = k; st.push(e[0]); } }
+      if (n > best) { best = n; MAIN = k; } k++; }
+    G = {P, adj, K, MAIN}; return G;
   }
-  function najblizszy(p) { let b = 0, bd = Infinity; G.P.forEach((q, i) => { const d = dist(p, q); if (d < bd) { bd = d; b = i; } }); return [b, bd]; }
+  function najblizszy(p) { let b = 0, bk = Infinity, bd = Infinity; G.P.forEach((q, i) => { const d = dist(p, q), dk = d + (G.K[i] !== G.MAIN ? 300 : 0); if (dk < bk) { bk = dk; bd = d; b = i; } }); return [b, bd]; }
   // Dijkstra od punktu: zwraca funkcję trasa(cel) -> {m, ll}
   function od(p) {
     const [s, d0] = najblizszy(p), n = G.P.length, cost = new Float64Array(n).fill(Infinity), len = new Float64Array(n), prev = new Int32Array(n).fill(-1), via = new Array(n), viaId = new Array(n);
