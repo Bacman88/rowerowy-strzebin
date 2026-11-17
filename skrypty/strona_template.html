@@ -698,7 +698,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
 
   // odcinki (17.11.2026: kafle): na start uproszczona warstwa przeglądowa całej mapy (stan/przeglad.js);
   // pełne dane – nazwa, nawierzchnia, dokładny kształt – z kafli stan/kafle/X_Y.json, dociąganych po przybliżeniu
-  // (zoom ≥ 14) albo przy kliknięciu odcinka. Kafel odcinka = kafel jego pierwszego punktu.
+  // (zoom ≥ 13) albo przy kliknięciu odcinka. Kafel odcinka = kafel jego pierwszego punktu.
   const S = {}, KP = window.ODCP, [KLAT0, KLON0, KDLAT, KDLON] = KP.siatka, KJEST = new Set(KP.kafle), KW = {};
   const kafelPkt = (la, lo) => Math.floor((lo - KLON0) / KDLON) + '_' + Math.floor((la - KLAT0) / KDLAT);
   for (const o of KP.o) {
@@ -721,7 +721,7 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
   // kafle widocznego fragmentu (z zapasem) – po przybliżeniu; potem przerysowanie dokładnymi kształtami
   let kRys = 0;
   function kafleWidoku() {
-    if (map.getZoom() < 14) return;
+    if (map.getZoom() < 13) return;
     const b = map.getBounds().pad(.1), y0 = Math.floor((b.getSouth() - KLAT0) / KDLAT), y1 = Math.floor((b.getNorth() - KLAT0) / KDLAT),
       x0 = Math.floor((b.getWest() - KLON0) / KDLON), x1 = Math.floor((b.getEast() - KLON0) / KDLON);
     // odcinki mają najwyżej kilkaset metrów – zapas 10% widoku wystarcza na te, które zaczynają się w kaflu obok
