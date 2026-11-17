@@ -46,8 +46,14 @@ rdzen = area                             # dotychczasowy obszar: wszystkie drogi
 area = area.union(to2180(_box(*OBSZAR)))
 # poza dotychczasowym obszarem (miasta: Lubliniec, Tarnowskie Góry …) pomijamy chodniki i drogi dojazdowe (parkingi, podwórka) –
 # rowerzyście nic nie dają, a to ok. 15 tys. odcinków; ciągi pieszo-rowerowe (footway z bicycle=designated/yes) zostają
+# … ale ścieżki w parkach i terenach rekreacyjnych zostają – rowerzyści lubią tam jeździć (Bartosz, 17.11)
+from shapely.prepared import prep
+_PARKI = [to2180(shape(f["geometry"])) for f in osm if f["geometry"]["type"] in ("Polygon", "MultiPolygon")
+          and (f["properties"].get("leisure") in ("park", "garden", "recreation_ground", "nature_reserve") or f["properties"].get("landuse") == "recreation_ground")]
+parki = prep(unary_union([g.buffer(0) for g in _PARKI]).buffer(25)) if _PARKI else None
 def poza_rdzeniem_zbedna(p, g):
-    if p.get("highway") == "footway" and p.get("bicycle") not in ("designated", "yes"): return not rdzen.intersects(g)
+    if p.get("highway") == "footway" and p.get("bicycle") not in ("designated", "yes"):
+        return not rdzen.intersects(g) and not (parki and parki.intersects(g))
     if p.get("highway") == "service": return not rdzen.intersects(g)
     return False
 
@@ -61,6 +67,46 @@ for f in osm:
     g2180 = to2180(LineString(cs))
     if not area.intersects(g2180) or poza_rdzeniem_zbedna(p, g2180): continue
     ways.append((p, cs))
+
+# 17.11.2026: urwane końce dróg (braki w OSM): koniec drogi, który nie styka się z żadną inną drogą, a leży do 12 m od innej drogi,
+# dociągamy do niej prostym kawałkiem (droga docelowa dostaje w tym miejscu nowy punkt i jest tam cięta) – inaczej powstają „wyspy”,
+# do których nawigacja nie umie dojechać. Mosty i tunele pomijamy (inny poziom niż droga obok).
+from shapely.strtree import STRtree
+DOCIAG = 12   # m
+uz = collections.Counter()
+for _, cs in ways:
+    for c in set(cs): uz[c] += 1
+G2 = [to2180(LineString(cs)) for _, cs in ways]; drzewo = STRtree(G2)
+wstaw = collections.defaultdict(list); dociag = {}
+for i, (p, cs) in enumerate(ways):
+    if p.get("bridge") or p.get("tunnel"): continue
+    for kon in (0, -1):
+        c = cs[kon]
+        if uz[c] > 1: continue
+        P_ = Point(tf.transform(c[0], c[1])); best = None
+        for j in drzewo.query(P_.buffer(DOCIAG)):
+            j = int(j)
+            if j == i or ways[j][0].get("bridge") or ways[j][0].get("tunnel"): continue
+            d = G2[j].distance(P_)
+            if d <= DOCIAG and (best is None or d < best[0]): best = (d, j)
+        if not best: continue
+        d, j = best; s_ = G2[j].project(P_); Q = G2[j].interpolate(s_)
+        lon, lat = tb.transform(Q.x, Q.y); qc = (round(lon, 7), round(lat, 7))
+        wstaw[j].append((s_, qc)); dociag[(i, kon)] = qc
+for (i, kon), qc in dociag.items():
+    p, cs = ways[i]; cs = list(cs)
+    if qc != cs[kon]: cs = [qc] + cs if kon == 0 else cs + [qc]
+    ways[i] = (p, cs)
+for j, lst in wstaw.items():
+    p, cs = ways[j]; xy = [tf.transform(c[0], c[1]) for c in cs]; cum = [0.0]
+    for a, b in zip(xy, xy[1:]): cum.append(cum[-1] + math.dist(a, b))
+    out = list(cs)
+    for s_, qc in sorted(lst, reverse=True):          # od końca – wstawianie nie przesuwa wcześniejszych pozycji
+        k = max(0, min(len(cs) - 2, next((t for t in range(len(cum) - 1) if cum[t + 1] >= s_), len(cs) - 2)))
+        if qc in out or qc in (cs[k], cs[k + 1]): continue
+        out.insert(k + 1, qc)
+    ways[j] = (p, out)
+print(f"dociągnięte urwane końce dróg (≤ {DOCIAG} m): {len(dociag)}")
 
 # węzły wspólne kilku dróg (lub końce dróg) = miejsca cięcia
 cnt = collections.Counter()

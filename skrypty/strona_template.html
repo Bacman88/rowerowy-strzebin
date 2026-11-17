@@ -399,6 +399,8 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
       <button type="button" class="wz-btn" id="tr-odwroc" disabled>⇄ Odwróć</button>
       <button type="button" class="wz-btn" id="tr-gpx" disabled>⤓ Pobierz GPX</button>
       <button type="button" class="wz-btn" id="tr-link" disabled>🔗 Kopiuj link</button>
+      <label class="wz-btn" for="tr-plik" title="Wczytaj trasę z pliku GPX (np. od znajomego albo z zegarka) – ułoży się wzdłuż naszych dróg">⤒ Wczytaj GPX</label>
+      <input type="file" id="tr-plik" accept=".gpx,application/gpx+xml,application/xml,text/xml" hidden>
     </div>
     </div>
     <div class="layers"><b>Pokaż:</b><label><input type="checkbox" id="w-odp" checked> odpoczynek</label><label><input type="checkbox" id="w-serwis" checked> rower i udogodnienia</label><label><input type="checkbox" id="w-ciek" checked> ciekawe, jedzenie, nocleg</label><label><input type="checkbox" id="w-tm" checked> trasy mieszkańców</label></div>
@@ -1079,6 +1081,26 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     $('tr-cofnij').onclick = () => { pkt.pop(); odc.length = Math.max(0, pkt.length - 1); rysuj(); };
     $('tr-odwroc').onclick = () => { pkt.reverse(); wszystko(); rysuj(); };
     $('tr-gpx').onclick = () => gpx(F.tnazwa.value.trim() || 'Trasa rowerowa – Strzebiń', calaLinia());
+    // wczytanie GPX (17.11.2026): ślad z pliku → punkty co ≥ 300 m (najwyżej 60), przyciągnięte do dróg mapy; między nimi trasa
+    // układa się jak przy klikaniu. Punkty poza mapą (dalej niż 300 m od naszych dróg) pomijamy i mówimy o tym.
+    $('tr-plik').onchange = async e => {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      let x; try { x = new DOMParser().parseFromString(await f.text(), 'application/xml'); } catch (er) { x = null; }
+      const wez = sel => x ? [...x.getElementsByTagName(sel)].map(n => [+n.getAttribute('lat'), +n.getAttribute('lon')]).filter(p => isFinite(p[0]) && isFinite(p[1]) && p[0] && p[1]) : [];
+      let sl = wez('trkpt'); if (sl.length < 2) sl = wez('rtept'); if (sl.length < 2) sl = wez('wpt');
+      if (sl.length < 2) return msg('To nie wygląda na plik GPX z trasą – nie znalazłem w nim punktów śladu.');
+      grafDrog();
+      const d = (a, b) => TR.dist(a, b); let L = 0; for (let i = 1; i < sl.length; i++) L += d(sl[i - 1], sl[i]);
+      const krok = Math.max(300, L / 58), wyb = [sl[0]]; let acc = 0;
+      for (let i = 1; i < sl.length; i++) { acc += d(sl[i - 1], sl[i]); if (acc >= krok) { wyb.push(sl[i]); acc = 0; } }
+      if (d(wyb[wyb.length - 1], sl[sl.length - 1]) > 30) wyb.push(sl[sl.length - 1]);
+      const naMapie = wyb.filter(p => TR.snap(p).d < 300);
+      if (naMapie.length < 2) return msg('Ta trasa leży poza naszą mapą (Lubliniec – Woźniki – Tarnowskie Góry – Blachownia).');
+      const nm = x.getElementsByTagName('name')[0]; if (nm && !F.tnazwa.value.trim()) F.tnazwa.value = nm.textContent.trim().slice(0, 80);
+      wczytaj(naMapie.slice(0, 60));
+      msg(`Wczytano trasę z pliku (${(L / 1000).toFixed(1).replace('.', ',')} km)` + (naMapie.length < wyb.length ? ' – część poza naszą mapą pominięta.' : '.')
+        + ' Trasa ułożyła się po drogach z mapy – sprawdź, czy biegnie tak jak w pliku, i w razie potrzeby przesuń punkty.', true);
+    };
     $('tr-link').onclick = async () => {
       const u = linkDo(pkt);
       try { await navigator.clipboard.writeText(u); msg('Link do trasy skopiowany – wklej go w wiadomości.', true); }
