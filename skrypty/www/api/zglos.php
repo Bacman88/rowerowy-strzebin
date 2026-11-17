@@ -24,8 +24,15 @@ if (!$odc || count($odc) > 300) hub_json(['blad' => 'Zaznacz od 1 do 300 odcink�
 $znane = array_flip(json_decode((string)@file_get_contents(__DIR__ . '/_odcinki.json'), true) ?: []);
 foreach ($odc as $o) if (!isset($znane[$o])) hub_json(['blad' => 'Nieznany odcinek – odśwież stronę'], 400);
 // 17.11.2026: nowe tereny mapy (poza gminą z okolicą) na razie ocenia tylko administrator
-if (!hub_admin()) { $zewn = array_flip(json_decode((string)@file_get_contents(__DIR__ . '/_odcinki_zewn.json'), true) ?: []);
-    foreach ($odc as $o) if (isset($zewn[$o])) hub_json(['blad' => 'Ta część mapy nie jest jeszcze otwarta do oceniania – oceniać można drogi w gminie Koszęcin i okolicy.', 'zewn' => true], 400); }
+// Wyjątek (Bartosz, 17.11): ocena z nawigacji Jedź po prawdziwym przejeździe – aplikacja dołącza punkty GPS z tych dróg
+// ("gps": [[lat, lon], …]); każdy odcinek spoza dawnego obszaru musi mieć co najmniej 2 punkty w swojej ramce (+ ok. 40 m)
+if (!hub_admin()) { $zewn = json_decode((string)@file_get_contents(__DIR__ . '/_odcinki_zewn.json'), true) ?: [];
+    $gps = array_slice(array_values(array_filter((array)($in['gps'] ?? []), fn($p) => is_array($p) && count($p) >= 2 && is_numeric($p[0]) && is_numeric($p[1]))), 0, 600);
+    foreach ($odc as $o) if (isset($zewn[$o])) {
+        [$a, $b, $c, $d] = $zewn[$o]; $m = 0.0004; $n = 0;
+        foreach ($gps as $p) if ($p[0] >= $a - $m && $p[0] <= $c + $m && $p[1] >= $b - $m * 1.6 && $p[1] <= $d + $m * 1.6 && ++$n >= 2) break;
+        if ($n < 2) hub_json(['blad' => 'Drogi poza gminą Koszęcin i okolicą można oceniać tylko w nawigacji Jedź, po przejechaniu nimi.', 'zewn' => true], 400);
+    } }
 
 try {
     $db = hub_db();

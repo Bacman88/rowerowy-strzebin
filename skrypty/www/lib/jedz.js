@@ -582,7 +582,10 @@
     $('b-kurs').style.background = obrocona ? '#00737e' : '#fff'; $('b-kurs').style.boxShadow = obrocona ? '0 0 0 3px #fff, 0 1px 6px rgba(0,0,0,.3)' : '';
     $('b-kurs').querySelector('svg path:last-of-type').setAttribute('fill', obrocona ? '#cfe6e6' : '#9aa3a8'); }
   let pogT = 0;
+  // ślad GPS bieżącej jazdy (tylko prawdziwy GPS, bez symulacji) – dowód przejazdu przy ocenie dróg poza gminą z okolicą
+  let gpsSlad = [];
   function startJazdy(symulacja) {
+    gpsSlad = [];
     stan.jazda = true; idx = 0; wzdluz = 0; poza = 0; pytano.clear(); Object.assign(tempo, {real: 0, mod: 0, t: 0, v: 0, k: 1}); zapowiedz = new Set(); kierPokaz = null; sledz = true;
     sym = symulacja ? {d: 0} : null; panele('jazda'); glosIkona(); budzik();
     if (!symulacja) powiedz('Ruszamy. Do celu ' + kmTxt(stan.T.m) + '.');
@@ -626,6 +629,24 @@
   // odcinek w dotychczasowym obszarze (gmina z okolicą)? – tylko tam zbieramy oceny (stan/rdzen.js; bez pliku – wszędzie)
   const RDZC = new Map();
   const wRdz = s => { if (!s || !window.wRdzeniu) return true; if (!RDZC.has(s[0])) RDZC.set(s[0], wRdzeniu(s[7][0], s[7][1])); return RDZC.get(s[0]); };
+  // punkty śladu GPS leżące do 30 m od linii ll (kawałek trasy) – dowód, że tą drogą naprawdę jechałeś
+  function dowod(ll) {
+    if (!ll || ll.length < 2 || !gpsSlad.length) return [];
+    let a = 90, b = 180, c = -90, e = -180; for (const q of ll) { a = Math.min(a, q[0]); c = Math.max(c, q[0]); b = Math.min(b, q[1]); e = Math.max(e, q[1]); }
+    const kx = Math.cos(a * rad), out = [];
+    for (const p of gpsSlad) { if (p[0] < a - 3e-4 || p[0] > c + 3e-4 || p[1] < b - 5e-4 || p[1] > e + 5e-4) continue;
+      for (let i = 1; i < ll.length; i++) { const A = ll[i - 1], B = ll[i], ax = (A[1] - p[1]) * kx, ay = A[0] - p[0], vx = (B[1] - A[1]) * kx, vy = B[0] - A[0], L2 = vx * vx + vy * vy;
+        const t = L2 ? Math.max(0, Math.min(1, -(ax * vx + ay * vy) / L2)) : 0; if (Math.hypot(ax + t * vx, ay + t * vy) * rad * RZ < 30) { out.push(p); break; } } }
+    return out;
+  }
+  // z odcinków grupy zostawiamy te spoza gminy z okolicą, na których jest Twój ślad GPS (≥ 2 punkty), i te z gminy (bez warunku)
+  let ODCM = null; const ODCM_ = id => (ODCM ||= new Map(ODC.map(s => [s[0], s]))).get(id);
+  function zDowodem(ids) {
+    ODCM ||= new Map(ODC.map(s => [s[0], s])); const ok = [], gps = [];
+    for (const id of ids) { const s = ODCM.get(id); if (!s) continue; if (wRdz(s)) { ok.push(id); continue; }
+      const c = s[7], ll = []; for (let i = 0; i < c.length; i += 2) ll.push([c[i], c[i + 1]]); const d = dowod(ll); if (d.length >= 2) { ok.push(id); gps.push(...d.slice(0, 20)); } }
+    return {ids: ok, gps};
+  }
   function kawalekOdc(T, d) {
     let i = 0; while (i < T.seg.length - 1 && T.cum[i + 1] < d) i++;
     if (!T.seg[i]) { i = Math.min(i + 1, T.seg.length - 1); if (!T.seg[i]) return null; }
@@ -637,16 +658,16 @@
   }
   function wyslijOceny() {
     const K = LS.get('kolejkaOcen', []); if (!K.length || !navigator.onLine) return;
-    const st = K[0].stan, paczka = K.filter(k => k.stan === st), ids = [...new Set(paczka.flatMap(k => k.ids))].slice(0, 300);
+    const st = K[0].stan, paczka = K.filter(k => k.stan === st), ids = [...new Set(paczka.flatMap(k => k.ids))].slice(0, 300), gps = paczka.flatMap(k => k.gps || []).slice(0, 600);
     fetch(BAZA + 'api/zglos.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({
-      stan: st, odcinki: ids, nick: LS.get('nick', '') || 'Jedź', komentarz: 'Ocena z nawigacji Jedź' + (NAT ? ' (aplikacja)' : ''), data: new Date().toISOString().slice(0, 10), urz: (() => { try { let u = localStorage.getItem('hub_urz'); if (!/^[0-9a-f]{12}$/.test(u || '')) { u = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('hub_urz', u); } return u; } catch (e) { return ''; } })()})})
+      stan: st, odcinki: ids, ...(gps.length ? {gps} : {}), nick: LS.get('nick', '') || 'Jedź', komentarz: 'Ocena z nawigacji Jedź' + (NAT ? ' (aplikacja)' : ''), data: new Date().toISOString().slice(0, 10), urz: (() => { try { let u = localStorage.getItem('hub_urz'); if (!/^[0-9a-f]{12}$/.test(u || '')) { u = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('hub_urz', u); } return u; } catch (e) { return ''; } })()})})
       .then(r => r.json().catch(() => ({}))).then(j => { if (j.ban) LS.set('ban', {t: j.blad, do: j.ban});
         if (j.ok || j.ban || j.zewn || /Nieznany odcinek|Zaznacz od/.test(j.blad || '')) {
         LS.set('kolejkaOcen', LS.get('kolejkaOcen', []).filter(k => k.stan !== st)); setTimeout(wyslijOceny, 300); } }).catch(() => {});
   }
   // wysyłka po 10 s od ostatniego dotknięcia – zmiana zdania („średnia” → „trudna”) podmienia ocenę w kolejce, zamiast wysyłać kilka
   let ocT = 0;
-  function dodajOcene(ids, st) { const K = LS.get('kolejkaOcen', []).filter(k => k.ids.join() !== ids.join()); K.push({ids, stan: st, t: Date.now()}); LS.set('kolejkaOcen', K);
+  function dodajOcene(ids, st, gps) { const K = LS.get('kolejkaOcen', []).filter(k => k.ids.join() !== ids.join()); K.push({ids, stan: st, t: Date.now(), ...(gps && gps.length ? {gps: gps.slice(0, 120)} : {})}); LS.set('kolejkaOcen', K);
     clearTimeout(ocT); ocT = setTimeout(wyslijOceny, 10000); }
   document.addEventListener('visibilitychange', () => { if (document.hidden && LS.get('kolejkaOcen', []).length) { clearTimeout(ocT); wyslijOceny(); } });
   window.addEventListener('online', wyslijOceny); setTimeout(wyslijOceny, 3000);
@@ -662,7 +683,9 @@
     if (bn && new Date(bn.do.replace(' ', 'T')) > new Date()) { $('ocs').innerHTML = `<h3>Oceny wstrzymane</h3><div class="o">${esc(bn.t)}</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
     let g = kawalekOdc(T, wzdluz);
     // 17.11.2026: nowe tereny mapy (poza gminą z okolicą) – nawigacja prowadzi, ale ocen jeszcze nie zbieramy
-    if (g && !wRdz(g.s)) { $('ocs').innerHTML = `<h3>Tu jeszcze nie oceniamy</h3><div class="o">Oceny dróg zbieramy na razie w gminie Koszęcin i okolicy. Ta część mapy dopiero się rozwija – nawigacja prowadzi tu normalnie.</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
+    // poza gminą z okolicą (17.11, Bartosz): ocenić można tylko drogę, którą naprawdę jedziesz – potrzebne punkty GPS z tego miejsca
+    if (g && g.ids.some(id => !wRdz(ODCM_(id)))) { const z = sym ? {ids: [], gps: []} : zDowodem(g.ids); g.ids = z.ids; g.gps = z.gps;
+      if (!g.ids.length) { $('ocs').innerHTML = `<h3>Najpierw przejedź kawałek</h3><div class="o">${sym ? 'W symulacji nie oceniamy dróg poza gminą Koszęcin i okolicą.' : 'Poza gminą Koszęcin i okolicą oceniamy tylko drogi, którymi naprawdę jedziesz. Przejedź kawałek tym odcinkiem i dotknij gwiazdki jeszcze raz.'}</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; } }
     if (!g) { $('ocs').innerHTML = `<h3>Tu nie ma odcinka do oceny</h3><div class="o">Ocenić można drogi z mapy – spróbuj za chwilę, gdy wjedziesz na drogę.</div><button type="button" class="an" id="oc-an">Zamknij</button>`; $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij; return; }
     podswietl(g.ll);
     $('ocs').innerHTML = `<h3>Jak się jedzie tym odcinkiem?</h3><div class="o">${esc(opisOdc(g.s))} · ${kmTxt(g.m)} (zaznaczony na żółto)</div>
@@ -672,7 +695,7 @@
     $('ocs').classList.remove('hide'); $('oc-an').onclick = ocenaZamknij;
     $('ocs').querySelectorAll('.oc4 button').forEach(b => b.onclick = () => {
       const n = $('oc-nick'); if (n && n.value.trim().length >= 2) LS.set('nick', n.value.trim());
-      dodajOcene(g.ids, b.dataset.k); navigator.vibrate && navigator.vibrate(40);
+      dodajOcene(g.ids, b.dataset.k, g.gps); navigator.vibrate && navigator.vibrate(40);
       $('ocs').innerHTML = `<h3>Dziękujemy! 🙌</h3><div class="o">${navigator.onLine ? 'Ocena przyjęta – po sprawdzeniu trafi do nawigacji dla wszystkich.' : 'Ocena zapisana – wyślę ją, gdy będzie zasięg.'}</div>`;
       setTimeout(ocenaZamknij, 1800);
     });
@@ -680,7 +703,7 @@
   // po przejeździe: 3 najdłuższe odcinki dróg nieutwardzonych / bez oceny (asfalt i drogi wojewódzkie na końcu) – jedno dotknięcie na odcinek
   function blokOcen(T, doM) {
     const gr = [], wazny = g => { const st = JZ.stOdc(g.s); return JZ.DW(g.s) ? 0 : st === 'osm' ? 1 : 2; };
-    for (let i = 0; i < T.seg.length;) { const g = grupaOdc(T, i); if (!g) { i++; continue; } if (T.cum[g.a] < doM && g.m >= 150 && wRdz(g.s)) gr.push(g); i = g.b + 1; }
+    for (let i = 0; i < T.seg.length;) { const g = grupaOdc(T, i); if (!g) { i++; continue; } if (T.cum[g.a] < doM && g.m >= 150) { if (g.ids.some(id => !wRdz(ODCM_(id)))) { const z = zDowodem(g.ids); if (z.ids.length < g.ids.length * 0.6) { i = g.b + 1; continue; } g.ids = z.ids; g.gps = z.gps; } gr.push(g); } i = g.b + 1; }
     const top = gr.sort((a, b) => wazny(b) - wazny(a) || b.m - a.m).slice(0, 3); if (!top.length) return null;
     const bn = LS.get('ban', null); if (bn && new Date(bn.do.replace(' ', 'T')) > new Date()) return null;
     const d = document.createElement('div'); d.className = 'ocpo';
@@ -693,7 +716,7 @@
       w.querySelector('.t').onclick = () => { podswietl(g.ll); if (map) map.fitBounds(L.latLngBounds(g.ll), {padding: [40, 40], maxZoom: 16}); };
       w.querySelectorAll('.bb button').forEach(b => b.onclick = () => {
         const n = $('ocp-nick'); if (n && n.value.trim().length >= 2) LS.set('nick', n.value.trim());
-        w.querySelectorAll('.bb button').forEach(x => x.classList.toggle('on', x === b)); dodajOcene(g.ids, b.dataset.k);
+        w.querySelectorAll('.bb button').forEach(x => x.classList.toggle('on', x === b)); dodajOcene(g.ids, b.dataset.k, g.gps);
         d.querySelector('.m').textContent = navigator.onLine ? 'Dziękujemy! Oceny wysłane do sprawdzenia.' : 'Dziękujemy! Wyślę oceny, gdy będzie zasięg.'; }); });
     return d;
   }
@@ -803,6 +826,7 @@
     if (pozycja.ost && teraz - pozycja.ost.t < 3000 && acc > Math.max(25, pozycja.ost.acc * 2)) return;
     pozycja.ost = {t: teraz, acc};
     if (!wSym) JZ.historia.punkt(p, acc);
+    if (!wSym && acc <= 40) { const o = gpsSlad[gpsSlad.length - 1]; if (!o || dist(o, p) > 8) { gpsSlad.push([+p[0].toFixed(5), +p[1].toFixed(5)]); if (gpsSlad.length > 20000) gpsSlad.splice(0, 5000); } }
     const r = rzut(T, p);
     const kierRuchu = ostPoz && dist(ostPoz, p) > 3 ? brg(ostPoz, p) : null; if (!ostPoz || dist(ostPoz, p) > 3) ostPoz = p;
     // ikona „ja” – strzałka w kierunku jazdy

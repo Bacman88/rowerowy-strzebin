@@ -64,7 +64,7 @@ for s in ODC:
     c = s[7]; pts = [(c[k], c[k + 1]) for k in range(0, len(c), 2)]
     kafle.setdefault(kafel(*pts[0]), []).append(s)
     if rdzen.contains(Point(_tf(pts[0][1], pts[0][0]))): km_rdzen += s[6] / 1000
-    else: zewn.append(s[0])
+    else: zewn.append((s[0], [round(min(c[0::2]), 5), round(min(c[1::2]), 5), round(max(c[0::2]), 5), round(max(c[1::2]), 5)]))
     if s[4] == "" and s[5] != "droga rowerowa" and not rdzen.contains(Point(_tf(pts[0][1], pts[0][0]))): continue
     up = list(LineString(pts).simplify(TOL, preserve_topology=False).coords) if len(pts) > 2 else pts
     if up[0] != pts[0]: up[0] = pts[0]           # pierwszy punkt bez zmian – wyznacza kafel
@@ -80,7 +80,8 @@ for k, lista in kafle.items():
 ver = hashlib.sha1(src.encode()).hexdigest()[:8]
 suma_km = round(sum(x[6] for x in ODC) / 1000)          # wszystkie drogi (także te tylko w kaflach) – do „Ocenione: … z … km”
 dane = {"v": ver, "siatka": [LAT0, LON0, DLAT, DLON], "kafle": sorted(kafle), "km": suma_km, "km_rdzen": round(km_rdzen), "o": prz}
-json.dump(sorted(zewn), open(os.path.join(OUT, "api", "_odcinki_zewn.json"), "w"), separators=(",", ":"))
+# {id: [lat min, lon min, lat max, lon max]} – serwer sprawdza, czy punkty GPS z oceny leżą przy tym odcinku
+json.dump(dict(sorted(zewn)), open(os.path.join(OUT, "api", "_odcinki_zewn.json"), "w"), separators=(",", ":"))
 with open(os.path.join(OUT, "stan", "przeglad.js"), "w", encoding="utf-8") as f:
     f.write("window.ODCP=" + json.dumps(dane, ensure_ascii=False, separators=(",", ":")) + ";\n")
     f.write("window.ODC_ALIASY=" + json.dumps(aliasy, ensure_ascii=False, separators=(",", ":")) + ";\n")
