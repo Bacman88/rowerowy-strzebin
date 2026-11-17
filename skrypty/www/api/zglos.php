@@ -27,6 +27,7 @@ foreach ($odc as $o) if (!isset($znane[$o])) hub_json(['blad' => 'Nieznany odcin
 try {
     $db = hub_db();
     $ip = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . hub_cfg()['sol']);
+    hub_ban_sprawdz($db, $ip);
 
     // to samo zgłoszenie wysłane ponownie (ktoś kliknął jeszcze raz albo zmienił zdanie, np. w nawigacji „średnia” → „trudna”):
     // zamiast duplikatu uzupełniamy poprzednie, wciąż oczekujące – nowy stan, kontakt, komentarz, data, zdjęcie

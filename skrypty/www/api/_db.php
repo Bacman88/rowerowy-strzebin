@@ -93,6 +93,10 @@ function hub_db(): PDO {
                    : array_column($db->query("PRAGMA table_info($t)")->fetchAll(), 'name');
         if (!in_array('urz', $kol, true)) $db->exec("ALTER TABLE $t ADD COLUMN urz VARCHAR(12) NOT NULL DEFAULT ''");
     }
+    // krótkie blokady (17.11.2026): skrót IP albo identyfikator urządzenia do podanej daty; zablokowany widzi „dziękujemy”,
+    // ale jego zgłoszenia nie są zapisywane (nie wie, że jest zablokowany, więc nie próbuje obejść blokady)
+    $db->exec("CREATE TABLE IF NOT EXISTS bany (id $ai, rodzaj VARCHAR(4) NOT NULL, wartosc VARCHAR(64) NOT NULL,
+        do_kiedy VARCHAR(19) NOT NULL, utworzono VARCHAR(19) NOT NULL, opis VARCHAR(120) NOT NULL DEFAULT '')");
     if (!$my) $db->exec('PRAGMA busy_timeout=3000');
     return $db;
 }
@@ -207,9 +211,17 @@ function hub_admin_zatwierdz(PDO $db, string $tab, int $id): bool {
     $db->prepare("UPDATE $tab SET moderacja = 'zatwierdzone', moderowano = ? WHERE id = ?")->execute([hub_teraz(), $id]);
     hub_foto_usun($db, $tab, $id); return true;
 }
+// zablokowany (skrót IP lub urządzenie): udajemy sukces i niczego nie zapisujemy
+function hub_ban_sprawdz(PDO $db, string $ip): void {
+    if (hub_admin()) return;
+    $q = $db->prepare("SELECT 1 FROM bany WHERE do_kiedy > ? AND ((rodzaj = 'ip' AND wartosc = ?) OR (rodzaj = 'urz' AND wartosc <> '' AND wartosc = ?))");
+    $q->execute([hub_teraz(), $ip, hub_urz()]);
+    if ($q->fetchColumn()) hub_json(['ok' => true]);
+}
 function hub_ip_limit(PDO $db): string {
     if (hub_admin()) return '';   // administrator – bez limitu
     $ip = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . hub_cfg()['sol']);
+    hub_ban_sprawdz($db, $ip);
     $od = date('Y-m-d H:i:s', time() - 3600); $n = 0;
     foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE ip = ? AND utworzono > ?"); $q->execute([$ip, $od]); $n += (int)$q->fetchColumn(); }
     if ($n >= 20) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);

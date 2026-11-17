@@ -31,6 +31,7 @@ if (!empty($i['trasa']) && is_array($i['trasa'])) {
 try {
     $db = hub_db();
     $ip = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . hub_cfg()['sol']);
+    hub_ban_sprawdz($db, $ip);
     $q = $db->prepare('SELECT COUNT(*) FROM uwagi WHERE ip = ? AND utworzono > ?');
     $q->execute([$ip, date('Y-m-d H:i:s', time() - 3600)]);
     if ((int)$q->fetchColumn() >= 10) hub_json(['blad' => 'Za dużo zgłoszeń w ciągu godziny – spróbuj później'], 429);

@@ -168,6 +168,24 @@ if (isset($_GET['kopia'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!hash_equals($_SESSION['csrf'] ?? '', (string)($_POST['csrf'] ?? ''))) { http_response_code(400); exit('Błędny token – odśwież stronę.'); }
+    $ak = (string)($_POST['akcja'] ?? '');
+    // blokada źródła zgłoszenia na 1/7/30 dni + odrzucenie wszystkich jego oczekujących zgłoszeń
+    if (preg_match('/^ban_(ip|urz)_(1|7|30)$/', $ak, $bm)) {
+        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'][$_POST['t'] ?? ''] ?? 'zgloszenia';
+        $q = $db->prepare("SELECT ip, urz, nick FROM $tab WHERE id = ?"); $q->execute([(int)(($_POST['id'] ?? [0])[0] ?? 0)]); $w = $q->fetch();
+        $war = $w ? (string)$w[$bm[1]] : '';
+        if ($war !== '') {
+            $db->prepare('INSERT INTO bany (rodzaj, wartosc, do_kiedy, utworzono, opis) VALUES (?,?,?,?,?)')
+               ->execute([$bm[1], $war, date('Y-m-d H:i:s', time() + 86400 * (int)$bm[2]), hub_teraz(), mb_substr('nick: ' . $w['nick'], 0, 120)]);
+            foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $tb)
+                $db->prepare("UPDATE $tb SET moderacja = 'odrzucone', moderowano = ? WHERE moderacja = 'oczekuje' AND " . ($bm[1] === 'ip' ? 'ip' : 'urz') . ' = ?')->execute([hub_teraz(), $war]);
+        }
+        header('Location: ./?t=' . urlencode($_POST['t'] ?? 'drogi') . '&k=' . urlencode($_POST['k'] ?? 'oczekuje')); exit;
+    }
+    if ($ak === 'odbanuj') {
+        $db->prepare('UPDATE bany SET do_kiedy = ? WHERE id = ?')->execute([hub_teraz(), (int)($_POST['ban'] ?? 0)]);
+        header('Location: ./?t=' . urlencode($_POST['t'] ?? 'drogi') . '&k=' . urlencode($_POST['k'] ?? 'oczekuje')); exit;
+    }
     $nowy = ['zatwierdz' => 'zatwierdzone', 'odrzuc' => 'odrzucone', 'wycofaj' => 'wycofane', 'przywroc' => 'oczekuje'][$_POST['akcja'] ?? ''] ?? null;
     $ids = array_filter(array_map('intval', (array)($_POST['id'] ?? [])));
     if ($nowy && $ids) {
@@ -190,19 +208,21 @@ foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja")
 foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
 $q = $db->prepare("SELECT * FROM $tab WHERE moderacja = ? ORDER BY utworzono " . ($k === 'oczekuje' ? 'ASC' : 'DESC') . ' LIMIT 200');
 $q->execute([$k]); $lista = $q->fetchAll();
+$BANY = $db->query("SELECT * FROM bany WHERE do_kiedy > '" . hub_teraz() . "' ORDER BY do_kiedy")->fetchAll();
+$BAN = []; foreach ($BANY as $bb) $BAN[$bb['rodzaj'] . ':' . $bb['wartosc']] = $bb['do_kiedy'];
 // to samo urządzenie (anonimowy identyfikator z przeglądarki/aplikacji): krótki znacznik i liczba wszystkich jego zgłoszeń
 $URZN = [];
 $uu = array_values(array_unique(array_filter(array_map(fn($r) => (string)($r['urz'] ?? ''), $lista))));
 if ($uu) { $ph = implode(',', array_fill(0, count($uu), '?'));
     foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $tb) { $q2 = $db->prepare("SELECT urz, COUNT(*) n FROM $tb WHERE urz IN ($ph) GROUP BY urz"); $q2->execute($uu);
         foreach ($q2 as $w) $URZN[$w['urz']] = ($URZN[$w['urz']] ?? 0) + (int)$w['n']; } }
-$urzTag = function (array $r) use ($URZN): string {
+$urzTag = function (array $r) use ($URZN, $BAN): string {
     $ip = (string)($r['ip'] ?? ''); $t = $ip !== '' ? ' · <span class="urz" title="Skrót adresu IP – ta sama wartość = ta sama sieć (w komórce IP często się zmienia). Kasowany po 30 dniach.">'
-        . '<i style="background:#' . substr($ip, 6, 6) . '"></i>🌐 ' . substr($ip, 0, 6) . '</span>' : '';
+        . '<i style="background:#' . substr($ip, 6, 6) . '"></i>🌐 ' . substr($ip, 0, 6) . (isset($BAN["ip:$ip"]) ? ' <b class="ban">⛔ do ' . substr($BAN["ip:$ip"], 5, 11) . '</b>' : '') . '</span>' : '';
     $u = (string)($r['urz'] ?? ''); if ($u === '') return $t;
     $kol = '#' . substr(md5($u), 0, 6);
     return ' · <span class="urz" title="Anonimowy identyfikator urządzenia – ta sama wartość = ten sam telefon lub przeglądarka. Wszystkich zgłoszeń z niego: ' . ($URZN[$u] ?? 1) . '">'
-        . '<i style="background:' . $kol . '"></i>📱 ' . substr($u, 0, 6) . ' (' . ($URZN[$u] ?? 1) . ')</span>' . $t; };
+        . '<i style="background:' . $kol . '"></i>📱 ' . substr($u, 0, 6) . ' (' . ($URZN[$u] ?? 1) . ')' . (isset($BAN["urz:$u"]) ? ' <b class="ban">⛔ do ' . substr($BAN["urz:$u"], 5, 11) . '</b>' : '') . '</span>' . $t; };
 $odc = [];
 if ($lista && $tryb === 'drogi') {
     $in = implode(',', array_map(fn($r) => (int)$r['id'], $lista));
@@ -239,11 +259,11 @@ main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;height:calc(100v
 .z{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;cursor:pointer}
 .z.on{border-color:var(--green);box-shadow:0 0 0 2px rgba(29,59,48,.25)}
 .z .m{font-size:12.5px;color:var(--muted)}.z p{margin:6px 0;white-space:pre-wrap}
-.urz{white-space:nowrap}.urz i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:0}
+.urz{white-space:nowrap}.ban{color:#b00020}.bany{background:#fde8e8;border:1px solid #f1b8b8;border-radius:10px;padding:8px 10px;margin-bottom:10px}.bany summary,.banb summary{cursor:pointer;font-weight:600}.banw{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}.banb{flex-basis:100%;margin-top:6px;font-size:13px}.banb summary{color:#b00020;font-weight:500}.banb div{margin-top:4px}.banb button{padding:2px 8px;font-size:13px}.urz i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:0}
 .chip{display:inline-block;padding:1px 8px;border-radius:6px;font-size:12px;font-weight:700;color:#fff}
 .c-dobra{background:#2b9348}.c-srednia{background:#e0a800;color:#000}.c-trudna{background:#d62828}.c-nieprzejezdna{background:repeating-linear-gradient(45deg,#111 0 3px,#fff 3px 6px) left/13px 100% no-repeat,#111;color:#fff;padding-left:17px}
 .priv{background:#fff4d6;border-radius:6px;padding:2px 6px;font-size:12.5px}
-form.a{display:flex;gap:6px;margin-top:6px}
+form.a{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 button{font:inherit;font-size:13px;padding:5px 11px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer}
 button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{background:#fff;color:#b00020;border-color:#e2b4ba}
 .empty{color:var(--muted);padding:20px 4px}
@@ -327,6 +347,11 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
   </div>
   <?php else: ?>
   <div class="list">
+    <?php if ($BANY): ?><details class="bany"><summary>⛔ Aktywne blokady: <?= count($BANY) ?></summary>
+      <?php foreach ($BANY as $bb): ?><form method="post" class="banw"><input type="hidden" name="csrf" value="<?= $csrf ?>"><input type="hidden" name="k" value="<?= $k ?>"><input type="hidden" name="t" value="<?= $tryb ?>"><input type="hidden" name="ban" value="<?= (int)$bb['id'] ?>">
+        <span><?= $bb['rodzaj'] === 'ip' ? '🌐 IP' : '📱 urządzenie' ?> <b><?= $h(substr($bb['wartosc'], 0, 6)) ?></b> do <?= $h(substr($bb['do_kiedy'], 0, 16)) ?> <span class="m"><?= $h($bb['opis']) ?></span></span>
+        <button name="akcja" value="odbanuj">Odblokuj</button></form><?php endforeach ?>
+    </details><?php endif ?>
     <?php if (!$lista): ?><div class="empty">Brak zgłoszeń w tej zakładce.</div><?php endif ?>
     <?php foreach ($lista as $r): ?>
       <?php if ($tryb === 'wezly'): $zm = json_decode($r['zmiany'], true) ?: []; ?>
@@ -371,6 +396,11 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
         <form class="a" method="post"><input type="hidden" name="csrf" value="<?= $csrf ?>"><input type="hidden" name="k" value="<?= $k ?>"><input type="hidden" name="t" value="<?= $tryb ?>">
           <input type="hidden" name="id[]" value="<?= (int)$r['id'] ?>">
           <?php foreach ($AKCJE[$k] as [$a, $t, $cl]): ?><button name="akcja" value="<?= $a ?>" class="<?= $cl ?>"><?= $t ?></button><?php endforeach ?>
+          <?php if (($r['urz'] ?? '') !== '' || ($r['ip'] ?? '') !== ''): ?><details class="banb"><summary>Zablokuj…</summary>
+            <div class="m">Zgłoszenia z zablokowanego źródła nie będą zapisywane (nadawca zobaczy „dziękujemy”), a jego oczekujące zostaną odrzucone.</div>
+            <?php foreach ([['urz', '📱 urządzenie'], ['ip', '🌐 IP']] as [$rb, $rn]): if (($r[$rb] ?? '') === '') continue; ?>
+              <div><?= $rn ?>: <?php foreach ([1 => '1 dzień', 7 => '7 dni', 30 => '30 dni'] as $dn => $dt): ?><button name="akcja" value="ban_<?= $rb ?>_<?= $dn ?>" class="no" onclick="return confirm('Zablokować <?= $rb === 'ip' ? 'ten adres IP' : 'to urządzenie' ?> na <?= $dt ?>?')"><?= $dt ?></button> <?php endforeach ?></div>
+            <?php endforeach ?></details><?php endif ?>
         </form>
       </div>
     <?php endforeach ?>
