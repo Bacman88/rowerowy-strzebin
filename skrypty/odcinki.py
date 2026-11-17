@@ -38,6 +38,10 @@ area = to2180(MultiPoint([(p["lon"], p["lat"]) for p in D["posts"]])).convex_hul
 # 12.11.2026: cała gmina Koszęcin z okolicą (3 km za granicą) – mapa wspólna gotowa na całą gminę
 if os.path.exists("../dane/gmina_koszecin.geojson"):
     area = area.union(to2180(shape(json.load(open("../dane/gmina_koszecin.geojson"))["features"][0]["geometry"])).buffer(3000))
+# 17.11.2026: powiększony obszar mapy (Blachownia – Tarnowskie Góry, Lubliniec – Woźniki) – ten sam co w pobieraniu danych
+from shapely.geometry import box as _box
+OBSZAR = (18.60, 50.43, 19.18, 50.80)   # W, S, E, N
+area = area.union(to2180(_box(*OBSZAR)))
 
 ways = []
 for f in osm:

@@ -14,7 +14,7 @@ try {
     $lat = (float)($in['lat'] ?? 0); $lon = (float)($in['lon'] ?? 0);
     $slupek = in_array($in['slupek'] ?? '', ['istniejacy', 'nowy'], true) ? $in['slupek'] : '';
     $nick = hub_txt($in, 'nick', 60); $kontakt = hub_txt($in, 'kontakt', 120); $kom = hub_txt($in, 'komentarz', 1000);
-    if ($lat < 50.45 || $lat > 50.80 || $lon < 18.65 || $lon > 19.15) hub_json(['blad' => 'Wskaż węzeł na mapie'], 400);
+    if ($lat < 50.40 || $lat > 50.85 || $lon < 18.55 || $lon > 19.25) hub_json(['blad' => 'Wskaż węzeł na mapie'], 400);
     if ($wezel !== null && ($wezel < 1 || $wezel > 999)) hub_json(['blad' => 'Nieznany węzeł'], 400);
     if (mb_strlen($nick) < 2) hub_json(['blad' => 'Podaj imię lub nick (min. 2 znaki)'], 400);
     if ($kontakt !== '' && empty($in['zgoda'])) hub_json(['blad' => 'Zaznacz zgodę na kontakt albo zostaw pole kontaktu puste'], 400);

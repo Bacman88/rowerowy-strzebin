@@ -13,7 +13,7 @@ try {
     $typ = (string)($in['typ'] ?? ''); $lat = (float)($in['lat'] ?? 0); $lon = (float)($in['lon'] ?? 0);
     $nazwa = hub_txt($in, 'nazwa', 80); $opis = hub_txt($in, 'opis', 1000); $nick = hub_txt($in, 'nick', 60); $kontakt = hub_txt($in, 'kontakt', 120);
     if (!in_array($typ, TYPY_MIEJSC, true)) hub_json(['blad' => 'Wybierz rodzaj miejsca'], 400);
-    if ($lat < 50.45 || $lat > 50.80 || $lon < 18.65 || $lon > 19.15) hub_json(['blad' => 'Wskaż miejsce na mapie (w okolicy Strzebinia)'], 400);
+    if ($lat < 50.40 || $lat > 50.85 || $lon < 18.55 || $lon > 19.25) hub_json(['blad' => 'Wskaż miejsce na mapie (w okolicy Strzebinia)'], 400);
     if (mb_strlen($nick) < 2) hub_json(['blad' => 'Podaj imię lub nick (min. 2 znaki)'], 400);
     if ($kontakt !== '' && empty($in['zgoda'])) hub_json(['blad' => 'Zaznacz zgodę na kontakt albo zostaw pole kontaktu puste'], 400);
     $db = hub_db(); $ip = hub_ip_limit($db);
