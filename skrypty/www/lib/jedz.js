@@ -229,7 +229,9 @@
     if (map) return map;
     // trasa i znaczniki jako SVG: płótno canvas przy obróconej / pochylonej (3D) mapie miało ponad 4000×4000 px i każdy ruch
     // przerysowywał je od nowa (przycięcia na telefonie). Animacja przybliżania zostaje – patrz widok() niżej.
-    map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: false, renderer: L.svg({padding: 0.1})}).setView([50.615, 18.9], 13);
+    map = L.map('mapa', {zoomControl: false, attributionControl: false, preferCanvas: false, renderer: L.svg({padding: 0.1}), minZoom: 10,
+      // 18.11.2026: mapa nie „ucieka” poza obszar HUB-u (np. do Czech) – kto przesunie za daleko, odbija od krawędzi
+      maxBounds: [[50.36, 18.48], [50.87, 19.30]], maxBoundsViscosity: 1}).setView([50.615, 18.9], 13);
     map.on('zoomend', () => { if (czekaWidok) { const [p, z] = czekaWidok; czekaWidok = null; map.setView(p, z ?? map.getZoom(), {animate: false}); } });
     // mapa offline (lib/jedz/podklad.js) zawsze pod spodem; kafelki OSM na wierzchu, chyba że wybrano „zawsze offline”.
     // Bez zasięgu kafelki się nie wczytają (zostają niewidoczne) i widać podkład offline – wtedy dokładamy też nazwy miejscowości.
