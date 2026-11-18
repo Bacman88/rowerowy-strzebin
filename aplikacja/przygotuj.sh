@@ -12,6 +12,8 @@ mkdir -p "$DST/lib/jedz" && cp "$SRC"/lib/jedz/*.js "$DST/lib/jedz/"
 cp "$SRC/lib/fonts/FiraSansCondensed-SemiBold.ttf" "$DST/lib/fonts/"
 [ -d "$SRC/lib/images" ] && cp -r "$SRC/lib/images" "$DST/lib/"
 cp "$SRC/stan/odcinki.js" "$SRC/stan/jedz.js" "$DST/stan/"
+# granica gminy z okolicą (ocena dróg poza nią tylko z dowodem GPS) – bez niej Jedź traktuje całą mapę jak gminę
+cp "$SRC/stan/rdzen.js" "$DST/stan/"
 [ -f "$SRC/stan/podklad.js" ] && cp "$SRC/stan/podklad.js" "$DST/stan/" || echo "window.PODKLAD=null;" > "$DST/stan/podklad.js"
 [ -f "$SRC/stan/wysokosci.js" ] && cp "$SRC/stan/wysokosci.js" "$DST/stan/" || echo "window.WYS=null;" > "$DST/stan/wysokosci.js"
 STRONA="https://rowerowy-strzebin.smart-ant.pl/"
