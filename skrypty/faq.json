@@ -16,7 +16,7 @@
  ["Czy aplikacja jest darmowa i co dzieje się z moimi danymi?",
   "Tak, jest darmowa i bez reklam. Twoja lokalizacja służy tylko do prowadzenia, a historia przejazdów zostaje w Twoim telefonie – nie wysyłamy jej nigdzie. Na serwer trafia wyłącznie to, co sam wyślesz: ocena drogi, miejsce albo zgłoszenie błędu. Szczegóły w polityce prywatności."],
  ["Jak zainstalować „Jedź” na telefonie?",
-  "Na Androidzie: przycisk „Pobierz nawigację na telefon” na górze strony albo zapis do testów w Google Play. Na iPhonie „Jedź” działa w przeglądarce – otwórz ją w Safari i wybierz Udostępnij → „Do ekranu początkowego”."],
+  "Na Androidzie: wyszukaj „Jedź – nawigacja rowerowa” w Google Play albo kliknij „Pobierz z Google Play” na górze strony (aplikacja jest we wczesnym dostępie – instaluje się normalnie, aktualizacje przychodzą same). Na iPhonie „Jedź” działa w przeglądarce – otwórz ją w Safari i wybierz Udostępnij → „Do ekranu początkowego”."],
  ["Nawigacja nic nie mówi. Co sprawdzić?",
   "W podglądzie trasy kliknij „Test głosu”. Komunikaty padają przed skrętami (ok. 150 m i na skręcie), na długich prostych nawigacja milczy. Jeśli testu nie słychać, sprawdź głośność multimediów i w ustawieniach Androida: Ułatwienia dostępu → Zamiana tekstu na mowę – wybierz syntezator Google i pobierz język polski."],
  ["Jak oszczędzać baterię w czasie jazdy?",
