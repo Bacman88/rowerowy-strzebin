@@ -32,7 +32,7 @@ if ($_SESSION['ok'] ?? false) {
 $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 $blad = '';
 
-if (isset($_GET['wyloguj'])) { hub_admin_wyloguj(); session_destroy(); header('Location: ./'); exit; }
+if (isset($_GET['wyloguj'])) { hub_admin_wyloguj(); session_destroy(); header('Location: ' . (isset($_GET['mapa']) ? '../#wspolna' : './')); exit; }
 // zalogowany administrator: ciasteczko dla mapy publicznej – jego dodatki z mapy od razu zatwierdzone, bez limitu
 if ($_SESSION['ok'] ?? false) hub_admin_odnow();
 
