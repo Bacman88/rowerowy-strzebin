@@ -280,6 +280,24 @@ section.msec h2{display:flex;align-items:center;gap:12px}
   .jump a{flex:1 1 100%}
   section.msec h2{font-size:22px}
 }
+.apki{margin:20px 0 0;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px 14px;max-width:820px}
+.apki-t{display:flex;gap:12px;align-items:flex-start}
+.apki-t b{display:block;font-size:17px;line-height:1.3}
+.apki-t b small{background:#f2b705;color:#1d2a23;font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:999px;letter-spacing:.04em;vertical-align:2px}
+.apki-t span{color:var(--muted);font-size:14.5px;line-height:1.45}
+.apki-ik{flex:none;width:48px;height:48px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.apki-b{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.bdg{display:inline-flex;align-items:center;gap:10px;background:#111;color:#fff;border:0;border-radius:12px;padding:8px 16px 8px 12px;text-decoration:none;font:inherit;font-weight:700;font-size:16px;line-height:1.15;text-align:left;cursor:pointer;min-height:52px}
+.bdg:hover{background:#2b2b2b}
+.bdg small{display:block;font-weight:500;font-size:11.5px;opacity:.8;letter-spacing:.02em}
+.bdg.jasny{background:#00737e}.bdg.jasny:hover{background:#005a63}
+.bdg[aria-expanded=true]{box-shadow:0 0 0 3px #f2b705}
+.apki-m{margin:12px 0 0;font-size:13.5px;color:var(--muted)}
+.ios-inst{margin-top:14px;background:#f2f6f9;border:1px solid #d5e1ea;border-radius:14px;padding:12px 16px;font-size:14.5px}
+.ios-inst ol{margin:8px 0;padding-left:22px}.ios-inst li{margin:5px 0}
+.ios-inst .ik{vertical-align:-4px;margin-left:2px}
+.ios-inst p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
+@media (max-width:600px){.bdg{flex:1 1 100%}}
 .social{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:10px}
 .social .mail{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600;font-size:14.5px;padding:7px 14px 7px 11px;border-radius:999px}
 .social .mail:hover{background:#efe9da}
@@ -312,7 +330,26 @@ footer{margin-top:50px;padding:24px 0 40px;border-top:1px solid var(--line);colo
   <p class="eyebrow">Sołectwo Strzebiń · gmina Koszęcin</p>
   <h1>HUB rowerowy Strzebiń</h1>
   <p class="lead">Strzebiń leży między Leśną Rajzą a Liswarciańskim Szlakiem Rowerowym. Proponujemy oznakować drogi, które łączą okoliczne miejscowości, szlaki i ciekawe miejsca – w tym rowerowy objazd drogi wojewódzkiej DW 906. To propozycja do dyskusji.</p>
-  <p class="social"><a class="jedz" href="jedz.html"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3l7 18-7-4-7 4z" fill="currentColor"/></svg>Jedź – nawigacja rowerowa <small>BETA</small></a><a class="fb" href="{{FB}}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8v3h2.6V21h2.9z"/></svg>Obserwuj projekt na Facebooku</a><a class="apk" href="https://github.com/Bacman88/rowerowy-strzebin/releases/latest/download/jedz-hub-strzebin.apk" title="Nawigacja „Jedź” na Androida – najnowsza wersja, instalacja od razu (plik APK)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Pobierz nawigację na telefon <small>ANDROID</small></a><a class="apk plik" href="testuj.html" title="Zapisz się do testów w Google Play – aktualizacje przyjdą same"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22A11.4 11.4 0 0 0 12 8.2c-1.77 0-3.43.33-4.92.94L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>Zostań testerem w Google Play</a><a class="gh" href="https://github.com/Bacman88/rowerowy-strzebin" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Projekt na GitHubie</a><a class="mail" href="mailto:{{KONTAKT}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>{{KONTAKT}}</a></p>
+  <div class="apki">
+    <div class="apki-t"><img class="apki-ik" src="apple-touch-icon.png" alt="" width="48" height="48"><div><b>Jedź – nawigacja rowerowa na telefon <small>BETA</small></b><span>Trasy dobrane dla roweru, prowadzenie głosem, pogoda i podjazdy na trasie, działa bez zasięgu. Za darmo, bez reklam i bez zakładania konta.</span></div></div>
+    <div class="apki-b">
+      <a class="bdg" href="testuj.html"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="#3ddc84" d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22A11.4 11.4 0 0 0 12 8.2c-1.77 0-3.43.33-4.92.94L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg><span><small>Android · Google Play</small>Zostań testerem</span></a>
+      <button type="button" class="bdg" id="ios-btn" aria-expanded="false" aria-controls="ios-inst"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 5h3"/><path d="M12 10.5v5M9.5 13h5"/></svg><span><small>iPhone · bez App Store</small>Dodaj do ekranu</span></button>
+      <a class="bdg jasny" href="jedz.html"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 3l7 18-7-4-7 4z" fill="currentColor"/></svg><span><small>Bez instalacji</small>Otwórz w przeglądarce</span></a>
+    </div>
+    <div class="ios-inst" id="ios-inst" hidden>
+      <b>Jedź na iPhonie – instalacja w 4 krokach</b>
+      <ol>
+        <li>Otwórz <a href="jedz.html">rowerowy-strzebin.smart-ant.pl/jedz.html</a> w przeglądarce <b>Safari</b> (w innych przeglądarkach na iPhonie ta opcja bywa ukryta).</li>
+        <li>Stuknij <b>Udostępnij</b> <svg class="ik" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Udostępnij"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/></svg> – na dole ekranu (na iPadzie u góry).</li>
+        <li>Przewiń listę i wybierz <b>Do ekranu początkowego</b> <svg class="ik" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg></li>
+        <li>Stuknij <b>Dodaj</b> – ikona „Jedź” pojawi się na ekranie jak zwykła aplikacja.</li>
+      </ol>
+      <p>Działa jak aplikacja: trasy, mapa bez zasięgu, pogoda, prowadzenie głosem. Jedna różnica: iPhone nie pozwala stronom używać GPS przy zgaszonym ekranie, więc w czasie jazdy ekran musi być włączony (Jedź sama pilnuje, żeby nie gasł) – najlepiej z telefonem na uchwycie na kierownicy.</p>
+    </div>
+    <p class="apki-m">Android bez Google Play? <a href="https://github.com/Bacman88/rowerowy-strzebin/releases/latest/download/jedz-hub-strzebin.apk">Pobierz plik APK</a> – najnowsza wersja, instalacja od razu.</p>
+  </div>
+  <p class="social"><a class="fb" href="{{FB}}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8v3h2.6V21h2.9z"/></svg>Obserwuj projekt na Facebooku</a><a class="gh" href="https://github.com/Bacman88/rowerowy-strzebin" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Projekt na GitHubie</a><a class="mail" href="mailto:{{KONTAKT}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>{{KONTAKT}}</a></p>
   <div class="idea">
     <h2>Lokalny system informacji kierunkowej dla rowerzystów</h2>
     <p>Drogowskazy informacyjne w punktach rozjazdów i skrzyżowań – pokazują, jak dojechać do pobliskich miejscowości, obiektów i atrakcji i ile to kilometrów. System <b>uzupełnia</b> istniejącą infrastrukturę turystyczną i rowerową: nie zastępuje znaków drogowych ani oficjalnych szlaków turystycznych i nie tworzy nowych szlaków.</p>
@@ -1345,6 +1382,11 @@ const GESTY = {gestureHandling:true, gestureHandlingOptions:{duration:1600, text
     el.closest('.slupek-box').previousElementSibling.textContent = `Cały słupek – przykład węzła ${p.nr}`;
   }
 })();
+</script>
+<script>
+(()=>{const b=document.getElementById('ios-btn'),p=document.getElementById('ios-inst');if(!b)return;
+b.addEventListener('click',()=>{const o=p.hidden;p.hidden=!o;b.setAttribute('aria-expanded',o);if(o)p.scrollIntoView({behavior:'smooth',block:'nearest'})});
+if(/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){const a=document.querySelector('.apki-b');a.prepend(b)}})();
 </script>
 </body>
 </html>
