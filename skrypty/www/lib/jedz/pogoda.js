@@ -6,7 +6,9 @@
 (() => {
   'use strict';
   const JZ = window.JZ = window.JZ || {};
-  const {rad, brg, esc} = JZ;
+  const {rad, brg, esc, LS} = JZ;
+  // 18.11.2026: przełącznik „Prognoza pogody” (domyślnie wł.) – wyłączona: nic nie idzie do Open-Meteo, zostaje samo słońce (liczone w telefonie)
+  const wlaczona = () => LS.get('pogoda', true);
   // ---------- słońce ----------
   function slonce(lat, lon, kiedy = new Date()) {
     const dzien = new Date(kiedy); dzien.setHours(12, 0, 0, 0);
@@ -39,6 +41,7 @@
   const KIER = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'], KIERPL = {N: 'płn.', NE: 'płn.-wsch.', E: 'wsch.', SE: 'płd.-wsch.', S: 'płd.', SW: 'płd.-zach.', W: 'zach.', NW: 'płn.-zach.'};
   const pam = new Map();   // klucz współrzędnych → {t, d} (30 min)
   async function pobierz(pkt) {
+    if (!wlaczona()) throw new Error('pogoda wyłączona');
     const kl = [...new Set(pkt.map(p => p[0].toFixed(2) + ',' + p[1].toFixed(2)))], brak = kl.filter(k => !(pam.get(k) && Date.now() - pam.get(k).t < 18e5));
     if (brak.length) {
       const u = 'https://api.open-meteo.com/v1/forecast?latitude=' + brak.map(k => k.split(',')[0]).join(',') + '&longitude=' + brak.map(k => k.split(',')[1]).join(',')
@@ -74,6 +77,10 @@
   async function blok(el, T) {
     if (!el) return; const [la, lo] = T.ll[0];
     el.innerHTML = `<div class="sek">Pogoda i światło dnia</div><div class="pg-sl">${esc(swiatlo(la, lo, T.prof.czas))}</div><div class="pg-lista"><div class="pg-m">Pobieram prognozę…</div></div>`;
+    const prz = `<label class="pg-prz"><input type="checkbox" id="pg-wl"${wlaczona() ? ' checked' : ''}> Prognoza pogody <span>(wysyła do Open-Meteo kilka punktów trasy, zaokrąglonych do ok. 1 km)</span></label>`;
+    el.insertAdjacentHTML('beforeend', prz);
+    el.querySelector('#pg-wl').onchange = e => { LS.set('pogoda', e.target.checked); blok(el, T); };
+    if (!wlaczona()) { el.querySelector('.pg-lista').innerHTML = '<div class="pg-m">Prognoza wyłączona – nic nie wysyłamy. Wschód i zachód słońca liczymy w telefonie.</div>'; return; }
     if (!navigator.onLine) { el.querySelector('.pg-lista').innerHTML = '<div class="pg-m">Prognoza pogody potrzebuje internetu.</div>'; return; }
     try {
       const P = punkty(T), W = await pobierz(P); if (!el.isConnected) return;
@@ -90,7 +97,7 @@
     const tu = JZ.wDal(T, wzdluz), tam = JZ.wDal(T, d30), t30 = t0 + (cz(d30) - cz(wzdluz)) * 1000;
     const S = slonce(tu[0], tu[1]), doCelu = (cz(M) - cz(wzdluz)) * 1000;
     let zmrok = ''; if (S && t0 < S.zach.getTime() && t0 + doCelu > S.zach.getTime()) zmrok = ` · 🌇 zachód ${hm(S.zach)}`;
-    if (!navigator.onLine) return {txt: zmrok.slice(3), zach: S && S.zach};
+    if (!navigator.onLine || !wlaczona()) return {txt: zmrok.slice(3), zach: S && S.zach};
     try {
       const [a, b] = await pobierz([[...tu, t0], [...tam, t30]]);
       const [ik] = KOD(a.kod); let txt = `${ik} ${Math.round(a.temp)}°C`;
