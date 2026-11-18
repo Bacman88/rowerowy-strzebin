@@ -210,7 +210,7 @@
   JZ.stan = stan;
   let map = null, warstwa = null, jaM = null, celM = null, sledz = true;
   let mapaOffline = LS.get('mapaOffline', false) && LS.get('mapaPobrana', false), mapaUstaw = null;
-  // mapa offline na życzenie: przycisk „Pobierz” (2,8 MB), po pobraniu – „używaj zawsze” i „usuń”
+  // mapa offline na życzenie: przycisk „Pobierz” (ok. 8 MB – cała mapa), po pobraniu – „używaj zawsze” i „usuń”
   function mapaOfflinePanel() {
     const box = document.querySelector('.moff-w'); if (!box) return;
     if (!JZ.podklad.pobrana()) {
