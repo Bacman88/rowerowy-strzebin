@@ -29,13 +29,18 @@ BUL = ParagraphStyle("b", **base, leftIndent=11, bulletIndent=1, spaceAfter=2.5)
 SMALL = ParagraphStyle("s", **{**base, "fontSize": 8, "leading": 10.5, "textColor": MUTED})
 CELL = ParagraphStyle("c", **{**base, "fontSize": 8.4, "leading": 10.6})
 CELLB = ParagraphStyle("cb", **{**base, "fontName": "Inter-SemiBold", "fontSize": 8.4, "leading": 10.6})
-HEAD = ParagraphStyle("hd", **{**base, "fontName": "Inter-SemiBold", "fontSize": 8.2, "leading": 10.2, "textColor": colors.white})
+HEAD = ParagraphStyle("hd", **{**base, "fontName": "Inter-SemiBold", "fontSize": 8.2, "leading": 10.2, "textColor": INK})
+# 19.11.2026: wersja przyjazna do druku – jasne tła ramek i nagłówków tabel zamiast ciemnej zieleni
+LIGHT, LIGHT2 = colors.HexColor("#eaf2e6"), colors.HexColor("#fbf3df")
+def jasna(t, bg=None, kreska=None):
+    t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), bg or LIGHT), ("LINEBEFORE", (0, 0), (0, -1), 3, kreska or GREEN)]))
+    return t
 
 def bullets(items): return [Paragraph(t, BUL, bulletText="•") for t in items]
 def table(rows, widths, bold_rows=(), stripe=True):
     data = [[Paragraph(c, HEAD) for c in rows[0]]] + [[Paragraph(c, CELLB if i in bold_rows else CELL) for c in r] for i, r in enumerate(rows[1:], 1)]
     t = Table(data, colWidths=widths, repeatRows=1)
-    st = [("BACKGROUND", (0, 0), (-1, 0), GREEN), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    st = [("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#dde8d8")), ("LINEBELOW", (0, 0), (-1, 0), 1, GREEN), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
           ("LINEBELOW", (0, 1), (-1, -1), 0.4, colors.HexColor("#d9ddd6")),
           ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4), ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5)]
     for i in bold_rows: st.append(("BACKGROUND", (0, i), (-1, i), colors.HexColor("#eef2ea")))
@@ -95,8 +100,8 @@ lo_hi = lambda v: f"{f1(v[0][0])}–{f1(v[2][1])} tys. zł"     # od wariantu A 
 T1 = TR[0]; km = lambda v: f"{v:.1f}".replace(".", ",")
 e1n = {p["nr"] for p in e1}
 forest_routes = [r for r in TR if any(isinstance(k, int) and k not in e1n for k in r["seq"])]
-BOX = ParagraphStyle("box", **{**base, "fontSize": 10, "leading": 14.2, "textColor": colors.white}, leftIndent=12, bulletIndent=0, spaceAfter=4)
-BOXH = ParagraphStyle("boxh", fontName="Inter-Bold", fontSize=10, leading=13, textColor=colors.HexColor("#e9b949"), spaceAfter=6)
+BOX = ParagraphStyle("box", **{**base, "fontSize": 10, "leading": 14.2, "textColor": INK}, leftIndent=12, bulletIndent=0, spaceAfter=4)
+BOXH = ParagraphStyle("boxh", fontName="Inter-Bold", fontSize=10, leading=13, textColor=colors.HexColor("#8a5300"), spaceAfter=6)
 box = [Paragraph("W SKRÓCIE", BOXH)] + [Paragraph(t, BOX, bulletText="•") for t in [
     f"<b>Rowerowa obwodnica DW 906 – {km(T1['km'])} km</b> z Sośnicy przez Piasek, Bukowiec i Strzebiń do Prądów, bocznymi ulicami i drogami leśnymi; przy okazji omija też DW 908 między Sośnicą a Piaskiem. "
     f"Samą drogą wojewódzką (poza chodnikiem i drogą rowerową) jedzie się tylko ok. {T1['dw'] * 1000:.0f} m. To odpowiedź na brak drogi rowerowej "
@@ -105,7 +110,7 @@ box = [Paragraph("W SKRÓCIE", BOXH)] + [Paragraph(t, BOX, bulletText="•") for
     f"<b>Etap 2 – trasy leśne z Nadleśnictwem Koszęcin: {lo_hi(E2)}</b>. Słupki w lasach Nadleśnictwa Koszęcin tworzą trasy do Kalet, Boronowa, Koszęcina i Drutarni.",
     "<b>Pilotaż dla całej gminy</b> – Strzebiń może przetrzeć szlak: metoda, wzór tabliczek i numeracja węzłów są gotowe do wprowadzenia w kolejnych sołectwach."]]
 bt = Table([[box]], colWidths=[W]); bt.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), GREEN), ("LEFTPADDING", (0, 0), (-1, -1), 12),
-    ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 10), ("BOTTOMPADDING", (0, 0), (-1, -1), 8)]))
+    ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 10), ("BOTTOMPADDING", (0, 0), (-1, -1), 8)])); jasna(bt)
 st.append(bt); st.append(Spacer(1, 8))
 st.append(Paragraph("Strzebiń jest ze wszystkich stron otoczony szlakami rowerowymi – od południa Leśno Rajza, od północy Liswarciański Szlak Rowerowy – "
                     "i w naturalny sposób stał się miejscem, w którym te trasy się spotykają. Proponuję ten HUB oznakować prostymi tabliczkami "
@@ -162,7 +167,7 @@ wsp_box = Table([[[Paragraph("WARUNEK: WSPÓŁPRACA GMINY I NADLEŚNICTWA", BOXH
     "(zgody na słupki, wskazanie dróg do jazdy rowerem, ewentualnie współfinansowanie etapu 2). Obie instytucje mają siedziby w Koszęcinie, "
     "co ułatwia wspólne ustalenia." + POZA, ParagraphStyle("boxp", parent=BOX, leftIndent=0))]]], colWidths=[W])
 wsp_box.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#2f6b3a")), ("LEFTPADDING", (0, 0), (-1, -1), 12),
-    ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
+    ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)])); jasna(wsp_box, LIGHT2, GOLD)
 st.append(Spacer(1, 6)); st.append(wsp_box)
 print(f"opis: lasy {KM_LAS:.1f} z {KM_SIEC:.1f} km tras, słupki w lasach {N_LAS}/{NPOST}")
 
@@ -184,7 +189,7 @@ def seqs(r): return " → ".join(str(k) if isinstance(k, int) else ("kościół 
 pc = lambda r: (round(r['pav'] / r['km'] * 100), round(r.get('grv', 0) / r['km'] * 100))
 st.append(table([["Trasa", "Przebieg (numery słupków)", "km", "Asfalt / kostka", "Szuter", "Grunt.", "DW 906*"]] +
     [[f"<b>{r['id']}. {r['name']}</b>" + (f"<br/>{r['sub']}" if r['sub'] else ""), seqs(r), km(r['km']),
-      f"{pc(r)[0]}%", f"{pc(r)[1]}%", f"{100 - sum(pc(r))}%", f"{r['dw'] * 1000:.0f} m"] for r in TR],
+      f"{pc(r)[0]}%", f"{pc(r)[1]}%", f"{100 - sum(pc(r))}%", f"{r['dw'] * 1000:.0f} m" if r['dw'] else "–"] for r in TR],
     [40 * mm, W - 40 * mm - 77 * mm, 14 * mm, 16 * mm, 13 * mm, 13 * mm, 15 * mm]))
 st.append(Paragraph("Nawierzchnia według OpenStreetMap: asfalt / kostka – asfalt, beton, kostka (oraz ulice bez opisu nawierzchni); "
                     "szuter – drogi z kruszywa i dobre drogi leśne; gruntowe – pozostałe drogi polne i leśne. Do potwierdzenia w terenie.", SMALL))
@@ -262,7 +267,7 @@ st.append(Paragraph("Założenia: tabliczka z drukiem dwustronnym 70–200 zł z
 st.append(Paragraph("Skąd wziąć środki", H2))
 st += bullets([
     "<b>Fundusz sołecki</b> – oznakowanie można ująć we wniosku na 2028 r. (fundusz na 2027 r. już rozdysponowano).",
-    "<b>Konkurs marszałkowski „Inicjatywa Sołecka”</b> – kategoria turystyki i krajoznawstwa; wniosek składa gmina (w 2025 r. nabór do 21 lutego).",
+    "<b>Konkurs marszałkowski „Inicjatywa Sołecka”</b> – kategoria turystyki i krajoznawstwa; wniosek składa gmina; nabór zwykle na początku roku – termin na 2027 r. do sprawdzenia w ogłoszeniu Urzędu Marszałkowskiego.",
     "<b>Budżet gminy</b> – zgodnie ze Strategią Rozwoju Gminy Koszęcin 2025–2035 (słabość: niewystarczająca sieć tras rowerowych; cel II.2: oznakowane szlaki).",
     "<b>Nadleśnictwo Koszęcin</b> – etap 2, słupki i tabliczki na trasach leśnych realizowane wspólnie.",
     "<b>Partnerzy lokalni</b> – lokale i sklepy przy trasach mogą współfinansować przedsięwzięcie (np. ok. 2 tys. zł) w zamian za tabliczkę kierunkową do swojego "
@@ -313,12 +318,13 @@ st.append(Paragraph("Źródło: Program Rozwoju Tras Rowerowych na obszarze gmin
 st.append(Paragraph("Zawartość dokumentu i dalsze kroki", H2))
 st.append(table([
     ["Strona", "Co zawiera"],
-    ["Mapa 1 (A2)", "Proponowane trasy rowerowe z numerami słupków, w tym rowerowa obwodnica DW 906"],
-    ["Mapa 2 (A2)", "Wszystkie słupki na tle szlaków – niebieskie: istniejące, pomarańczowe: nowe, fioletowe: opcjonalne"],
-    ["Mapa 3 (A2)", "Powiększenie Strzebinia z okolicą, w tym zbliżenia Łaz i skrzyżowań przy torach"],
-    ["Mapa 4 (A2)", "Stan dróg: odcinki średniej lub złej jakości (pomiary 2026) i drogi do sprawdzenia"],
-    ["Naklejki i paski (A4)", "Każdy słupek z naklejką węzła i paskami tras w kolejności montażu, z legendą kolorów"],
-    ["Katalog (A4)", "Każdy słupek z lokalizacją, uzgodnieniem i wszystkimi tabliczkami"],
+    ["Mapa 1", "Proponowane trasy rowerowe z numerami słupków, w tym rowerowa obwodnica DW 906"],
+    ["Mapa 2", "Wszystkie słupki na tle szlaków – niebieskie: istniejące, pomarańczowe: nowe, fioletowe: opcjonalne"],
+    ["Mapa 3", "Powiększenie Strzebinia z okolicą, w tym zbliżenia Łaz i skrzyżowań przy torach"],
+    ["Mapa 4", "Stan dróg: odcinki średniej lub złej jakości (pomiary 2026) i drogi do sprawdzenia"],
+    ["Naklejki i paski", "Każdy słupek z naklejką węzła i paskami tras w kolejności montażu, z legendą kolorów (wersja pełna)"],
+    ["Katalog", "Każdy słupek z lokalizacją, uzgodnieniem i wszystkimi tabliczkami (wersja pełna)"],
+    ["Online", "rowerowy-strzebin.smart-ant.pl – mapy w pełnej rozdzielczości (A2), trasy GPX, mapa wspólna stanu dróg i nawigacja rowerowa „Jedź” (Android – Google Play, iPhone – w przeglądarce)"],
 ], [32 * mm, W - 32 * mm]))
 st.append(Spacer(1, 5))
 st += bullets([
@@ -341,7 +347,7 @@ st.append(Paragraph("Charakter projektowanego oznakowania", H2))
 for t_ in TX.R4_CHARAKTER: st.append(Paragraph(t_, P))
 pod = Table([[[Paragraph("PODSUMOWANIE", BOXH), Paragraph(TX.R4_PODSUMOWANIE, ParagraphStyle("boxp2", parent=BOX, leftIndent=0))]]], colWidths=[W])
 pod.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), GREEN), ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-    ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
+    ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)])); jasna(pod)
 st.append(Spacer(1, 6)); st.append(pod)
 st.append(CondPageBreak(70 * mm))
 st.append(Paragraph(TX.KOLKA_TYTUL, ParagraphStyle("h2big2", parent=H2, fontSize=15, leading=19, spaceBefore=14)))
@@ -349,7 +355,7 @@ for t_ in TX.KOLKA_WSTEP: st.append(Paragraph(t_, P))
 for k_, (h_, t_) in enumerate(TX.KOLKA_ZASADY, 1): st.append(Paragraph(f"<b>{h_}.</b> {t_}", BUL, bulletText=f"{k_}."))
 pod2 = Table([[[Paragraph("W SKRÓCIE", BOXH), Paragraph(TX.KOLKA_PODSUMOWANIE, ParagraphStyle("boxp3", parent=BOX, leftIndent=0))]]], colWidths=[W])
 pod2.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), GREEN), ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-    ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)]))
+    ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)])); jasna(pod2)
 st.append(Spacer(1, 6)); st.append(pod2)
 # 16.11.2026: podobne rozwiązania w Polsce (te same co na stronie i w piśmie) – argument, że lokalne oznakowanie to sprawdzona praktyka
 st.append(CondPageBreak(60 * mm))
@@ -365,21 +371,34 @@ _wz = f"{O}/_tmp/wzor.pdf"
 if _os.path.exists(f"{O}/strona/lib/tabliczka-dane.js") and _os.system(f'python3 wzor_montazu.py "{O}/strona" "{_wz}" > /dev/null') == 0 and _os.path.exists(_wz):
     _w2 = PdfWriter(); [_w2.add_page(pg) for f_ in (f"{O}/_tmp/opis.pdf", _wz) for pg in PdfReader(f_).pages]; _w2.write(f"{O}/_tmp/opis.pdf")
 
-# złożenie całości
-w = PdfWriter()
-def add(path, title):
-    start = len(w.pages)
-    for pg in PdfReader(path).pages: w.add_page(pg)
-    w.add_outline_item(title, start)
-add(f"{O}/_tmp/opis.pdf", "Opis projektu i kosztorys")
-add(f"{O}/drogowskazy_trasy.pdf", "Mapa 1 – proponowane trasy rowerowe")
-mk = PdfReader(f"{O}/drogowskazy_mapy_komplet.pdf")
-s0 = len(w.pages); w.add_page(mk.pages[0]); w.add_outline_item("Mapa 2 – wszystkie słupki", s0)
-s0 = len(w.pages); w.add_page(mk.pages[1]); w.add_outline_item("Mapa 3 – Strzebiń (powiększenie)", s0)
-add(f"{O}/drogowskazy_stan_drog.pdf", "Mapa 4 – stan dróg")
-add(f"{O}/paski_na_slupkach_wykaz.pdf", "Naklejki węzłów i paski tras na słupkach")
-add(f"{O}/drogowskazy_katalog.pdf", "Katalog słupków i tabliczek")
-w.add_metadata({"/Title": "Sołectwo Strzebiń jako HUB rowerowy – projekt oznakowania", "/Author": "Bartosz"})
-w.write(f"{O}/Solectwo_Strzebin_jako_HUB_rowerowy.pdf")
+# złożenie całości – 19.11.2026: wszystkie strony A4 pionowo (mapy A2 i wykaz pasków obrócone o 90° i zmniejszone),
+# dwie wersje: skrócona (opis + mapy) i pełna (z naklejkami/paskami i katalogiem tabliczek)
+from pypdf import Transformation, PageObject
+A4W, A4H = 595.276, 841.89
+def pion(pg):
+    W_, H_ = float(pg.mediabox.width), float(pg.mediabox.height)
+    if W_ <= H_ + 1: return pg
+    k = min(A4H / W_, A4W / H_)
+    nowa = PageObject.create_blank_page(width=A4W, height=A4H)
+    dx, dy = (A4W - H_ * k) / 2, (A4H - W_ * k) / 2
+    nowa.merge_transformed_page(pg, Transformation().scale(k, k).rotate(90).translate(H_ * k + dx, dy))
+    return nowa
+def zloz(czesci, plik):
+    w = PdfWriter()
+    for path, title, nr in czesci:
+        pages = PdfReader(path).pages; pages = [pages[nr]] if nr is not None else list(pages)
+        start = len(w.pages)
+        for pg in pages: w.add_page(pion(pg))
+        w.add_outline_item(title, start)
+    w.add_metadata({"/Title": "Sołectwo Strzebiń jako HUB rowerowy – projekt oznakowania", "/Author": "Bartosz"})
+    w.write(plik); return w
+MAPY = [(f"{O}/_tmp/opis.pdf", "Opis projektu i kosztorys", None),
+        (f"{O}/drogowskazy_trasy.pdf", "Mapa 1 – proponowane trasy rowerowe", None),
+        (f"{O}/drogowskazy_mapy_komplet.pdf", "Mapa 2 – wszystkie słupki", 0),
+        (f"{O}/drogowskazy_mapy_komplet.pdf", "Mapa 3 – Strzebiń (powiększenie)", 1),
+        (f"{O}/drogowskazy_stan_drog.pdf", "Mapa 4 – stan dróg", None)]
+zloz(MAPY, f"{O}/Solectwo_Strzebin_jako_HUB_rowerowy_skrot.pdf")
+w = zloz(MAPY + [(f"{O}/paski_na_slupkach_wykaz.pdf", "Naklejki węzłów i paski tras na słupkach", None),
+                 (f"{O}/drogowskazy_katalog.pdf", "Katalog słupków i tabliczek", None)], f"{O}/Solectwo_Strzebin_jako_HUB_rowerowy.pdf")
 import shutil; shutil.copy(f"{O}/_tmp/opis.pdf", f"{O}/Solectwo_Strzebin_jako_HUB_rowerowy_opis_i_kosztorys.pdf")
 print("ok", len(w.pages))
