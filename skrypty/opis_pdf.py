@@ -132,7 +132,7 @@ st.append(Paragraph("<b>HUB rowerowy Strzebiń to lokalny system informacji kier
                     "rozjazdów i skrzyżowań, które pokazują, jak dojechać do pobliskich miejscowości, obiektów i atrakcji i ile to kilometrów. "
                     "System <b>uzupełnia</b> istniejącą infrastrukturę turystyczną i rowerową – nie zastępuje oznakowania drogowego "
                     "ani oficjalnych szlaków turystycznych.", P))
-for t_ in [f"<b>Węzły</b> – tabliczki stoją tam, gdzie rowerzysta musi wybrać kierunek jazdy ({NPOST} słupków z numerami).",
+for t_ in [f"<b>Węzły</b> – tabliczki stanęłyby tam, gdzie rowerzysta musi wybrać kierunek jazdy ({NPOST} proponowanych lokalizacji z numerami).",
            "<b>Kierunki i odległości</b> – informują, dokąd prowadzi droga, niezależnie od przebiegu konkretnych tras.",
            f"<b>{len(TR)} tras pokazowych</b> – to propozycje przejazdu istniejącymi drogami, a nie nowe oficjalne szlaki.",
            "<b>Własna identyfikacja wizualna</b> – spójny wygląd, kolory i oznaczenia, wyraźnie inne niż znaki drogowe i szlaki PTTK."]:
@@ -155,13 +155,13 @@ N_LAS = sum(1 for p in DP["posts"] if p["who"] == "nadl_K")
 import collections as _co
 _poza = _co.Counter(p.get("gmina", "Koszęcin") for p in DP["posts"] if p.get("gmina", "Koszęcin") != "Koszęcin")
 _n = sum(_poza.values())
-_ile = f"{_n} słupek leśny stoi" if _n == 1 else (f"{_n} słupki leśne stoją" if 2 <= _n % 10 <= 4 and not 12 <= _n % 100 <= 14 else f"{_n} słupków leśnych stoi")
+_ile = f"{_n} proponowany słupek leśny wypada" if _n == 1 else (f"{_n} proponowane słupki leśne wypadają" if 2 <= _n % 10 <= 4 and not 12 <= _n % 100 <= 14 else f"{_n} proponowanych słupków leśnych wypada")
 _gd = [("Kalet" if g == "Kalety" else f"gminy {g}") + f" ({n})" for g, n in _poza.most_common()]
 POZA = (f" Lasy nadleśnictwa sięgają poza gminę Koszęcin: {_ile} na terenie " + (", ".join(_gd[:-1]) + " i " + _gd[-1] if len(_gd) > 1 else _gd[0])
         + ". W lesie o zgodzie decyduje Nadleśnictwo Koszęcin, niezależnie od granic gmin – sąsiednie gminy warto jednak poinformować, "
           "bo trasy prowadzą do Kalet, Sośnicy, Piasku i Boronowa.") if _poza else ""
 wsp_box = Table([[[Paragraph("WARUNEK: WSPÓŁPRACA GMINY I NADLEŚNICTWA", BOXH), Paragraph(
-    f"Około {KM_LAS / KM_SIEC * 100:.0f}% sieci tras pokazowych ({km(KM_LAS)} z {km(KM_SIEC)} km) biegnie przez lasy, a {N_LAS} z {NPOST} słupków stoi w lasach "
+    f"Około {KM_LAS / KM_SIEC * 100:.0f}% sieci tras pokazowych ({km(KM_LAS)} z {km(KM_SIEC)} km) biegnie przez lasy, a {N_LAS} z {NPOST} proponowanych słupków – wszystkie nowe – miałoby stanąć w lasach "
     "Nadleśnictwa Koszęcin. Ulice, chodniki i drogi gminne są w gestii Gminy Koszęcin, drogi leśne – Nadleśnictwa Koszęcin. "
     "Projekt da się zrealizować w całości tylko wspólnie: gmina jako organizator i właściciel tabliczek, nadleśnictwo jako zarządca dróg leśnych "
     "(zgody na słupki, wskazanie dróg do jazdy rowerem, ewentualnie współfinansowanie etapu 2). Obie instytucje mają siedziby w Koszęcinie, "
@@ -177,13 +177,13 @@ st += bullets([
     "droga rowerowa wzdłuż DW 906 (od słupka 25 do 16, ok. 1,5 km) i bezpieczny chodnik (od słupka 27 do 25), ale brakuje połączeń z Bukowcem, Prądami i Koszęcinem. "
     "Oznakowanie tras obok DW 906, z utwardzeniem najgorszych odcinków, to szybka i wielokrotnie tańsza alternatywa niż budowa drogi rowerowej.",
     "<b>Turystyka</b> – oznakowany HUB przyciągnie turystów rowerowych, a ci, którzy już przejeżdżają szlakami, zatrzymają się przy ciekawych miejscach.",
-    "<b>Uroki sołectwa i gminy</b> – tabliczki prowadzą do zabytków, miejsc spotkań, przyrody i lokalnych punktów.",
+    "<b>Uroki sołectwa i gminy</b> – tabliczki poprowadzą do zabytków, miejsc spotkań, przyrody i lokalnych punktów.",
     "<b>Połączenia, o których mało kto wie</b> – coraz więcej mieszkańców to osoby napływowe, które znają tylko główne drogi.",
     "<b>Stan dróg</b> – projekt porządkuje wiedzę o drogach łączących miejscowości i wskazuje odcinki wymagające naprawy."])
 
 st.append(Paragraph("Proponowane trasy rowerowe", H2))
 st.append(Paragraph(f"Proponuję {['','jedną','dwie','trzy','cztery','pięć','sześć','siedem','osiem','dziewięć','dziesięć','jedenaście','dwanaście'][len(TR)]} tras pokazowych poprowadzonych drogami, "
-                    "na których stoją drogowskazy (mapa 1). Ciąg liczb to numery słupków – trasę można opisać jednym zdaniem na ulotce, "
+                    "przy których proponuję drogowskazy (mapa 1). Ciąg liczb to numery słupków – trasę można opisać jednym zdaniem na ulotce, "
                     "stronie gminy czy profilu sołectwa.", P))
 def seqs(r): return " → ".join(str(k) if isinstance(k, int) else ("kościół św. Trójcy" if k == "Trójca" else ("Kalety (stadion Unii)" if k == "Kalety Unia" else k)) for k in r["seq"])
 pc = lambda r: (round(r['pav'] / r['km'] * 100), round(r.get('grv', 0) / r['km'] * 100))
@@ -207,18 +207,18 @@ st.append(Paragraph("<b>Trasa 1 to rowerowa obwodnica DW 906.</b> Zamiast budowy
 
 st.append(Paragraph("Propozycja: numery węzłów i paski tras na słupkach", H2))
 st.append(Table([[Image(f"{O}/paski_demo.png", width=40 * mm, height=40 * 110 / 120 * mm),
-    Paragraph("Na wzór holenderskiej sieci węzłów rowerowych każdy słupek ma swój numer – ten sam na mapach, w katalogu i na tablicach z mapą "
-              "(„Jesteś przy węźle 25”). Numer jest na opasce owiniętej wokół słupka, powtórzony trzy razy, więc widać go z każdej strony. "
-              "To oznaczenie pomocnicze: drogowskazy prowadzą tak samo, a numery pozwalają opisać trasę jednym zdaniem. Kolor morski wybrano tak, "
+    Paragraph("Na wzór holenderskiej sieci węzłów rowerowych każdy słupek miałby swój numer – ten sam na mapach, w katalogu i na tablicach z mapą "
+              "(„Jesteś przy węźle 25”). Numer byłby na opasce owiniętej wokół słupka, powtórzony trzy razy, więc widać go z każdej strony. "
+              "To oznaczenie pomocnicze: drogowskazy prowadziłyby tak samo, a numery pozwalają opisać trasę jednym zdaniem. Kolor morski wybrano tak, "
               "by nie mylił się ze znakami szlaków ani z oznaczeniami sieci uzbrojenia (gaz – żółty, woda – niebieski, hydranty – czerwony). "
-              "Pod numerem węzła są 3-centymetrowe paski w kolorach tras, które przez ten słupek przebiegają, z numerem trasy – zawsze od góry "
+              "Pod numerem węzła byłyby 3-centymetrowe paski w kolorach tras, które przez ten słupek przebiegają, z numerem trasy – zawsze od góry "
               "według numeru (na przykładzie: słupki 25, 41 i 48). Kolory są te same co na mapie tras, więc rowerzysta jadący np. czerwoną trasą 1 "
-              "na każdym słupku widzi swój czerwony pasek z „1”. Przy zmianie przebiegu trasy wystarczy wymienić pasek.", SMALL)]],
+              "na każdym słupku widziałby swój czerwony pasek z „1”. Przy zmianie przebiegu trasy wystarczy wymienić pasek.", SMALL)]],
     colWidths=[44 * mm, W - 44 * mm], style=[("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
 
 st.append(Spacer(1, 4))
 st.append(Table([[Image(f"{O}/kropki_demo.png", width=62 * mm, height=62 * 200 / 800 * mm),
-    Paragraph(f"<b>Numery tras na tabliczkach (generator V22).</b> Przy nazwie celu stoją kółka z numerami tras w ich kolorach – np. „Łazy ①④⑥” "
+    Paragraph(f"<b>Numery tras na tabliczkach (generator V22).</b> Przy nazwie celu stałyby kółka z numerami tras w ich kolorach – np. „Łazy ①④⑥” "
               f"mówi od razu, że w tę stronę jedzie trasa 1, 4 i 6. Kółko dostaje cel, do którego trasa prowadzi co najmniej przez 1 km "
               f"(lub większość drogi); cele bliżej niż 1 km są bez kółek. Razem {NKROP} kółek na {NKT} tabliczkach, bez wydłużania żadnej tabliczki. "
               "Kółka są w plikach do druku, a przy zmianie przebiegu trasy wystarczy dokleić lub zakleić kółko-naklejkę Ø31 mm – tabliczka zostaje. "
@@ -234,7 +234,7 @@ st.append(table([
     ["Odległości", "liczone po drogach, z preferencją dróg utwardzonych i odcinków sprawdzonych w terenie; kierunki przejrzane ręcznie słupek po słupku"],
     ["Połączenia ze szlakami", "Prądy → Leśno Rajza (ok. 2,3 km), Łazy → Liswarciański Szlak Rowerowy (ok. 1,8 km)"],
     ["Stan dróg", "ok. 18 km zmierzonych w terenie; 8 odcinków (2,2 km) średniej lub złej jakości; mapa dróg do sprawdzenia"],
-    ["Cele lokalne", "kościoły św. Krzyża i św. Trójcy, pomnik J. Ligonia, kapliczka w Łazach, Piekarniok, GOSiR, boisko w Strzebiniu, stacje napraw rowerów (przy boisku także WC); gastronomia – przykładowo (Zagroda u Czesi, Baza, Bistro Moderno; na mapach także Beczka i Pod Pałacem w Koszęcinie, restauracje w Piasku i Sośnicy)"],
+    ["Cele lokalne", "kościoły św. Krzyża i św. Trójcy, pomnik J. Ligonia, kapliczka w Łazach, Piekarniok, GOSiR, boisko w Strzebiniu, planowane stacje napraw rowerów (fundusz sołecki 2027; przy boisku także WC); gastronomia – przykładowo (Zagroda u Czesi, Baza, Bistro Moderno; na mapach także Beczka i Pod Pałacem w Koszęcinie, restauracje w Piasku i Sośnicy)"],
 ], [44 * mm, W - 44 * mm]))
 st.append(Spacer(1, 4))
 st += bullets([
@@ -244,8 +244,7 @@ st += bullets([
     "oraz dwie tablice o historii (Piekarniok, pomnik J. Ligonia) – oznakowanie HUB-u będzie do nich prowadzić."])
 
 st.append(CondPageBreak(95 * mm)); st.append(Paragraph("Kosztorys (szacunkowy, brutto)", H2))
-st.append(Paragraph("Kwoty oparte na cenach z ofert internetowych z listopada 2026 r. – wymagają zapytania ofertowego. Warianty: A – dibond 3 mm, płyta prostokątna; "
-                    "B – dibond 3 mm z folią i laminatem UV, cięcie po obrysie; C – aluminium 2,5–3 mm z folią odblaskową.", SMALL))
+st.append(Paragraph("Kwoty oparte na cenach z ofert internetowych z listopada 2026 r. – wymagają zapytania ofertowego. Warianty materiału A, B i C – opis w tabeli pod kosztorysem.", SMALL))
 st.append(Spacer(1, 3))
 st.append(table([
     ["Część", "Słupki", "Tab.", "Wariant A", "Wariant B", "Wariant C"],
@@ -263,6 +262,24 @@ st.append(Paragraph("Założenia: tabliczka z drukiem dwustronnym 70–200 zł z
                     f"nowy słupek fi 60 mm z kotwą i montażem ok. 280 zł. Naklejki węzłów ({NPOST} szt.), paski tras (ok. {NPASK} szt.) i zapasowe kółka tras do doklejania – razem ok. 0,5–1 tys. zł dodatkowo. "
                     "Poza kosztorysem: ewentualne podsypanie i utwardzenie najgorszych odcinków (orientacyjnie 80–120 tys. zł za 1 km przy szerokości 3 m; "
                     "same odcinki trudne – ok. 0,7 km).", SMALL))
+# 19.11.2026: co obejmują warianty materiału (pytanie Bartosza) – ceny tabliczek z VAR, trwałość wg kart folii (do potwierdzenia w ofercie)
+st.append(CondPageBreak(70 * mm))
+st.append(Paragraph("Co obejmują warianty", ParagraphStyle("h3w", parent=H2, fontSize=11.5, leading=14, spaceBefore=8)))
+_v = [f"{a_}–{b_} zł" for a_, b_ in VAR]
+st.append(table([
+    ["", "Wariant A – ekonomiczny", "Wariant B – jak na wzorze", "Wariant C – najtrwalszy"],
+    ["Płyta", "dibond 3 mm (kompozyt aluminium–tworzywo)", "dibond 3 mm", "aluminium 2,5–3 mm"],
+    ["Kształt", "prostokąt – strzałka i grot nadrukowane", "cięta po obrysie – tabliczka sama jest strzałką (jak we wzorze)", "cięta po obrysie"],
+    ["Nadruk", "druk UV na płycie, obustronnie", "folia z nadrukiem + laminat ochronny UV, obustronnie", "folia odblaskowa z nadrukiem, obustronnie"],
+    ["Po zmroku", "bez odblasku", "bez odblasku", "odbija światło lampki rowerowej"],
+    ["Trwałość (orient.)", "ok. 3–5 lat", "ok. 7 lat", "ok. 10–12 lat"],
+    ["Tabliczka (2 strony)", _v[0], _v[1], _v[2]],
+    ["Dla kogo", "najtańszy start, np. etap pilotażowy", "dobry stosunek ceny do trwałości", "drogi używane także po zmroku, najdłuższa żywotność"],
+], [28 * mm, (W - 28 * mm) / 3, (W - 28 * mm) / 3, (W - 28 * mm) / 3]))
+st.append(Spacer(1, 3))
+st.append(Paragraph("We wszystkich wariantach to samo mocowanie (obejmy i śruby nierdzewne), te same słupki i ta sama treść tabliczek. "
+                    "Trwałość według kart produktów folii (najdłuższe okresy tylko na aluminium) – do potwierdzenia w zapytaniu ofertowym; "
+                    "warianty można też łączyć, np. C przy drogach głównych, A lub B w lasach.", SMALL))
 
 st.append(Paragraph("Skąd wziąć środki", H2))
 st += bullets([
@@ -307,7 +324,7 @@ st.append(Paragraph("Sąsiedni powiat tarnogórski realizuje <b>Program Rozwoju 
                     "(uchwała Zarządu Województwa Śląskiego z 2019 r.), jednolite oznakowanie i ma być podstawą do pozyskiwania środków zewnętrznych, "
                     "w tym z funduszy UE 2021–2027; pierwszy raport z monitoringu przewidziano na 2026 r.", P))
 st += bullets([
-    "<b>Kalety to wspólny punkt</b> – trzy trasy pokazowe HUB-u (2, 3 i 8) kończą się w Kaletach, a 6 słupków leśnych stoi na ich terenie; "
+    "<b>Kalety to wspólny punkt</b> – trzy trasy pokazowe HUB-u (2, 3 i 8) kończą się w Kaletach, a 6 proponowanych słupków leśnych wypada na ich terenie; "
     "HUB Strzebiń może się bezpośrednio połączyć z siecią tras powiatu tarnogórskiego.",
     "<b>Korytarz do Tarnowskich Gór</b> – rowerzyści z okolicy już jeżdżą do Tarnowskich Gór (przez Kalety i Tworóg); wspólne węzły "
     "pozwolą prowadzić ich dalej po planowanej sieci powiatu.",

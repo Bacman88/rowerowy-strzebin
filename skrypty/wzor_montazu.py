@@ -61,7 +61,7 @@ ol.key b{{color:#1d2a23}}
 <h2>2. Montaż: a) na istniejącym słupku z nazwami ulic, b) na nowym słupku w lesie</h2>
 <div class="rys"><svg id="rys" viewBox="0 0 182 96" width="182mm" height="96mm"></svg></div>
 <div class="uw"><ul>
-<li><b>a) Istniejące słupki:</b> tylko słupki z nazwami ulic (białe tabliczki z niebieskim napisem i herbem gminy), na których nie ma znaków drogowych. Drogowskazy wiszą tuż pod nazwami ulic i ich nie zasłaniają.</li>
+<li><b>a) Istniejące słupki:</b> tylko słupki z nazwami ulic (białe tabliczki z niebieskim napisem i herbem gminy), na których nie ma znaków drogowych. Drogowskazy zawisłyby tuż pod nazwami ulic i ich nie zasłaniały.</li>
 <li><b>Mocowanie</b>: obejmy stalowe dobrane do średnicy rury (do zmierzenia w terenie, typowo Ø 48–60 mm) – tak jak dziś przykręcone są nazwy ulic; śruby nierdzewne M6/M8 z podkładkami EPDM; 2 otwory Ø 6 mm w strefie mocowania (60 mm od nasady).</li>
 <li><b>Tabliczki</b> po obu stronach rury, każda ustawiona wzdłuż swojej drogi.</li>
 <li><b>Materiał</b>: płyta kompozytowa (dibond) 3 mm cięta po obrysie, druk z obu stron na folii odpornej na UV.</li>
