@@ -8,8 +8,12 @@ for fmt, k in (("A3", 1 / 2 ** 0.5), ("A4", 0.5)):
     for src, name in MAPS:
         pg = PdfReader(f"{O}/{src}").pages[0]
         W, H = float(pg.mediabox.width), float(pg.mediabox.height)
-        new = PageObject.create_blank_page(width=W * k, height=H * k)
-        new.merge_transformed_page(pg, Transformation().scale(k, k))
+        if fmt == "A4":   # 19.11.2026: A4 pionowo jak projekt – mapa obrócona o 90° (legenda na dole)
+            new = PageObject.create_blank_page(width=H * k, height=W * k)
+            new.merge_transformed_page(pg, Transformation().scale(k, k).rotate(90).translate(H * k, 0))
+        else:
+            new = PageObject.create_blank_page(width=W * k, height=H * k)
+            new.merge_transformed_page(pg, Transformation().scale(k, k))
         w = PdfWriter(); w.add_page(new); w.write(f"{O}/{fmt}_{name}.pdf"); allw.add_page(new)
     allw.write(f"{O}/{fmt}_mapy_komplet.pdf")
 print("ok A3/A4")

@@ -164,7 +164,7 @@ wsp_box = Table([[[Paragraph("WARUNEK: WSPÓŁPRACA GMINY I NADLEŚNICTWA", BOXH
     f"Około {KM_LAS / KM_SIEC * 100:.0f}% sieci tras pokazowych ({km(KM_LAS)} z {km(KM_SIEC)} km) biegnie przez lasy, a {N_LAS} z {NPOST} proponowanych słupków – wszystkie nowe – miałoby stanąć w lasach "
     "Nadleśnictwa Koszęcin. Ulice, chodniki i drogi gminne są w gestii Gminy Koszęcin, drogi leśne – Nadleśnictwa Koszęcin. "
     "Projekt da się zrealizować w całości tylko wspólnie: gmina jako organizator i właściciel tabliczek, nadleśnictwo jako zarządca dróg leśnych "
-    "(zgody na słupki, wskazanie dróg do jazdy rowerem, ewentualnie współfinansowanie etapu 2). Obie instytucje mają siedziby w Koszęcinie, "
+    "(zgody na słupki, wskazanie dróg do jazdy rowerem, ewentualnie postawienie słupków leśnych z etapu 2 we własnym zakresie). Obie instytucje mają siedziby w Koszęcinie, "
     "co ułatwia wspólne ustalenia." + POZA, ParagraphStyle("boxp", parent=BOX, leftIndent=0))]]], colWidths=[W])
 wsp_box.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#2f6b3a")), ("LEFTPADDING", (0, 0), (-1, -1), 12),
     ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)])); jasna(wsp_box, LIGHT2, GOLD)
@@ -286,7 +286,8 @@ st += bullets([
     "<b>Fundusz sołecki</b> – oznakowanie można ująć we wniosku na 2028 r. (fundusz na 2027 r. już rozdysponowano).",
     "<b>Konkurs marszałkowski „Inicjatywa Sołecka”</b> – kategoria turystyki i krajoznawstwa; wniosek składa gmina; nabór zwykle na początku roku – termin na 2027 r. do sprawdzenia w ogłoszeniu Urzędu Marszałkowskiego.",
     "<b>Budżet gminy</b> – zgodnie ze Strategią Rozwoju Gminy Koszęcin 2025–2035 (słabość: niewystarczająca sieć tras rowerowych; cel II.2: oznakowane szlaki).",
-    "<b>Nadleśnictwo Koszęcin</b> – etap 2, słupki i tabliczki na trasach leśnych realizowane wspólnie.",
+    "<b>Nadleśnictwo Koszęcin</b> – nie jako źródło pieniędzy dla gminy, lecz partner: słupki na drogach leśnych (etap 2) nadleśnictwo mogłoby postawić "
+    "we własnym zakresie, w ramach udostępniania lasu turystom, na podstawie porozumienia z gminą; gmina daje wzór i pliki tabliczek.",
     "<b>Partnerzy lokalni</b> – lokale i sklepy przy trasach mogą współfinansować przedsięwzięcie (np. ok. 2 tys. zł) w zamian za tabliczkę kierunkową do swojego "
     "lokalu na dwóch najbliższych słupkach na czas życia tabliczek; tabliczki pozostają własnością gminy, zasady jednakowe dla wszystkich. "
     "Cztery lokale pokryłyby znaczną część kosztu etapu 1.",
