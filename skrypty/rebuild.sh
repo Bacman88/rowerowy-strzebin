@@ -19,6 +19,10 @@ python3 -I signs_render.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogow
 rm -rf $O/_tmp/S; mkdir -p $O/_tmp/S
 python3 -I signs_render.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/_tmp/S/drogowskazy $M1 $M2 --single --manifest=$O/tabliczki_pojedyncze/manifest.json | tail -1
 mv $O/_tmp/S/drogowskazy_katalog.pdf $O/drogowskazy_katalog_pojedyncze.pdf
+# 19.11.2026: zatwierdzone oceny z mapy wspólnej – wydanie „stan-drog” (workflow stan.yml, codziennie); bez sieci zostaje poprzedni plik
+( _id=$(gh api repos/Bacman88/rowerowy-strzebin/releases/tags/stan-drog --jq '.assets[]|select(.name=="stan.json")|.id' 2>/dev/null) && [ -n "$_id" ] \
+  && gh api -H "Accept: application/octet-stream" repos/Bacman88/rowerowy-strzebin/releases/assets/$_id > $D/stan_zgloszen.json.tmp 2>/dev/null \
+  && python3 -c "import json,sys;json.load(open(sys.argv[1]))" $D/stan_zgloszen.json.tmp && mv $D/stan_zgloszen.json.tmp $D/stan_zgloszen.json ) || rm -f $D/stan_zgloszen.json.tmp
 python3 -I gaps.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy | tail -1
 python3 paski.py
 python3 kropki.py
