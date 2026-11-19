@@ -157,17 +157,17 @@ _poza = _co.Counter(p.get("gmina", "Koszęcin") for p in DP["posts"] if p.get("g
 _n = sum(_poza.values())
 _ile = f"{_n} proponowany słupek leśny wypada" if _n == 1 else (f"{_n} proponowane słupki leśne wypadają" if 2 <= _n % 10 <= 4 and not 12 <= _n % 100 <= 14 else f"{_n} proponowanych słupków leśnych wypada")
 _gd = [("Kalet" if g == "Kalety" else f"gminy {g}") + f" ({n})" for g, n in _poza.most_common()]
-POZA = (f" Lasy nadleśnictwa sięgają poza gminę Koszęcin: {_ile} na terenie " + (", ".join(_gd[:-1]) + " i " + _gd[-1] if len(_gd) > 1 else _gd[0])
-        + ". W lesie o zgodzie decyduje Nadleśnictwo Koszęcin, niezależnie od granic gmin – sąsiednie gminy warto jednak poinformować, "
-          "bo trasy prowadzą do Kalet, Sośnicy, Piasku i Boronowa.") if _poza else ""
-wsp_box = Table([[[Paragraph("WARUNEK: WSPÓŁPRACA GMINY I NADLEŚNICTWA", BOXH), Paragraph(
-    f"Około {KM_LAS / KM_SIEC * 100:.0f}% sieci tras pokazowych ({km(KM_LAS)} z {km(KM_SIEC)} km) biegnie przez lasy, a {N_LAS} z {NPOST} proponowanych słupków – wszystkie nowe – miałoby stanąć w lasach "
-    "Nadleśnictwa Koszęcin. Ulice, chodniki i drogi gminne są w gestii Gminy Koszęcin, drogi leśne – Nadleśnictwa Koszęcin. "
-    "Projekt da się zrealizować w całości tylko wspólnie: gmina jako organizator i właściciel tabliczek, nadleśnictwo jako zarządca dróg leśnych "
-    "(przede wszystkim zgody na słupki i tabliczki przy drogach leśnych oraz wskazanie dróg, po których można jeździć rowerem). Obie instytucje mają siedziby w Koszęcinie, "
-    "co ułatwia wspólne ustalenia." + POZA, ParagraphStyle("boxp", parent=BOX, leftIndent=0))]]], colWidths=[W])
-wsp_box.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#2f6b3a")), ("LEFTPADDING", (0, 0), (-1, -1), 12),
-    ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)])); jasna(wsp_box, LIGHT2, GOLD)
+POZA = (f" Część proponowanych słupków leśnych wypada na terenie " + (", ".join(_gd[:-1]) + " i " + _gd[-1] if len(_gd) > 1 else _gd[0])
+        + " – tam również decyduje Nadleśnictwo, a sąsiednie gminy warto poinformować.") if _poza else ""
+# 19.11.2026: wariant A (wg Bartosza) – nie „warunek”, tylko zaproszenie do wspólnego uzgodnienia tras leśnych
+wsp_box = Table([[[Paragraph("TRASY LEŚNE – RAZEM Z NADLEŚNICTWEM KOSZĘCIN", BOXH), Paragraph(
+    f"Duża część okolicy Strzebinia to lasy – około {KM_LAS / KM_SIEC * 100:.0f}% sieci tras pokazowych ({km(KM_LAS)} z {km(KM_SIEC)} km) prowadzi drogami leśnymi, "
+    f"a {N_LAS} z {NPOST} proponowanych słupków stanęłoby w lasach Nadleśnictwa Koszęcin. Ulice i drogi gminne należą do Gminy Koszęcin, drogi leśne – do Nadleśnictwa, "
+    "dlatego słupki w lasach wymagają jego zgody i wskazania dróg, po których można jeździć rowerem. Etap 1 (Strzebiń i obwodnica DW 906) prawie w całości dotyczy "
+    "dróg gminnych, a trasy leśne z etapu 2 można uzgodnić z Nadleśnictwem w dalszej kolejności. Obie instytucje mają siedziby w Koszęcinie, co ułatwia rozmowy."
+    + POZA, ParagraphStyle("boxp", parent=BOX, leftIndent=0))]]], colWidths=[W])
+wsp_box.setStyle(TableStyle([("LEFTPADDING", (0, 0), (-1, -1), 12),
+    ("RIGHTPADDING", (0, 0), (-1, -1), 12), ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 7)])); jasna(wsp_box)
 st.append(Spacer(1, 6)); st.append(wsp_box)
 print(f"opis: lasy {KM_LAS:.1f} z {KM_SIEC:.1f} km tras, słupki w lasach {N_LAS}/{NPOST}")
 

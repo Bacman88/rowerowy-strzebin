@@ -13,6 +13,14 @@ for _p in "stan.json:stan_zgloszen.json" "wezly.json:wezly_propozycje.json"; do 
     && gh api -H "Accept: application/octet-stream" repos/Bacman88/rowerowy-strzebin/releases/assets/$_id > $_f.tmp 2>/dev/null \
     && python3 -c "import json,sys;json.load(open(sys.argv[1]))" $_f.tmp && mv $_f.tmp $_f ) || rm -f $_f.tmp
 done
+python3 -c "
+import json,os
+if os.path.exists('$D/wezly_propozycje.json'):
+    w={x['id'] for x in json.load(open('$D/wezly_zatwierdzone.json'))['wdrozone']}
+    n=[x for x in json.load(open('$D/wezly_propozycje.json'))['wezly'] if x['id'] not in w]
+    for x in n: print('UWAGA: zatwierdzona propozycja węzła #%d (węzeł %s) czeka na wdrożenie w danych projektu: %s' % (x['id'], x['wezel'] or 'nowy', x['zmiany']))
+    if not n: print('węzły: wszystkie zatwierdzone propozycje z mapy wspólnej są wdrożone')
+"
 python3 -I signs_data.py $D/osm2_clean.geojson "$SV" signs.json 2>&1 | grep POI || true
 # trasy pokazowe najpierw: kierunki tras na tabliczkach (directions.py) i kółka tras V22 (plates.py) korzystają z ich przebiegu
 python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs.json $O/drogowskazy | tail -1
