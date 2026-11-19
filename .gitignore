@@ -7,3 +7,4 @@ __pycache__/
 dane/nmt.npz
 dane/podklad.json
 dane/stan_zgloszen.json
+dane/wezly_propozycje.json

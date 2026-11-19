@@ -146,7 +146,7 @@ C_OK, C_SR, C_TR, C_HI, C_LO, C_CON = "#4f8f5b", "#f0a12b", "#d43d33", "#6a3fb5"
 pr_ = sv.get("Przejezdność ogólna")
 ok_ = sv[~pr_.isin(["średnia", "trudna"])]; bad = sv[pr_.isin(["średnia", "trudna"])].copy()
 _routes = unary_union([LineString([P(a), P(b)]) for e in used for a, b in [tuple(e) if len(e) == 2 else (next(iter(e)),) * 2] if a != b]).buffer(30)
-bad = bad[bad.geometry.apply(lambda ge: ge.intersection(_routes).length / max(ge.length, 1) > 0.3)].copy()   # tylko odcinki na trasach drogowskazów
+bad = bad[bad.intersects(clip)].copy()   # 19.11.2026: wszystkie ocenione drogi w kadrze, nie tylko na trasach
 ok_.plot(ax=ax, color=C_OK, lw=lw(1.0), zorder=7, alpha=0.8)
 gdf[gdf.paved].plot(ax=ax, color=C_LO, lw=lw(1.2), zorder=8, capstyle="round", linestyle=(0, (4, 2)))
 gdf[~gdf.paved].plot(ax=ax, color=C_HI, lw=lw(1.8), zorder=9, capstyle="round", linestyle=(0, (5, 2)),
@@ -159,7 +159,7 @@ for _, r in bad.iterrows():
 C_NP = "#222222"
 OC_CNT = {}
 if OCENY is not None:
-    _on = OCENY[OCENY.geometry.apply(lambda ge: ge.intersection(_routes).length / max(ge.length, 1) > 0.3)]
+    _on = OCENY[OCENY.intersects(clip)]   # wszystkie zatwierdzone oceny w kadrze
     for st_, c_ in (("dobra", C_OK), ("srednia", C_SR), ("trudna", C_TR), ("nieprzejezdna", C_NP)):
         q_ = _on[_on.stan == st_]; OC_CNT[st_] = q_.length.sum() / 1000
         if len(q_): q_.plot(ax=ax, color=c_, lw=lw(1.8 if st_ != "dobra" else 1.4), zorder=10.5, capstyle="round",
@@ -199,7 +199,7 @@ T = lambda x, y, s, **k: pan.text(x, y, s, color=k.pop("color", "#1d2a23"), **k)
 M = 12
 T(M, 398, "SOŁECTWO STRZEBIŃ · HUB ROWEROWY", fontsize=12, weight="bold", color="#8a5300")
 T(M, 390, "Stan dróg\nna trasach\ndrogowskazów", fontsize=27, weight="bold", va="top", linespacing=1.05)
-T(M, 330, "Drogi, którymi prowadzą proponowane drogowskazy:\nzmierzone odcinki średniej lub złej jakości\noraz odcinki, których jeszcze nie sprawdzono", fontsize=9.5,
+T(M, 330, "Drogi, którymi prowadzą proponowane drogowskazy,\nktórych jeszcze nie sprawdzono, oraz wszystkie\ndrogi już ocenione (pomiary i mapa wspólna)", fontsize=9.5,
   va="top", color="#4b5d53", linespacing=1.4)
 km_bad = bad.length.sum() / 1000; km_tr = bad[bad["Przejezdność ogólna"] == "trudna"].length.sum() / 1000
 for i, (v, u) in enumerate([(f"{km_bad:.1f}".replace(".", ","), "km średniej / złej jakości"), (f"{km_hi:.1f}".replace(".", ","), "km do sprawdzenia"),

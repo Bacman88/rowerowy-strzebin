@@ -1,5 +1,5 @@
 # Codziennie (i na żądanie) pobiera publiczny stan dróg z mapy wspólnej (api/stan.php – tylko zatwierdzone oceny, bez kontaktów)
-# i zapisuje go w wydaniu „stan-drog”. Budowanie map PDF (skrypty/gaps.py – mapa 4 „Stan dróg”) dociąga stąd oceny mieszkańców.
+# oraz zatwierdzone propozycje zmian węzłów (api/wezly.php) i zapisuje je w wydaniu „stan-drog”. Budowanie map PDF (skrypty/gaps.py – mapa 4 „Stan dróg”) dociąga stąd oceny mieszkańców.
 name: Stan dróg z mapy wspólnej
 on:
   workflow_dispatch:
@@ -15,9 +15,11 @@ jobs:
         run: |
           curl -fsSL --retry 3 -A "HUB-rowerowy-Strzebin-build/1.0" "https://rowerowy-strzebin.smart-ant.pl/api/stan.php" -o stan.json
           python3 -c "import json;d=json.load(open('stan.json'));print('odcinkow z ocena:',len(d['stany']),'zgloszen:',len(d['zgloszenia']))"
+          curl -fsSL --retry 3 -A "HUB-rowerowy-Strzebin-build/1.0" "https://rowerowy-strzebin.smart-ant.pl/api/wezly.php" -o wezly.json
+          python3 -c "import json;d=json.load(open('wezly.json'));print('zatwierdzonych propozycji wezlow:',len(d['wezly']))"
       - name: Zapis w wydaniu stan-drog
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view stan-drog -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create stan-drog -R "$GITHUB_REPOSITORY" --title "Stan dróg z mapy wspólnej" --notes "Zatwierdzone oceny dróg (api/stan.php), aktualizowane codziennie."
-          gh release upload stan-drog stan.json --clobber -R "$GITHUB_REPOSITORY"
+          gh release upload stan-drog stan.json wezly.json --clobber -R "$GITHUB_REPOSITORY"

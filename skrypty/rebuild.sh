@@ -6,6 +6,13 @@ HERE="$(cd "$(dirname "$0")" && pwd)"; cd "$HERE"
 D=../dane; O=../out; GEN=../generator/generator_drogowskazow.html
 SV=$D/umap_mapa_rowerowa.geojson; M1=$D/streetview_zasieg_1.png; M2=$D/streetview_zasieg_2.png
 mkdir -p $O/_tmp
+# 19.11.2026: dane z mapy wspólnej – wydanie „stan-drog” (workflow stan.yml, codziennie): zatwierdzone oceny + przesunięcia węzłów (stan.json)
+# oraz zatwierdzone propozycje zmian węzłów (wezly.json). Bez sieci zostają poprzednie pliki.
+for _p in "stan.json:stan_zgloszen.json" "wezly.json:wezly_propozycje.json"; do _a=${_p%%:*}; _f=$D/${_p##*:}
+  ( _id=$(gh api repos/Bacman88/rowerowy-strzebin/releases/tags/stan-drog --jq ".assets[]|select(.name==\"$_a\")|.id" 2>/dev/null) && [ -n "$_id" ] \
+    && gh api -H "Accept: application/octet-stream" repos/Bacman88/rowerowy-strzebin/releases/assets/$_id > $_f.tmp 2>/dev/null \
+    && python3 -c "import json,sys;json.load(open(sys.argv[1]))" $_f.tmp && mv $_f.tmp $_f ) || rm -f $_f.tmp
+done
 python3 -I signs_data.py $D/osm2_clean.geojson "$SV" signs.json 2>&1 | grep POI || true
 # trasy pokazowe najpierw: kierunki tras na tabliczkach (directions.py) i kółka tras V22 (plates.py) korzystają z ich przebiegu
 python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs.json $O/drogowskazy | tail -1
@@ -19,10 +26,6 @@ python3 -I signs_render.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogow
 rm -rf $O/_tmp/S; mkdir -p $O/_tmp/S
 python3 -I signs_render.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/_tmp/S/drogowskazy $M1 $M2 --single --manifest=$O/tabliczki_pojedyncze/manifest.json | tail -1
 mv $O/_tmp/S/drogowskazy_katalog.pdf $O/drogowskazy_katalog_pojedyncze.pdf
-# 19.11.2026: zatwierdzone oceny z mapy wspólnej – wydanie „stan-drog” (workflow stan.yml, codziennie); bez sieci zostaje poprzedni plik
-( _id=$(gh api repos/Bacman88/rowerowy-strzebin/releases/tags/stan-drog --jq '.assets[]|select(.name=="stan.json")|.id' 2>/dev/null) && [ -n "$_id" ] \
-  && gh api -H "Accept: application/octet-stream" repos/Bacman88/rowerowy-strzebin/releases/assets/$_id > $D/stan_zgloszen.json.tmp 2>/dev/null \
-  && python3 -c "import json,sys;json.load(open(sys.argv[1]))" $D/stan_zgloszen.json.tmp && mv $D/stan_zgloszen.json.tmp $D/stan_zgloszen.json ) || rm -f $D/stan_zgloszen.json.tmp
 python3 -I gaps.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy | tail -1
 python3 paski.py
 python3 kropki.py
