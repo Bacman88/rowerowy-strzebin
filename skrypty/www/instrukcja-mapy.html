@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jak uzupełniać mapę wspólną – HUB rowerowy Strzebiń</title>
+<meta name="description" content="Instrukcja krok po kroku: jak ocenić drogę, dodać miejsce, zaproponować zmianę tabliczki i własną trasę na mapie wspólnej HUB-u rowerowego Strzebiń.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#f7f4ec;--card:#fffdf8;--line:#e3dccb;--ink:#1d2a23;--muted:#56665c;--green:#1d3b30;--teal:#00737e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:linear-gradient(160deg,#00737e,#1d3b30);color:#fff;padding:24px 16px 28px}
+header div,main{max-width:900px;margin:0 auto}
+header a{color:#cfe6e6;font-size:14px}
+h1{margin:8px 0 6px;font-size:30px;line-height:1.2}
+header p{margin:0;opacity:.92;max-width:660px}
+main{padding:22px 16px 56px}
+.spis{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 18px;margin-bottom:22px}
+.spis ol{margin:6px 0 0;padding-left:20px;columns:2;column-gap:28px}
+.krok{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:16px 0}
+.krok h2{margin:0 0 6px;font-size:20px;line-height:1.3;display:flex;gap:10px;align-items:baseline}
+.krok h2 .n{flex:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;font-size:16px;font-weight:800;position:relative;top:-2px}
+.krok ol,.krok ul{margin:6px 0 0;padding-left:22px}.krok li{margin:4px 0}
+.krok p{margin:6px 0}
+figure{margin:12px 0 0}
+figure img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.1);display:block}
+figcaption{color:var(--muted);font-size:13px;margin-top:5px}
+.dwa{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rada{background:#eaf2e6;border-left:4px solid #1d3b30;border-radius:10px;padding:10px 14px;margin:10px 0 0;font-size:15px}
+.chip{display:inline-block;padding:0 8px;border-radius:999px;font-weight:700;font-size:14px;color:#fff}
+.c1{background:#2e8b3e}.c2{background:#d18a00}.c3{background:#c43b2f}.c4{background:#222}
+a{color:var(--teal)}
+.muted{color:var(--muted);font-size:14.5px}
+.btn{display:inline-flex;align-items:center;gap:8px;margin-top:8px;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;padding:9px 15px;border-radius:12px;font-size:15px}
+@media (max-width:700px){.dwa{grid-template-columns:1fr}.spis ol{columns:1}h1{font-size:26px}}
+@media print{header{background:none;color:#000}header a{display:none}.krok{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header><div><a href="./#wspolna">← Mapa wspólna</a><h1>Jak uzupełniać mapę wspólną</h1>
+<p>Mapę stanu dróg i miejsc dla rowerzystów tworzymy razem. Wystarczy przeglądarka – bez konta i bez instalowania czegokolwiek. Każde zgłoszenie przed pokazaniem na mapie sprawdza administrator.</p></div></header>
+<main>
+<div class="spis"><b>Spis</b>
+<ol><li><a href="#start">Zanim zaczniesz</a></li><li><a href="#drogi">Oceń drogi</a></li><li><a href="#miejsce">Dodaj miejsce</a></li><li><a href="#tabliczki">Zaproponuj zmianę tabliczki</a></li>
+<li><a href="#trasa">Twoja trasa</a></li><li><a href="#dalej">Co się dzieje po wysłaniu</a></li></ol></div>
+
+<section class="krok" id="start">
+<h2><span class="n">1</span>Zanim zaczniesz</h2>
+<ul>
+<li>Mapa wspólna jest na stronie projektu w sekcji <b>„Mapa wspólna”</b>. Na górze panelu wybierasz, co chcesz zrobić: <b>Oceń drogi</b>, <b>Dodaj miejsce</b>, <b>Tabliczki</b> albo <b>Twoja trasa</b>.</li>
+<li>Do każdego zgłoszenia potrzebny jest tylko <b>nick</b> (widoczny przy zgłoszeniu). E-mail lub telefon są nieobowiązkowe – zostaw je, jeśli możemy dopytać; widzi je tylko administrator.</li>
+<li>Możesz dodać <b>zdjęcie</b> – widzi je tylko administrator, a po decyzji jest usuwane.</li>
+<li>Przycisk z <b>dłonią</b> w rogu mapy wyłącza zaznaczanie, gdy chcesz tylko oglądać. <b>Gumka</b> czyści zaznaczenia i pinezki.</li>
+</ul>
+<a class="btn" href="./#wspolna">Otwórz mapę wspólną</a>
+</section>
+
+<section class="krok" id="drogi">
+<h2><span class="n">2</span>Oceń drogi</h2>
+<ol>
+<li>Wybierz <b>Oceń drogi</b> i przybliż mapę w miejsce, którym jechałeś.</li>
+<li><b>Kliknij odcinek drogi</b> – podświetli się, a w panelu zobaczysz jego nazwę, długość i dotychczasowe oceny. Możesz zaznaczyć <b>kilka odcinków naraz</b>; ponowne kliknięcie odznacza.</li>
+<li>Wybierz, jak się jedzie: <span class="chip c1">dobra</span> <span class="chip c2">średnia</span> <span class="chip c3">trudna</span> <span class="chip c4">nieprzejezdna</span></li>
+<li>Dopisz komentarz (np. „piach po deszczu przy przejeździe”) i datę przejazdu – nieobowiązkowo, ale bardzo pomaga.</li>
+<li>Wpisz nick i kliknij <b>Wyślij zgłoszenie</b>.</li>
+</ol>
+<p class="rada"><b>Jak oceniać:</b> <b>dobra</b> – jedzie się bez kłopotu każdym rowerem; <b>średnia</b> – da się, ale wolniej (dziury, luźny żwir, korzenie); <b>trudna</b> – miejscami trzeba mocno zwolnić albo prowadzić rower (piach, błoto); <b>nieprzejezdna</b> – nie da się przejechać (zarośnięta, zalana, zamknięta). Oceniaj to, co widziałeś sam – najlepiej świeżo po przejeździe.</p>
+<div class="dwa">
+<figure><img src="instrukcje/m1a.jpg" alt="Tryb Oceń drogi: zaznaczony odcinek ulicy Józefa Lompy podświetlony na niebiesko, w panelu jego nazwa i stan" loading="lazy"><figcaption>Kliknięty odcinek podświetla się, w panelu widać jego dane</figcaption></figure>
+<figure><img src="instrukcje/m1.jpg" alt="Formularz oceny: wybrany stan średnia, komentarz, data przejazdu, zdjęcie, nick i przycisk Wyślij zgłoszenie" loading="lazy"><figcaption>Wybierz stan, dopisz komentarz i nick, wyślij</figcaption></figure>
+</div>
+<p class="muted">Ocenione drogi przydają się wszystkim: nawigacja „Jedź” i planer tras omijają te trudne i nieprzejezdne, a lista złych odcinków trafia do gminy jako wykaz dróg do naprawy.</p>
+</section>
+
+<section class="krok" id="miejsce">
+<h2><span class="n">3</span>Dodaj miejsce</h2>
+<ol>
+<li>Wybierz <b>Dodaj miejsce</b>.</li>
+<li><b>Kliknij na mapie</b>, gdzie jest to miejsce – pojawi się pinezka, którą możesz przeciągnąć. Stoisz obok? Kliknij <b>Moja lokalizacja</b>.</li>
+<li>Wybierz rodzaj: ławka, wiata, WC, woda pitna, serwis rowerowy, stojak, nocleg, jedzenie, ciekawe miejsce…</li>
+<li>Dodaj nazwę i krótki opis (np. „dwie ławki i stół, zadaszenie”), nick – i wyślij.</li>
+</ol>
+<figure><img src="instrukcje/m2.jpg" alt="Tryb Dodaj miejsce: pinezka na mapie, w panelu lista rodzajów miejsc – ławka, wiata, piknik, punkt widokowy, serwis rowerowy" loading="lazy"><figcaption>Pinezka na mapie i wybór rodzaju miejsca</figcaption></figure>
+</section>
+
+<section class="krok" id="tabliczki">
+<h2><span class="n">4</span>Zaproponuj zmianę tabliczki</h2>
+<ol>
+<li>Wybierz <b>Tabliczki</b> i kliknij <b>numer węzła</b> (turkusowe kółko z numerem) – zobaczysz wszystkie kierunki, które mają być na jego tabliczkach.</li>
+<li>Zbędny kierunek – kliknij <b>usuń</b>. Brakuje kierunku – wpisz cel w polu <b>Dodaj kierunek</b>. Odległość i strzałka liczą się same, a pod spodem widać podgląd tabliczek po zmianie.</li>
+<li>Kliknij w puste miejsce mapy, żeby zaproponować <b>nowy węzeł</b> – i zaznacz, czy jest tam już słupek (np. z nazwą ulicy).</li>
+<li>W polu <b>Uwagi</b> możesz dopisać np. „tabliczka zasłonięta przez drzewo”. Nick – i wyślij.</li>
+</ol>
+<figure><img src="instrukcje/m3.jpg" alt="Tryb Tabliczki: wybrany węzeł 6, lista kierunków Bukowiec, Łazy, Dubiele, Kalety z przyciskami usuń i podgląd tabliczki" loading="lazy"><figcaption>Węzeł 6 z listą kierunków na tabliczkach</figcaption></figure>
+</section>
+
+<section class="krok" id="trasa">
+<h2><span class="n">5</span>Twoja trasa</h2>
+<ol>
+<li>Wybierz <b>Twoja trasa</b> i <b>klikaj na mapie kolejne punkty</b> – trasa sama ułoży się wzdłuż dróg, omijając te ocenione jako trudne lub nieprzejezdne.</li>
+<li>Punkt możesz przeciągnąć albo kliknąć, żeby go usunąć. Pod spodem widać długość i to, jaka część trasy jest dobra, utwardzona albo jeszcze bez oceny.</li>
+<li><b>⤓ Pobierz GPX</b> – plik do nawigacji lub zegarka. <b>🔗 Kopiuj link</b> – wyślij komuś trasę. <b>⤒ Wczytaj GPX</b> – trasa od znajomego ułoży się na naszych drogach.</li>
+<li>Chcesz, żeby inni też ją zobaczyli? Wpisz <b>nazwę trasy</b> i opis (dla kogo, gdzie odpocząć, na co uważać) i wyślij jako propozycję.</li>
+</ol>
+<figure><img src="instrukcje/m4.jpg" alt="Tryb Twoja trasa: trasa 2,62 km z dwoma punktami, przyciski Cofnij punkt, Odwróć, Pobierz GPX, Kopiuj link, Wczytaj GPX" loading="lazy"><figcaption>Trasa ułożona z dwóch kliknięć, z przyciskami GPX i linku</figcaption></figure>
+</section>
+
+<section class="krok" id="dalej">
+<h2><span class="n">6</span>Co się dzieje po wysłaniu</h2>
+<ul>
+<li>Zgłoszenie od razu widzisz na mapie jako <b>„Twoja propozycja”</b> (tylko w swojej przeglądarce).</li>
+<li>Administrator je sprawdza – po zatwierdzeniu trafia na mapę dla wszystkich, z Twoim nickiem.</li>
+<li>Coś się pomyliło? Wyślij ocenę tego samego odcinka jeszcze raz – w ciągu kilku godzin poprawi poprzednią, jeśli nie była jeszcze sprawdzona.</li>
+</ul>
+<p class="muted">Jeździsz z telefonem? Drogi możesz oceniać też w trakcie jazdy, w nawigacji – zob. <a href="instrukcja-jedz.html">instrukcję „Jedź”</a>. · <a href="polityka-prywatnosci.html">Polityka prywatności</a></p>
+</section>
+</main>
+</body>
+</html>

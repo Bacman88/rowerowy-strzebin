@@ -75,7 +75,7 @@ for f in ["generator.html", "stan.html"]:
 
 # --- robots.txt i sitemap.xml
 open(f"{OUT}/robots.txt", "w").write(f"User-agent: *\nDisallow: /admin/\nDisallow: /api/\nAllow: /\n\nSitemap: {URL}sitemap.xml\n")
-strony = [("", "1.0", "weekly"), ("jedz.html", "0.9", "weekly"), ("testuj.html", "0.6", "monthly"), ("polityka-prywatnosci.html", "0.2", "yearly")]
+strony = [("", "1.0", "weekly"), ("jedz.html", "0.9", "weekly"), ("testuj.html", "0.6", "monthly"), ("instrukcja-jedz.html", "0.6", "monthly"), ("instrukcja-mapy.html", "0.6", "monthly"), ("polityka-prywatnosci.html", "0.2", "yearly")]
 pdfy = sorted(f for f in os.listdir(f"{OUT}/pdf") if f.endswith(".pdf")) if os.path.isdir(f"{OUT}/pdf") else []
 xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
 xml += [f"  <url><loc>{URL}{p}</loc><lastmod>{DZIS}</lastmod><changefreq>{c}</changefreq><priority>{pr}</priority></url>" for p, pr, c in strony]
