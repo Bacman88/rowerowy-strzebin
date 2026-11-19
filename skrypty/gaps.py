@@ -69,6 +69,33 @@ for wid, items in groups.items():
                       naw_osm=SURF_PL.get(surf, surf or "brak danych"), tracktype=attrs.get("tracktype", ""), uzycie=max(i[2] for i in items),
                       osm=wid))
 gdf = gpd.GeoDataFrame(feats, crs=2180)
+# 19.11.2026: zatwierdzone oceny z mapy wspólnej (api/stan.php → ../dane/stan_zgloszen.json, bez kontaktów).
+# Geometria odcinków z poprzedniej budowy strony (out/strona/stan/odcinki.js, format upakowany lub zwykły + aliasy starych id).
+import os as _os, re as _re
+OCENY = None
+_SZ, _OJ = "../dane/stan_zgloszen.json", "../out/strona/stan/odcinki.js"
+if _os.path.exists(_SZ) and _os.path.exists(_OJ):
+    _st = json.load(open(_SZ)); _src = open(_OJ, encoding="utf-8").read(); _dec = json.JSONDecoder()
+    if _src.startswith("window.ODC=["): _odc, _ = _dec.raw_decode(_src, len("window.ODC=")); _geo = {o[0]: o[7] for o in _odc}
+    else:
+        _d, _ = _dec.raw_decode(_src, _src.index("})(") + 3); _geo = {}
+        for o in _d["o"]:
+            a_ = b_ = 0; c_ = []
+            for k_ in range(0, len(o[7]), 2): a_ += o[7][k_]; b_ += o[7][k_ + 1]; c_.append((b_ / 1e5, a_ / 1e5))
+            _geo[o[0]] = c_
+    _j = _src.find("window.ODC_ALIASY="); _al = _dec.raw_decode(_src, _j + len("window.ODC_ALIASY="))[0] if _j >= 0 else {}
+    _rows = []
+    for oid, zid in _st.get("stany", {}).items():
+        stan = _st["zgloszenia"][str(zid)][0]
+        for nid in ([oid] if oid in _geo else (_al.get(oid) if isinstance(_al.get(oid), list) else [_al.get(oid)])):
+            if nid in _geo:
+                cc = _geo[nid] if isinstance(_geo[nid][0], tuple) else [(_geo[nid][k + 1], _geo[nid][k]) for k in range(0, len(_geo[nid]), 2)]
+                if len(cc) > 1: _rows.append(dict(geometry=LineString([P(c) for c in cc]), stan=stan))
+    OCENY = gpd.GeoDataFrame(_rows, crs=2180) if _rows else None
+    if OCENY is not None:   # ocenione odcinki znikają z „do sprawdzenia”
+        _ob = unary_union(OCENY.geometry.buffer(15))
+        gdf["geometry"] = gdf.geometry.difference(_ob); gdf = gdf[~gdf.geometry.is_empty & (gdf.length > 20)].copy()
+    print(f"gaps: oceny z mapy wspólnej – {0 if OCENY is None else len(OCENY)} odcinków")
 km_hi = gdf[~gdf.paved].length.sum() / 1000; km_lo = gdf[gdf.paved].length.sum() / 1000
 print(f"gaps: {len(gdf)} odcinków, wysoki {km_hi:.1f} km, niższy {km_lo:.1f} km")
 
@@ -129,6 +156,14 @@ for _, r in bad.iterrows():
     c = C_TR if r["Przejezdność ogólna"] == "trudna" else C_SR
     gpd.GeoSeries([r.geometry]).plot(ax=ax, color=c, lw=lw(1.8), zorder=10, capstyle="round",
                                      path_effects=[pe.Stroke(linewidth=lw(2.8), foreground="white"), pe.Normal()])
+C_NP = "#222222"
+OC_CNT = {}
+if OCENY is not None:
+    _on = OCENY[OCENY.geometry.apply(lambda ge: ge.intersection(_routes).length / max(ge.length, 1) > 0.3)]
+    for st_, c_ in (("dobra", C_OK), ("srednia", C_SR), ("trudna", C_TR), ("nieprzejezdna", C_NP)):
+        q_ = _on[_on.stan == st_]; OC_CNT[st_] = q_.length.sum() / 1000
+        if len(q_): q_.plot(ax=ax, color=c_, lw=lw(1.8 if st_ != "dobra" else 1.4), zorder=10.5, capstyle="round",
+                            path_effects=[pe.Stroke(linewidth=lw(2.8), foreground="white"), pe.Normal()])
 for c in D["connectors"]:
     ln = LineString([P(n) for n in c["path"]])
     gpd.GeoSeries([ln]).plot(ax=ax, color=C_CON, lw=lw(1.4), zorder=10, linestyle=(0, (1, 1.5)))
@@ -175,6 +210,12 @@ T(M, y, "ODCINKI ŚREDNIEJ LUB ZŁEJ JAKOŚCI (pomiary 2026)", fontsize=9, weigh
 for c, w_, lab, ls in [(C_TR, 1.8, f"zła jakość (przejezdność trudna) – {km_tr:.1f} km".replace(".", ","), "-"),
                        (C_SR, 1.8, f"średnia jakość – {km_bad - km_tr:.1f} km".replace(".", ","), "-")]:
     pan.plot([M, M + 10], [y, y], color=c, lw=lw(w_), solid_capstyle="round"); T(M + 14, y, lab, fontsize=9.5, va="center"); y -= 8
+if OC_CNT and sum(OC_CNT.values()):
+    y -= 3; T(M, y, "OCENY MIESZKAŃCÓW (mapa wspólna, zatwierdzone)", fontsize=9, weight="bold", color="#4b5d53"); y -= 9
+    for st_, c_, lab_ in (("dobra", C_OK, "dobra"), ("srednia", C_SR, "średnia"), ("trudna", C_TR, "trudna"), ("nieprzejezdna", C_NP, "nieprzejezdna")):
+        if OC_CNT.get(st_, 0) < 0.05: continue
+        pan.plot([M, M + 10], [y, y], color=c_, lw=lw(1.8), solid_capstyle="round"); T(M + 14, y, f"{lab_} – {OC_CNT[st_]:.1f} km".replace(".", ","), fontsize=9.5, va="center"); y -= 8
+    T(M, y, "pomiary 2026 (lista poniżej):", fontsize=8.5, color="#4b5d53", va="center"); y -= 8
 y -= 2
 for _, r in bad.iterrows():
     c = C_TR if r["Przejezdność ogólna"] == "trudna" else C_SR
