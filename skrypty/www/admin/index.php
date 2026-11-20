@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ak = (string)($_POST['akcja'] ?? '');
     // blokada źródła zgłoszenia na 1/7/30 dni + odrzucenie wszystkich jego oczekujących zgłoszeń
     if (preg_match('/^ban_(ip|urz)_(1|7|30)$/', $ak, $bm)) {
-        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'][$_POST['t'] ?? ''] ?? 'zgloszenia';
+        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi', 'busy' => 'busy_zgloszenia'][$_POST['t'] ?? ''] ?? 'zgloszenia';
         $q = $db->prepare("SELECT ip, urz, nick, kontakt FROM $tab WHERE id = ?"); $q->execute([(int)(($_POST['id'] ?? [0])[0] ?? 0)]); $w = $q->fetch();
         $war = $w ? (string)$w[$bm[1]] : '';
         if ($war !== '') {
@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // jawna blokada i nadawca podał e-mail (zgoda na kontakt) – wysyłamy mu tę samą informację
             if ($jawny && filter_var(trim((string)$w['kontakt']), FILTER_VALIDATE_EMAIL))
                 hub_mail(trim((string)$w['kontakt']), 'HUB rowerowy Strzebiń – zgłoszenia wstrzymane', "Dzień dobry,\n\n" . hub_ban_tekst($doK) . "\n\nPozdrawiamy\nHUB rowerowy Strzebiń\n");
-            foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $tb)
+            foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi', 'busy_zgloszenia'] as $tb)
                 $db->prepare("UPDATE $tb SET moderacja = 'odrzucone', moderowano = ? WHERE moderacja = 'oczekuje' AND " . ($bm[1] === 'ip' ? 'ip' : 'urz') . ' = ?')->execute([hub_teraz(), $war]);
         }
         header('Location: ./?t=' . urlencode($_POST['t'] ?? 'drogi') . '&k=' . urlencode($_POST['k'] ?? 'oczekuje')); exit;
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nowy = ['zatwierdz' => 'zatwierdzone', 'odrzuc' => 'odrzucone', 'wycofaj' => 'wycofane', 'przywroc' => 'oczekuje'][$_POST['akcja'] ?? ''] ?? null;
     $ids = array_filter(array_map('intval', (array)($_POST['id'] ?? [])));
     if ($nowy && $ids) {
-        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'][$_POST['t'] ?? ''] ?? 'zgloszenia';
+        $tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi', 'busy' => 'busy_zgloszenia'][$_POST['t'] ?? ''] ?? 'zgloszenia';
         $u = $db->prepare("UPDATE $tab SET moderacja = ?, moderowano = ? WHERE id = ?");
         foreach ($ids as $i) {
             $u->execute([$nowy, hub_teraz(), $i]);
@@ -205,11 +205,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $k = in_array($_GET['k'] ?? '', ['oczekuje', 'zatwierdzone', 'odrzucone', 'wycofane'], true) ? $_GET['k'] : 'oczekuje';
-$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy', 'uwagi', 'mapa', 'slupki'], true) ? $_GET['t'] : 'drogi';
-$tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'][$tryb] ?? 'zgloszenia';
+$tryb = in_array($_GET['t'] ?? '', ['miejsca', 'wezly', 'trasy', 'uwagi', 'busy', 'mapa', 'slupki'], true) ? $_GET['t'] : 'drogi';
+$tab = ['miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi', 'busy' => 'busy_zgloszenia'][$tryb] ?? 'zgloszenia';
 $licz = []; $czeka = [];
 foreach ($db->query("SELECT moderacja, COUNT(*) n FROM $tab GROUP BY moderacja") as $r) $licz[$r['moderacja']] = (int)$r['n'];
-foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
+foreach (['drogi' => 'zgloszenia', 'miejsca' => 'miejsca', 'wezly' => 'wezly', 'trasy' => 'trasy', 'uwagi' => 'uwagi', 'busy' => 'busy_zgloszenia'] as $tt => $tb) $czeka[$tt] = (int)$db->query("SELECT COUNT(*) FROM $tb WHERE moderacja = 'oczekuje'")->fetchColumn();
 $q = $db->prepare("SELECT * FROM $tab WHERE moderacja = ? ORDER BY utworzono " . ($k === 'oczekuje' ? 'ASC' : 'DESC') . ' LIMIT 200');
 $q->execute([$k]); $lista = $q->fetchAll();
 $BANY = $db->query("SELECT * FROM bany WHERE do_kiedy > '" . hub_teraz() . "' ORDER BY do_kiedy")->fetchAll();
@@ -218,7 +218,7 @@ $BAN = []; foreach ($BANY as $bb) $BAN[$bb['rodzaj'] . ':' . $bb['wartosc']] = $
 $URZN = [];
 $uu = array_values(array_unique(array_filter(array_map(fn($r) => (string)($r['urz'] ?? ''), $lista))));
 if ($uu) { $ph = implode(',', array_fill(0, count($uu), '?'));
-    foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $tb) { $q2 = $db->prepare("SELECT urz, COUNT(*) n FROM $tb WHERE urz IN ($ph) GROUP BY urz"); $q2->execute($uu);
+    foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi', 'busy_zgloszenia'] as $tb) { $q2 = $db->prepare("SELECT urz, COUNT(*) n FROM $tb WHERE urz IN ($ph) GROUP BY urz"); $q2->execute($uu);
         foreach ($q2 as $w) $URZN[$w['urz']] = ($URZN[$w['urz']] ?? 0) + (int)$w['n']; } }
 $urzTag = function (array $r) use ($URZN, $BAN): string {
     $ip = (string)($r['ip'] ?? ''); $t = $ip !== '' ? ' · <span class="urz" title="Skrót adresu IP – ta sama wartość = ta sama sieć (w komórce IP często się zmienia). Kasowany po 30 dniach.">'
@@ -286,7 +286,7 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
   <a href="../" title="Wróć na stronę główną HUB-u" style="text-decoration:none;font-weight:600;white-space:nowrap">← Strona główna</a>
   <h1>Panel</h1>
   <nav class="tabs tryb">
-    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy', 'uwagi' => 'Uwagi i błędy', 'mapa' => 'Miejsca na mapie – edycja', 'slupki' => 'Węzły – przesuwanie'] as $tt => $t): ?>
+    <?php foreach (['drogi' => 'Stan dróg', 'miejsca' => 'Miejsca', 'wezly' => 'Węzły i tabliczki', 'trasy' => 'Trasy', 'uwagi' => 'Uwagi i błędy', 'busy' => '🚌 Busy Koszęcin', 'mapa' => 'Miejsca na mapie – edycja', 'slupki' => 'Węzły – przesuwanie'] as $tt => $t): ?>
       <a href="?t=<?= $tt ?>" class="<?= $tryb === $tt ? 'on' : '' ?>"><?= $t ?><?= ($czeka[$tt] ?? 0) ? '<i>' . $czeka[$tt] . '</i>' : '' ?></a>
     <?php endforeach ?>
   </nav>
@@ -375,6 +375,14 @@ button.ok{background:#2b9348;color:#fff;border-color:#2b9348}button.no{backgroun
         <?php if ($tr): ?><div class="m">Trasa: <?= $h($tr['celN'] ?: 'cel') ?> · <?= $h($tr['tryb']) ?> · rower: <?= $h($tr['rower']) ?> · <?= number_format((float)$tr['km'], 1, ',', '') ?> km
           (start <?= $h(implode(', ', $tr['start'] ?? [])) ?> → cel <?= $h(implode(', ', $tr['cel'] ?? [])) ?>) – kliknij kartę, żeby zobaczyć na mapie</div><?php endif ?>
         <div class="m"><?= $h(implode(' · ', array_filter([$inf['wersja'] ?? '', $inf['ekran'] ?? '', $inf['adres'] ?? '']))) ?><?= isset($inf['urzadzenie']) ? '<br>' . $h($inf['urzadzenie']) : '' ?></div>
+      <?php elseif ($tryb === 'busy'): $BR = ['dojazd' => ['potrzebny dojazd', '#0759A7'], 'przystanek' => ['przystanek', '#237647'], 'linia' => ['linia', '#b45309'], 'godzina' => ['godziny', '#7c3aed'], 'uwaga' => ['uwaga', '#56665c']]; $bg = $BR[$r['rodzaj']] ?? [$r['rodzaj'], '#56665c']; ?>
+      <div class="z" data-id="<?= (int)$r['id'] ?>" data-busy="1"<?= $r['lat'] !== null ? ' data-lat="' . (float)$r['lat'] . '" data-lon="' . (float)$r['lon'] . '"' : '' ?>>
+        <div><span class="chip" style="background:<?= $bg[1] ?>"><?= $h($bg[0]) ?><?= $r['linia'] !== '' ? ' · linia ' . $h($r['linia']) : '' ?></span> <b><?= $h($r['nick']) ?></b></div>
+        <div class="m">#<?= (int)$r['id'] ?><?= $urzTag($r) ?> · zgłoszono <?= $h($r['utworzono']) ?><?= $r['moderowano'] ? ' · decyzja ' . $h($r['moderowano']) : '' ?></div>
+        <?php if ($r['skad'] !== '' || $r['dokad'] !== ''): ?><p><b><?= $h($r['skad']) ?> → <?= $h($r['dokad']) ?></b><?= $r['godzina'] !== '' ? ' · ' . $h($r['kierunek'] === 'odjazd' ? 'odjazd' : 'przyjazd') . ' ' . $h($r['godzina']) : '' ?></p><?php endif ?>
+        <?php $dod = array_filter([$r['dni'] !== '' ? 'dni: ' . $r['dni'] : '', $r['czestosc'] !== '' ? 'jak często: ' . $r['czestosc'] : '', $r['cel'] !== '' ? 'cel: ' . $r['cel'] : '']); if ($dod): ?><div class="m"><?= $h(implode(' · ', $dod)) ?></div><?php endif ?>
+        <?php if ((string)$r['tresc'] !== ''): ?><p><?= $h($r['tresc']) ?></p><?php endif ?>
+        <?php if ($r['lat'] === null): ?><div class="m">(bez punktu na mapie)</div><?php endif ?>
       <?php elseif ($tryb === 'trasy'): ?>
       <div class="z" data-id="<?= (int)$r['id'] ?>" data-trasa="1">
         <div><span class="chip" style="background:#0f766e">trasa · <?= number_format((float)$r['km'], 1, ',', '') ?> km</span> <b><?= $h($r['nick']) ?></b></div>
@@ -460,6 +468,9 @@ document.querySelectorAll('.z').forEach(el => el.addEventListener('click', e => 
     L.circleMarker(a, {radius: 8, color: '#fff', weight: 3, fillColor: '#2b9348', fillOpacity: 1}).bindTooltip('start').addTo(sel);
     L.circleMarker(c, {radius: 8, color: '#fff', weight: 3, fillColor: '#b00020', fillOpacity: 1}).bindTooltip('cel').addTo(sel);
     map.fitBounds([a, c], {padding: [60, 60], maxZoom: 16});
+  } else if (el.dataset.busy) {
+    sel.clearLayers(); if (!el.dataset.lat) return; const ll = [+el.dataset.lat, +el.dataset.lon];
+    L.circleMarker(ll, {radius: 9, color: '#fff', weight: 3, fillColor: '#0759A7', fillOpacity: 1}).addTo(sel); map.setView(ll, 16);
   } else if (el.dataset.zm) {
     sel.clearLayers(); const ll = [+el.dataset.lat, +el.dataset.lon];
     L.circle(ll, {radius: 30, color: '#1d4ed8', weight: 3, fill: false}).addTo(sel); map.setView(ll, 16);

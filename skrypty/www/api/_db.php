@@ -99,6 +99,15 @@ function hub_db(): PDO {
         do_kiedy VARCHAR(19) NOT NULL, utworzono VARCHAR(19) NOT NULL, opis VARCHAR(120) NOT NULL DEFAULT '')");
     $kol = $my ? array_column($db->query("SHOW COLUMNS FROM bany")->fetchAll(), 'Field') : array_column($db->query("PRAGMA table_info(bany)")->fetchAll(), 'name');
     if (!in_array('jawny', $kol, true)) $db->exec("ALTER TABLE bany ADD COLUMN jawny INT NOT NULL DEFAULT 0");   // 1 = nadawca widzi komunikat o blokadzie
+    // Busy gminy Koszęcin (20.11.2026, busy-koszecin.smart-ant.pl/wspolna/): propozycje mieszkańców – potrzebny dojazd, przystanek,
+    // uwaga do linii, godziny kursu. Moderacja jak reszta mapy wspólnej. Głosy „też tego potrzebuję” – jeden na urządzenie.
+    $db->exec("CREATE TABLE IF NOT EXISTS busy_zgloszenia (
+        id $ai, utworzono VARCHAR(19) NOT NULL, rodzaj VARCHAR(12) NOT NULL, skad VARCHAR(80) NOT NULL DEFAULT '', dokad VARCHAR(80) NOT NULL DEFAULT '',
+        godzina VARCHAR(5) NOT NULL DEFAULT '', kierunek VARCHAR(10) NOT NULL DEFAULT '', dni VARCHAR(12) NOT NULL DEFAULT '', czestosc VARCHAR(12) NOT NULL DEFAULT '',
+        cel VARCHAR(12) NOT NULL DEFAULT '', linia VARCHAR(4) NOT NULL DEFAULT '', tresc TEXT, lat DOUBLE PRECISION, lon DOUBLE PRECISION,
+        nick VARCHAR(60) NOT NULL, kontakt VARCHAR(120) NOT NULL DEFAULT '',
+        moderacja VARCHAR(12) NOT NULL DEFAULT 'oczekuje', moderowano VARCHAR(19), ip VARCHAR(64) NOT NULL DEFAULT '', urz VARCHAR(12) NOT NULL DEFAULT '')");
+    $db->exec("CREATE TABLE IF NOT EXISTS busy_glosy (zgloszenie INT NOT NULL, urz VARCHAR(12) NOT NULL, utworzono VARCHAR(19) NOT NULL, PRIMARY KEY (zgloszenie, urz))");
     if (!$my) $db->exec('PRAGMA busy_timeout=3000');
     return $db;
 }
@@ -131,6 +140,8 @@ function hub_zrzut(): array {
         'wezly' => $db->query('SELECT * FROM wezly ORDER BY id')->fetchAll(),
         'trasy' => $db->query('SELECT * FROM trasy ORDER BY id')->fetchAll(),
         'uwagi' => $db->query('SELECT * FROM uwagi ORDER BY id')->fetchAll(),
+        'busy_zgloszenia' => $db->query('SELECT * FROM busy_zgloszenia ORDER BY id')->fetchAll(),
+        'busy_glosy' => $db->query('SELECT * FROM busy_glosy ORDER BY zgloszenie')->fetchAll(),
         'korekty_wezlow' => $db->query('SELECT * FROM korekty_wezlow ORDER BY nr')->fetchAll(),
         'korekty_miejsc' => $db->query('SELECT * FROM korekty_miejsc ORDER BY klucz')->fetchAll(),
     ];
@@ -146,7 +157,7 @@ function hub_dobowo(): void {
     @touch($znacznik);
     try {
         $db = hub_db();
-        foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi'] as $t) {
+        foreach (['zgloszenia', 'miejsca', 'wezly', 'trasy', 'uwagi', 'busy_zgloszenia'] as $t) {
             $db->prepare("UPDATE $t SET kontakt = '' WHERE kontakt <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-1 year'))]);
             $db->prepare("UPDATE $t SET ip = '' WHERE ip <> '' AND utworzono < ?")->execute([date('Y-m-d H:i:s', strtotime('-30 days'))]);
         }
