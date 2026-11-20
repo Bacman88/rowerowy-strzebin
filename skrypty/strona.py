@@ -176,7 +176,8 @@ print("miejsca:", len(places))
 M = lambda a2, base: [("A2", a2), ("A3", f"A3_{base}.pdf"), ("A4", f"A4_{base}.pdf")]
 # 12.11.2026: załącznik A4 – wzór drogowskazu i montaż na istniejącym słupku z nazwą ulicy
 os.system(f'python3 wzor_montazu.py "{S}" "{O}/wzor_drogowskazu_montaz.pdf"')
-PDFS = [("Projekt – wersja skrócona (opis, kosztorys i 4 mapy, A4)", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy_skrot.pdf")]),
+PDFS = [("Projekt – do druku: 4 strony A4 (koncepcja, przykładowa tabliczka, mapa tras, koszty)", [("PDF", "Solectwo_Strzebin_HUB_rowerowy_do_druku.pdf")]),
+        ("Projekt – wersja skrócona (opis, kosztorys i 4 mapy, A4)", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy_skrot.pdf")]),
         ("Projekt – wersja pełna (z naklejkami węzłów i katalogiem wszystkich tabliczek, A4)", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy.pdf")]),
         ("Opis projektu i kosztorys", [("PDF", "Solectwo_Strzebin_jako_HUB_rowerowy_opis_i_kosztorys.pdf")]),
         ("Mapa tras rowerowych", M("drogowskazy_trasy.pdf", "mapa_trasy")),

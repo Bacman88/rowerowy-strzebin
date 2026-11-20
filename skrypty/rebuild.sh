@@ -43,6 +43,7 @@ from pypdf import PdfWriter;w=PdfWriter();[w.append(f) for f in ['drogowskazy_ma
   rm -f tabliczki_SVG.zip; zip -qr tabliczki_SVG.zip tabliczki tabliczki_pojedyncze tabliczki_prostokatne tabliczki_prostokatne_zaokraglone -x '*/png/*' )
 python3 -I export_umap.py
 python3 -I opis_pdf.py
+python3 -I druk_pdf.py   # 20.11.2026: wersja skrócona do druku A4 (4 strony)
 python3 -I trasy.py $D/osm2_clean.geojson "$SV" signs_prop.json $O/drogowskazy --objazd | tail -1
 python3 -I kontrola_tabliczek.py signs_prop.json $O/drogowskazy_trasy.geojson | head -1
 python3 strona.py
