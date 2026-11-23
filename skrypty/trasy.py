@@ -255,7 +255,7 @@ for r in RES:
     chk = r["sub"].startswith("przejezdność")
     if r["sub"]: T(M + 13, y, "przejezdność do sprawdzenia w terenie" if chk else r["sub"], fontsize=9, va="center", color="#8a5300"); y -= 6.3
     pa, gr = r['pav'] / r['km'] * 100, r['grv'] / r['km'] * 100
-    stats = (f"{r['km']:.1f}".replace(".", ",") + f" km · asfalt/kostka {pa:.0f}% · szuter {gr:.0f}% · gruntowe {100 - pa - gr:.0f}% · po DW 906* {r['dw']*1000:.0f} m")
+    stats = (f"{r['km']:.1f}".replace(".", ",") + f" km · asfalt/kostka {pa:.0f}% · szuter {gr:.0f}% · gruntowe {100 - pa - gr:.0f}%" + (f" · po DW 906* {r['dw']*1000:.0f} m" if r['dw'] >= 0.0005 else ""))
     T(M + 13, y, stats, fontsize=8.6, va="center", color="#2c3a32")
     y -= 6.2
 
