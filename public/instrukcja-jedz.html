@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jak korzystać z nawigacji „Jedź” – HUB rowerowy Strzebiń</title>
+<meta name="description" content="Instrukcja krok po kroku: jak wyznaczyć trasę rowerową w nawigacji „Jedź”, jechać z głosem, korzystać z mapy bez zasięgu i oceniać drogi.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#f7f4ec;--card:#fffdf8;--line:#e3dccb;--ink:#1d2a23;--muted:#56665c;--green:#1d3b30;--teal:#00737e;--gold:#8a5300}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:linear-gradient(160deg,#00737e,#1d3b30);color:#fff;padding:24px 16px 28px}
+header div,main{max-width:860px;margin:0 auto}
+header a{color:#cfe6e6;font-size:14px}
+h1{margin:8px 0 6px;font-size:30px;line-height:1.2}
+header p{margin:0;opacity:.92;max-width:640px}
+main{padding:22px 16px 56px}
+.spis{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 18px;margin-bottom:22px}
+.spis ol{margin:6px 0 0;padding-left:20px;columns:2;column-gap:28px}
+.spis li{margin:2px 0}
+.krok{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:16px 0;display:grid;grid-template-columns:1fr 230px;gap:22px;align-items:start}
+.krok.bez{grid-template-columns:1fr}
+.krok h2{margin:0 0 6px;font-size:20px;line-height:1.3;display:flex;gap:10px;align-items:baseline}
+.krok h2 .n{flex:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;font-size:16px;font-weight:800;position:relative;top:-2px}
+.krok ul{margin:6px 0 0;padding-left:20px}.krok li{margin:4px 0}
+.krok p{margin:6px 0}
+.fot{display:flex;flex-direction:column;gap:10px}
+.fot img{width:100%;height:auto;border-radius:18px;border:6px solid #1b1f1d;box-shadow:0 6px 18px rgba(0,0,0,.18);display:block}
+.fot small{color:var(--muted);font-size:13px;text-align:center;line-height:1.35}
+.rada{background:#eaf2e6;border-left:4px solid #1d3b30;border-radius:10px;padding:10px 14px;margin:10px 0 0;font-size:15px}
+.uw{background:#fbf3df;border-left:4px solid #c99a1e;border-radius:10px;padding:10px 14px;margin:10px 0 0;font-size:15px}
+.btn{display:inline-flex;align-items:center;gap:8px;margin:6px 8px 0 0;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;padding:9px 15px;border-radius:12px;font-size:15px}
+.btn.g{background:#111}
+a{color:var(--teal)}
+.muted{color:var(--muted);font-size:14.5px}
+@media (max-width:700px){.krok{grid-template-columns:1fr}.fot{max-width:270px;margin:0 auto}.spis ol{columns:1}h1{font-size:26px}}
+@media print{header{background:none;color:#000}header a{display:none}.krok{break-inside:avoid}.fot img{border-width:2px;box-shadow:none}}
+</style>
+</head>
+<body>
+<header><div><a href="./">← HUB rowerowy Strzebiń</a><h1>Jak korzystać z nawigacji „Jedź”</h1>
+<p>Nawigacja rowerowa po drogach od Blachowni po Tarnowskie Góry i od Lublińca po Woźniki. Za darmo, bez reklam i bez zakładania konta. Poniżej wszystko krok po kroku.</p></div></header>
+<main>
+<div class="spis"><b>Spis</b>
+<ol><li><a href="#instalacja">Instalacja</a></li><li><a href="#cel">Wybierz, dokąd jedziesz</a></li><li><a href="#trasa">Sprawdź trasę</a></li><li><a href="#jazda">Jedź z prowadzeniem głosem</a></li>
+<li><a href="#ocena">Oceń drogę – to najważniejsza pomoc</a></li><li><a href="#offline">Bez zasięgu: mapa offline</a></li><li><a href="#wiecej">Moje przejazdy, nagrywanie trasy</a></li><li><a href="#problem">Coś nie działa?</a></li></ol></div>
+
+<section class="krok bez" id="instalacja">
+<div><h2><span class="n">1</span>Instalacja</h2>
+<ul>
+<li><b>Android:</b> pobierz „Jedź – nawigacja rowerowa” z Google Play (wczesny dostęp – instaluje się normalnie, aktualizacje przychodzą same). Telefon bez Sklepu Play? Pobierz plik APK.</li>
+<li><b>iPhone:</b> otwórz stronę nawigacji w <b>Safari</b>, stuknij <b>Udostępnij</b> i wybierz <b>Do ekranu początkowego</b>. Ikona „Jedź” pojawi się jak zwykła aplikacja.</li>
+<li><b>Komputer:</b> działa od razu w przeglądarce – przydaje się do planowania trasy w domu.</li>
+</ul>
+<a class="btn g" href="https://play.google.com/store/apps/details?id=pl.smartant.jedz">Google Play</a><a class="btn" href="testuj.html">Plik APK</a><a class="btn" href="jedz.html">Otwórz w przeglądarce</a>
+<p class="rada">Przy pierwszym uruchomieniu zezwól na <b>lokalizację</b>, a w aplikacji na Androida także na <b>powiadomienia</b> – dzięki temu nawigacja mówi i prowadzi również przy zgaszonym ekranie. Bez zgody na lokalizację też się da: start wskażesz palcem na mapie.</p>
+</div></section>
+
+<section class="krok" id="cel">
+<div><h2><span class="n">2</span>Wybierz, dokąd jedziesz</h2>
+<ul>
+<li><b>Skąd</b> – domyślnie Twoja lokalizacja. Chcesz zaplanować trasę z innego miejsca? Stuknij <b>Zmień</b>.</li>
+<li><b>Dokąd</b> – wpisz miejscowość, ulicę albo miejsce (np. „Kalety”, „kościół”, „GOSiR”) i wybierz z listy.</li>
+<li><b>Szybki wybór</b> – najczęstsze cele jednym stuknięciem: Strzebiń, Koszęcin, Kalety, Leśno Rajza, stacja napraw…</li>
+<li><b>W pobliżu</b> – najbliższe AED, apteka, sklep, jedzenie, WC, pociąg – liczone po drogach, nie w linii prostej.</li>
+<li><b>Wskaż cel na mapie</b> – gdy miejsce nie ma nazwy, np. polana w lesie.</li>
+</ul></div>
+<div class="fot"><img src="instrukcje/j1.jpg" alt="Ekran startowy Jedź: pola Skąd i Dokąd, szybki wybór i W pobliżu" loading="lazy"><img src="instrukcje/j2.jpg" alt="Wyszukiwanie celu: po wpisaniu Kal podpowiedzi Kalety i Kalety-Kuczów" loading="lazy"><small>Ekran startowy i wyszukiwanie celu</small></div>
+</section>
+
+<section class="krok" id="trasa">
+<div><h2><span class="n">3</span>Sprawdź trasę, zanim ruszysz</h2>
+<ul>
+<li><b>Bezpieczna</b> (domyślnie) omija drogi wojewódzkie i krajowe, <b>Najkrótsza</b> – jak najkrócej. Pod spodem bywa <b>trasa alternatywna</b> z opisem, czym się różni.</li>
+<li><b>Rowerem / Pieszo</b> i <b>rodzaj roweru</b> – szosowy unika gruntowych dróg, górski i gravel nie boją się lasu. Od tego zależy też czas jazdy.</li>
+<li><b>Twoje tempo</b> – przesuń suwak, a czas przejazdu dopasuje się do Ciebie.</li>
+<li><b>Pogoda i światło dnia</b> – prognoza na starcie, po drodze i na miejscu, wiatr względem kierunku jazdy, godzina zachodu słońca. Prognozę można wyłączyć przełącznikiem.</li>
+<li><b>Profil i nawierzchnia</b> – podjazdy i zjazdy oraz pasek: zielony = droga oceniona jako dobra, szary = jeszcze bez oceny.</li>
+</ul>
+<p class="rada">Strzałka <b>Wróć</b> w lewym górnym rogu cofa do wyboru celu. Mapa nie ucieknie za daleko – zatrzymuje się na granicy obszaru nawigacji.</p></div>
+<div class="fot"><img src="instrukcje/j3.jpg" alt="Podgląd trasy do Kalet: mapa, wariant Bezpieczna i Najkrótsza, długość, czas i liczba drogowskazów" loading="lazy"><img src="instrukcje/j3b.jpg" alt="Podgląd trasy: suwak tempa, oszczędzanie baterii, profil wysokości i nawierzchnia" loading="lazy"><small>Podgląd trasy – przewiń w dół po szczegóły</small></div>
+</section>
+
+<section class="krok" id="jazda">
+<div><h2><span class="n">4</span>Jedź z prowadzeniem głosem</h2>
+<ul>
+<li>Stuknij <b>Jedź</b> na dole podglądu. Na górze widać najbliższy skręt i odległość do niego, na dole – ile zostało i o której dojedziesz.</li>
+<li>Głos zapowiada skręty ok. 150 m wcześniej i na samym skręcie. Na długich prostych milczy – to normalne. Przycisk <b>głośnika</b> wycisza komunikaty, a <b>Test głosu</b> w podglądzie trasy sprawdza, czy słychać.</li>
+<li>Zjechałeś z trasy? Nawigacja sama wyznaczy nową.</li>
+<li><b>Oszczędzanie baterii</b> (w podglądzie) – ekran może zgasnąć, prowadzi głos, a GPS odzywa się rzadziej na prostych.</li>
+<li>Na końcu stuknij <b>Zakończ</b> – zobaczysz podsumowanie przejazdu.</li>
+</ul>
+<p class="uw"><b>iPhone:</b> w wersji z przeglądarki prowadzenie działa tylko przy włączonym ekranie (ograniczenie Apple). Najwygodniej z telefonem na uchwycie na kierownicy.</p></div>
+<div class="fot"><img src="instrukcje/j4.jpg" alt="Ekran jazdy: następny skręt za 480 m w lewo, pozostało 7,4 km i 30 minut" loading="lazy"><small>Ekran w trakcie jazdy</small></div>
+</section>
+
+<section class="krok" id="ocena">
+<div><h2><span class="n">5</span>Oceń drogę – to najważniejsza pomoc</h2>
+<p>Nawigacja jest tak dobra, jak wiedza o drogach. Każda ocena sprawia, że trasy dla wszystkich omijają piach, błoto i dziury.</p>
+<ul>
+<li><b>W trakcie jazdy:</b> stuknij <b>gwiazdkę</b> po prawej stronie mapy i wybierz, jak się jedzie odcinkiem, po którym właśnie jedziesz: <b>Dobra</b>, <b>Średnia</b>, <b>Trudna</b> albo <b>Nieprzejezdna</b>. Dwa stuknięcia – i jedziesz dalej.</li>
+<li><b>Po przejeździe:</b> w podsumowaniu możesz ocenić drogi, którymi jechałeś.</li>
+<li>Nick wpisujesz raz – aplikacja go zapamięta. Pomyliłeś się? Wyślij ocenę jeszcze raz, poprawi poprzednią.</li>
+</ul>
+<p class="rada"><b>Jak oceniać:</b> <b>dobra</b> – jedzie się bez kłopotu każdym rowerem; <b>średnia</b> – da się, ale wolniej (dziury, luźny żwir, korzenie); <b>trudna</b> – miejscami trzeba zwolnić mocno albo prowadzić rower (piach, błoto); <b>nieprzejezdna</b> – nie da się przejechać (zarośnięta, zalana, zamknięta).</p>
+<p class="muted">Drogi poza gminą Koszęcin i okolicą można oceniać tylko po faktycznym przejechaniu nimi – aplikacja dołącza wtedy kilka punktów GPS jako dowód (nie zapisujemy ich). Oceny trafiają na mapę po sprawdzeniu.</p></div>
+<div class="fot"><img src="instrukcje/j5.jpg" alt="Okno oceny drogi w trakcie jazdy: przyciski Dobra, Średnia, Trudna, Nieprzejezdna" loading="lazy"><small>Ocena drogi gwiazdką w trakcie jazdy</small></div>
+</section>
+
+<section class="krok bez" id="offline">
+<div><h2><span class="n">6</span>Bez zasięgu: mapa offline</h2>
+<ul>
+<li>Na ekranie startowym stuknij <b>Pobierz mapę offline</b> (ok. 8 MB, najlepiej w domu na Wi-Fi). To mapa całego obszaru – lasy, wody, budynki i nazwy.</li>
+<li>Trasa liczy się w telefonie, więc w lesie bez zasięgu nawigacja dalej prowadzi. Mapa offline włącza się sama, gdy zabraknie internetu.</li>
+<li>Zaznacz „używaj zawsze”, jeśli chcesz oszczędzać internet.</li>
+</ul></div></section>
+
+<section class="krok bez" id="wiecej">
+<div><h2><span class="n">7</span>Moje przejazdy i nagrywanie trasy</h2>
+<ul>
+<li><b>Moje przejazdy</b> – historia Twoich jazd (ślad, długość, czas, prędkość). Zostaje <b>tylko w Twoim telefonie</b>, nigdzie jej nie wysyłamy.</li>
+<li><b>Nagraj trasę (bez celu)</b> – gdy jedziesz przed siebie: aplikacja zapisuje ślad, dystans i czas.</li>
+<li><b>Miejsca na mapie</b> – przyciskiem na mapie wybierzesz, które miejsca pokazywać (wiaty, serwisy, jedzenie…).</li>
+</ul></div></section>
+
+<section class="krok bez" id="problem">
+<div><h2><span class="n">8</span>Coś nie działa?</h2>
+<ul>
+<li><b>Nie słychać głosu</b> – w podglądzie trasy stuknij <b>Test głosu</b>. Jeśli cisza: głośność multimediów, a w ustawieniach Androida „Zamiana tekstu na mowę” – syntezator Google z językiem polskim.</li>
+<li><b>Trasa prowadzi dziwnie</b> albo droga jest zła – oceń ją (krok 5) albo napisz.</li>
+<li>Na dole ekranu startowego jest <b>Zgłoś błąd / sugestię</b> – możesz dołączyć trasę, przy której był kłopot. Czytamy wszystko.</li>
+</ul>
+<p class="muted">Więcej odpowiedzi: <a href="./#faq">Pytania i odpowiedzi</a> · Jak uzupełniać mapę na stronie: <a href="instrukcja-mapy.html">instrukcja mapy wspólnej</a> · <a href="polityka-prywatnosci.html">Polityka prywatności</a></p></div></section>
+</main>
+</body>
+</html>

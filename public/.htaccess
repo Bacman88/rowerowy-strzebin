@@ -1,0 +1,10 @@
+DirectoryIndex index.html index.php
+Options -Indexes
+<FilesMatch "^_">
+  Require all denied
+</FilesMatch>
+# panel i API nigdy z pamięci podręcznej serwera (LiteSpeed)
+<IfModule LiteSpeed>
+  RewriteEngine On
+  RewriteRule ^(admin|api)/ - [E=Cache-Control:no-cache]
+</IfModule>
