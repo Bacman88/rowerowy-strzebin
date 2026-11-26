@@ -9,7 +9,7 @@ const BUSY_RODZAJE = ['dojazd', 'przystanek', 'linia', 'godzina', 'uwaga'];
 const BUSY_DNI = ['robocze', 'sobota', 'niedziela', 'codziennie', ''];
 const BUSY_CZESTOSC = ['codziennie', 'kilka', 'czasem', ''];
 const BUSY_CEL = ['szkola', 'praca', 'lekarz', 'urzad', 'zakupy', 'kolej', 'inne', ''];
-const BUSY_LINIE = ['1', '2', '3', '4', '1L', '4S', '4P', 'nowa', ''];
+const BUSY_LINIE = ['1', '2', '3', '4', '5', '1L', '4S', '4P', 'nowa', ''];
 
 try {
     $db = hub_db();
